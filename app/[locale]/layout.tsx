@@ -14,7 +14,7 @@
 
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { type Locale } from "@/i18n";
+import { type Locale } from "@/i18n/routing";
 import PianoSidebar from "@/components/PianoSidebar/PianoSidebar";
 import { ActiveSectionProvider } from "@/context/ActiveSectionContext";
 
