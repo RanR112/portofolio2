@@ -8,8 +8,17 @@
 //
 // Note mapping: 8 keys = Do(C4) Re(D4) Mi(E4) Fa(F4) Sol(G4) La(A4) Si(B4) Do(C5)
 
-import { Activity, FolderGit2, Layers, LayoutDashboard, MessageSquareMore, Phone, Piano, User } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import {
+    Activity,
+    FolderGit2,
+    Layers,
+    LayoutDashboard,
+    MessageSquareMore,
+    Phone,
+    Piano,
+    User,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ReactNode } from "react";
 
 export type NavItem = {
@@ -23,71 +32,70 @@ export type NavItem = {
 
 export function useNavItems(): NavItem[] {
     const t = useTranslations("nav");
-    const locale = useLocale(); 
 
     return [
         {
             id: t("id.dashboard"),
             label: "dashboard",
-            route: `/${locale}`,
+            route: "/",
             note: "C4",
-            icon: <LayoutDashboard size={18}/>,
+            icon: <LayoutDashboard size={18} />,
             shortcut: t("label.dashboard"),
         },
         {
             id: t("id.about"),
             label: "about",
-            route: `/${locale}/about`,
+            route: "/about",
             note: "D4",
-            icon: <User size={18}/>,
+            icon: <User size={18} />,
             shortcut: t("label.about"),
         },
         {
             id: t("id.stack"),
             label: "stack",
-            route: `/${locale}/stack`,
+            route: "/stack",
             note: "E4",
-            icon: <Layers size={18}/>,
+            icon: <Layers size={18} />,
             shortcut: t("label.stack"),
         },
         {
             id: t("id.projects"),
             label: "projects",
-            route: `/${locale}/projects`,
+            route: "/projects",
             note: "F4",
-            icon: <FolderGit2 size={18}/>,
+            icon: <FolderGit2 size={18} />,
             shortcut: t("label.projects"),
         },
         {
             id: t("id.timeline"),
             label: "timeline",
-            route: `/${locale}/timeline`,
+            route: "/timeline",
             note: "G4",
-            icon: <Activity size={18}/>,
+            icon: <Activity size={18} />,
             shortcut: t("label.timeline"),
         },
         {
             id: t("id.music"),
             label: "music",
-            route: `/${locale}/music`,
+            route: "/music",
             note: "A4",
-            icon: <Piano size={18}/>,
+            icon: <Piano size={18} />,
             shortcut: t("label.music"),
         },
         {
             id: t("id.contact"),
             label: "contact",
-            route: `/${locale}/contact`,
+            route: "/contact",
             note: "B4",
-            icon: <Phone size={18}/>,
+            icon: <Phone size={18} />,
             shortcut: t("label.contact"),
         },
         {
             id: t("id.comments"),
             label: "comments",
-            route: `/${locale}/comments`,
+            route: "/comments",
             note: "C5",
-            icon: <MessageSquareMore size={18}/>,
+            icon: <MessageSquareMore size={18} />,
             shortcut: t("label.comments"),
         },
     ];

@@ -17,6 +17,7 @@ import { useActiveSectionContext } from "@/context/ActiveSectionContext";
 import styles from "./PianoSidebar.module.scss";
 import { Logo } from "@/assets/index.assets";
 import Image from "next/image";
+import { useLocale } from "next-intl";
 
 // ---- PianoKey — memoized ----
 
@@ -43,10 +44,11 @@ const PianoKey = memo(function PianoKey({
     onKeyDown,
     keyIndex,
 }: PianoKeyProps) {
+    const locale = useLocale();
     return (
         <li role="listitem">
             <Link
-                href={item.route}
+                href={`/${locale}${item.route === "/" ? "" : item.route}`}
                 className={[
                     styles.key,
                     isActive ? styles.keyActive : "",
@@ -89,7 +91,7 @@ export default function PianoSidebar() {
 
     const navItems = useNavItems();
 
-    console.log(navItems)
+    console.log(navItems);
 
     const navRef = useRef<HTMLElement>(null);
 
