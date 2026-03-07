@@ -1,14 +1,4 @@
-// i18n/routing.ts
-// Centralized routing config — imported by both middleware and navigation helpers.
-// Edge Runtime safe: only imports from 'next-intl/routing', zero Node.js APIs.
+export const locales = ["en", "id"] as const;
+export const defaultLocale = "en" as const;
 
-import { defineRouting } from "next-intl/routing";
-
-export const routing = defineRouting({
-    locales: ["en", "id"],
-    defaultLocale: "en",
-    localePrefix: "always",
-});
-
-export type Locale = (typeof routing.locales)[number];
-export const locales = routing.locales;
+export type Locale = (typeof locales)[number];

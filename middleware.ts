@@ -1,8 +1,12 @@
 // middleware.ts
 import createMiddleware from "next-intl/middleware";
-import { routing } from "./i18n/routing";
+import { locales, defaultLocale } from "./i18n/routing";
 
-export default createMiddleware(routing);
+export default createMiddleware({
+    locales,
+    defaultLocale,
+    localePrefix: "always",
+});
 
 export const config = {
     matcher: [
