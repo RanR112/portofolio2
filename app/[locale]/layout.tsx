@@ -1,3 +1,17 @@
+// app/[locale]/layout.tsx
+//
+// This layout wraps every localized page.
+// It sits INSIDE app/layout.tsx (which provides HTML/body/providers).
+//
+// Responsibilities:
+//   1. Validate the locale param (notFound() if invalid)
+//   2. Load the correct messages and wrap children with NextIntlClientProvider
+//   3. Pass locale to ActiveSectionProvider via locale prop (for link hrefs)
+//
+// app/layout.tsx  (root — html, body, PianoSidebar, RouteTransition)
+//   └─ app/[locale]/layout.tsx  (this file — i18n provider)
+//       └─ app/[locale]/*/page.tsx  (each page)
+
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { type Locale } from "@/i18n";
@@ -6,7 +20,7 @@ import { ActiveSectionProvider } from "@/context/ActiveSectionContext";
 
 type Props = {
     children: React.ReactNode;
-    params: Promise<{ locale: string }>;
+    params: { locale: string };
 };
 
 export function generateStaticParams() {
@@ -14,7 +28,7 @@ export function generateStaticParams() {
 }
 
 export default async function LocaleLayout({ children, params }: Props) {
-    const { locale } = await params;
+    const { locale } = params;
 
     const messages = await getMessages({ locale });
 

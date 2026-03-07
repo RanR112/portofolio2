@@ -11,11 +11,10 @@
 //   - Static asset passthrough (/_next, /api, /icons, etc.)
 
 import createMiddleware from "next-intl/middleware";
-import { locales, defaultLocale } from "./i18n/routing";
 
 export default createMiddleware({
-    locales,
-    defaultLocale,
+    locales: ["en", "id"],
+    defaultLocale: "en",
     // Store the user's locale choice in a cookie so it persists across sessions
     localePrefix: "always",
     // localeDetection: false,
