@@ -1,26 +1,18 @@
-// i18n/request.ts
-import { getRequestConfig } from 'next-intl/server'
+import { getRequestConfig } from "next-intl/server";
 import { routing, type Locale } from "./routing";
 
-// Explicit map — no dynamic path, no __dirname
-const messageImports = {
-    en: () => import("../messages/en.json"),
-    id: () => import("../messages/id.json"),
-} as const;
+// export const locales = ["en", "id"] as const;
+// export const defaultLocale = "en" as const;
 
-export default getRequestConfig(async ({ requestLocale }) => {
-    let locale = await requestLocale;
+// export type Locale = (typeof locales)[number];
 
-    if (!locale || !routing.locales.includes(locale as Locale)) {
-        locale = routing.defaultLocale;
-    }
-
+export default getRequestConfig(async ({ locale }) => {
+    // if (!locales.includes(locale as Locale)) notFound();
     const currentLocale =
         locale && routing.locales.includes(locale as Locale) ? locale : routing.defaultLocale;
 
-    const messages = (
-        await messageImports[locale as keyof typeof messageImports]()
-    ).default;
+    const messages = (await import(`../messages/${currentLocale}.json`))
+        .default;
 
     return {
         locale: currentLocale,
