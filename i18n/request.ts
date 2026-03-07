@@ -1,5 +1,5 @@
 // i18n/request.ts
-import { getRequestConfig } from "next-intl/server";
+import { getRequestConfig } from 'next-intl/server'
 import { routing } from "./routing";
 
 // Explicit map — no dynamic path, no __dirname
