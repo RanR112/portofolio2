@@ -1,23 +1,19 @@
-// i18n.ts
-// next-intl configuration — consumed by middleware and server components.
+// i18n/request.ts
+// Server-only. Never touched by middleware.
 
 import { getRequestConfig } from "next-intl/server";
-import { defaultLocale, locales, type Locale } from '../i18n'
+import { routing } from "./routing";
 
-// export const locales = ["en", "id"] as const;
-// export const defaultLocale = "en" as const;
+export default getRequestConfig(async ({ requestLocale }) => {
+    let locale = await requestLocale;
 
-// export type Locale = (typeof locales)[number];
-
-export default getRequestConfig(async ({ locale }) => {
-    // if (!locales.includes(locale as Locale)) notFound();
-    const currentLocale =
-        locale && locales.includes(locale as Locale) ? locale : defaultLocale;
-
-    const messages = (await import(`../messages/${currentLocale}.json`)).default;
+    // Fallback if locale is missing or invalid
+    if (!locale || !routing.locales.includes(locale as any)) {
+        locale = routing.defaultLocale;
+    }
 
     return {
-        locale: currentLocale,
-        messages,
+        locale,
+        messages: (await import(`../../messages/${locale}.json`)).default,
     };
 });
