@@ -7,7 +7,13 @@
 // only option here and is justified because they are runtime values, not static
 // design tokens.
 // ─────────────────────────────────────────────────────────────────────────────
-
+:global(:root) {
+    --wkw: 32px;
+    --wkh: 130px;
+    --bkw: calc(var(--wkw) * 0.62);
+    --bkh: calc(var(--wkh) * 0.62);
+    --bar-color: #{v.$accent};
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component root
@@ -47,7 +53,7 @@
     display: flex;
     align-items: flex-start;
     width: 100%;
-    height: calc(130px + 10px);
+    height: calc(var(--wkh) + 10px);
     box-sizing: border-box;
     overflow: hidden;
 
