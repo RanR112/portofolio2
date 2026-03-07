@@ -90,9 +90,6 @@ export default function PianoSidebar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const navItems = useNavItems();
-
-    console.log(navItems);
-
     const navRef = useRef<HTMLElement>(null);
 
     // Lock body scroll when mobile sidebar is open
