@@ -11,7 +11,7 @@
 //   - Static asset passthrough (/_next, /api, /icons, etc.)
 
 import createMiddleware from "next-intl/middleware";
-import { locales, defaultLocale } from "./i18n";
+import { locales, defaultLocale } from "./i18n/routing";
 
 export default createMiddleware({
     locales,
