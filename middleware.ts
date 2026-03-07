@@ -11,10 +11,11 @@
 //   - Static asset passthrough (/_next, /api, /icons, etc.)
 
 import createMiddleware from "next-intl/middleware";
+import { locales, defaultLocale } from "./i18n";
 
 export default createMiddleware({
-    locales: ["en", "id"],
-    defaultLocale: "en",
+    locales,
+    defaultLocale,
     // Store the user's locale choice in a cookie so it persists across sessions
     localePrefix: "always",
     // localeDetection: false,
@@ -22,5 +23,7 @@ export default createMiddleware({
 
 export const config = {
     // Run middleware on all routes except Next.js internals and static files
-    matcher: ["/((?!_next|api|.*\\..*).*)"],
+    matcher: [
+        "/((?!_next|_vercel|api|icons|images|og-image\\.png|site\\.webmanifest|.*\\..*).*)",
+    ],
 };

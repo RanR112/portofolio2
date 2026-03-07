@@ -2,10 +2,10 @@
 // next-intl configuration — consumed by middleware and server components.
 
 import { getRequestConfig } from "next-intl/server";
-import { locales, type Locale } from '../i18n'
+import { defaultLocale, locales, type Locale } from '../i18n'
 
 // export const locales = ["en", "id"] as const;
-export const defaultLocale = "en" as const;
+// export const defaultLocale = "en" as const;
 
 // export type Locale = (typeof locales)[number];
 
