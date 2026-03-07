@@ -22,7 +22,5 @@ export default createMiddleware({
 
 export const config = {
     // Run middleware on all routes except Next.js internals and static files
-    matcher: [
-        "/((?!_next|_vercel|api|icons|images|og-image\\.png|site\\.webmanifest|.*\\..*).*)",
-    ],
+    matcher: ["/((?!_next|api|.*\\..*).*)"],
 };
