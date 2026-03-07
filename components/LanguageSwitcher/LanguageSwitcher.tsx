@@ -15,7 +15,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "next-intl";
-import { locales } from "@/i18n";
+import { locales } from "@/i18n/routing";
 import styles from "./LanguageSwitcher.module.scss";
 
 export default function LanguageSwitcher() {
