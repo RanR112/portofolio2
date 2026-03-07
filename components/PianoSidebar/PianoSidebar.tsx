@@ -14,7 +14,6 @@ import Link from "next/link";
 import { useNavItems, type NavItem } from "@/lib/navItems";
 import { usePianoAudio } from "@/hooks/usePianoAudio";
 import { useActiveSectionContext } from "@/context/ActiveSectionContext";
-import ThemeToggle from "@/components/ThemeToggle/ThemeToggle";
 import styles from "./PianoSidebar.module.scss";
 import { Logo } from "@/assets/index.assets";
 import Image from "next/image";
