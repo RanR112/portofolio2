@@ -19,7 +19,7 @@
 //   On DELETE — remove the matching id from local state.
 //   This avoids a full re-fetch on every change.
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import {
     fetchComments,
@@ -73,6 +73,12 @@ export function useComments(currentUserId?: string): UseCommentsReturn {
                 return;
             }
 
+            if (!result.data) {
+                setComments([]);
+                setIsLoading(false);
+                return;
+            }
+
             setComments(
                 result.data.map((row) =>
                     enrichComment(row, currentUserIdRef.current),
@@ -89,9 +95,9 @@ export function useComments(currentUserId?: string): UseCommentsReturn {
 
     // Re-enrich when currentUserId changes (login/logout)
     // so isOwn flags update without a full re-fetch
-    useEffect(() => {
-        setComments((prev) => prev.map((c) => enrichComment(c, currentUserId)));
-    }, [currentUserId]);
+    const enrichedComments = useMemo(() => {
+        return comments.map((c) => enrichComment(c, currentUserId));
+    }, [comments, currentUserId]);
 
     // ---- Realtime subscription ----
     useEffect(() => {
@@ -197,7 +203,7 @@ export function useComments(currentUserId?: string): UseCommentsReturn {
             const refetch = await fetchComments();
             if (!refetch.error) {
                 setComments(
-                    refetch.data.map((row) =>
+                    (refetch.data ?? []).map((row) =>
                         enrichComment(row, currentUserIdRef.current),
                     ),
                 );
@@ -210,7 +216,7 @@ export function useComments(currentUserId?: string): UseCommentsReturn {
     const clearSubmitError = useCallback(() => setSubmitError(null), []);
 
     return {
-        comments,
+        comments: enrichedComments,
         isLoading,
         fetchError,
         submitError,
