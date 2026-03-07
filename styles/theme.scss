@@ -29,6 +29,10 @@
     --color-accent-glow: rgba(201, 168, 108, 0.2);
 
     // Piano keys
+    --wkw: 32px;
+    --wkh: 130px;
+    --bkw: calc(var(--wkw) * 0.62);
+    --bkh: calc(var(--wkh) * 0.62);
     --color-piano-white: #e8eaf0;
     --color-piano-black: #141518;
     --color-piano-active: var(--color-accent);
@@ -85,12 +89,6 @@
 
     // Modal backdrop
     --backdrop-bg: rgba(0, 0, 0, 0.65);
-
-    // Piano
-    --wkw: 32px;
-    --wkh: 130px;
-    --bkw: calc(var(--wkw) * 0.62);
-    --bkh: calc(var(--wkh) * 0.62);
 }
 
 // --- Light theme overrides ---
