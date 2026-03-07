@@ -85,6 +85,12 @@
 
     // Modal backdrop
     --backdrop-bg: rgba(0, 0, 0, 0.65);
+
+    // Piano
+    --wkw: 32px;
+    --wkh: 130px;
+    --bkw: calc(var(--wkw) * 0.62);
+    --bkh: calc(var(--wkh) * 0.62);
 }
 
 // --- Light theme overrides ---
