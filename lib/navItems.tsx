@@ -9,7 +9,7 @@
 // Note mapping: 8 keys = Do(C4) Re(D4) Mi(E4) Fa(F4) Sol(G4) La(A4) Si(B4) Do(C5)
 
 import { Activity, FolderGit2, Layers, LayoutDashboard, MessageSquareMore, Phone, Piano, User } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { ReactNode } from "react";
 
 export type NavItem = {
@@ -23,12 +23,13 @@ export type NavItem = {
 
 export function useNavItems(): NavItem[] {
     const t = useTranslations("nav");
+    const locale = useLocale(); 
 
     return [
         {
             id: t("id.dashboard"),
             label: "dashboard",
-            route: "/",
+            route: `/${locale}`,
             note: "C4",
             icon: <LayoutDashboard size={18}/>,
             shortcut: t("label.dashboard"),
@@ -36,7 +37,7 @@ export function useNavItems(): NavItem[] {
         {
             id: t("id.about"),
             label: "about",
-            route: "/about",
+            route: `/${locale}/about`,
             note: "D4",
             icon: <User size={18}/>,
             shortcut: t("label.about"),
@@ -44,7 +45,7 @@ export function useNavItems(): NavItem[] {
         {
             id: t("id.stack"),
             label: "stack",
-            route: "/stack",
+            route: `/${locale}/stack`,
             note: "E4",
             icon: <Layers size={18}/>,
             shortcut: t("label.stack"),
@@ -52,7 +53,7 @@ export function useNavItems(): NavItem[] {
         {
             id: t("id.projects"),
             label: "projects",
-            route: "/projects",
+            route: `/${locale}/projects`,
             note: "F4",
             icon: <FolderGit2 size={18}/>,
             shortcut: t("label.projects"),
@@ -60,7 +61,7 @@ export function useNavItems(): NavItem[] {
         {
             id: t("id.timeline"),
             label: "timeline",
-            route: "/timeline",
+            route: `/${locale}/timeline`,
             note: "G4",
             icon: <Activity size={18}/>,
             shortcut: t("label.timeline"),
@@ -68,7 +69,7 @@ export function useNavItems(): NavItem[] {
         {
             id: t("id.music"),
             label: "music",
-            route: "/music",
+            route: `/${locale}/music`,
             note: "A4",
             icon: <Piano size={18}/>,
             shortcut: t("label.music"),
@@ -76,7 +77,7 @@ export function useNavItems(): NavItem[] {
         {
             id: t("id.contact"),
             label: "contact",
-            route: "/contact",
+            route: `/${locale}/contact`,
             note: "B4",
             icon: <Phone size={18}/>,
             shortcut: t("label.contact"),
@@ -84,7 +85,7 @@ export function useNavItems(): NavItem[] {
         {
             id: t("id.comments"),
             label: "comments",
-            route: "/comments",
+            route: `/${locale}/comments`,
             note: "C5",
             icon: <MessageSquareMore size={18}/>,
             shortcut: t("label.comments"),
