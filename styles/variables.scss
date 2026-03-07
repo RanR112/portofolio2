@@ -1,0 +1,41 @@
+// ============================================================
+// styles/variables.scss
+// All design tokens as CSS custom properties.
+// Theming is done by overriding vars on [data-theme="light"].
+// Sass variables ($) are used only for non-themeable constants.
+// ============================================================
+
+// --- Sass constants (breakpoints, static values) ---
+$breakpoint-mobile: 640px;
+$breakpoint-tablet: 900px;
+$breakpoint-desktop: 1280px;
+
+$sidebar-width: 72px;
+$sidebar-width-tablet: 56px; // slightly narrower on tablet
+$topbar-height: 64px;
+$topbar-height-mobile: 56px; // shorter topbar on mobile
+
+// Section content max-widths
+$content-max-wide: 1100px;
+$content-max-narrow: 720px;
+
+$font-display: "Syne", sans-serif;
+$font-body: "DM Sans", sans-serif;
+$font-mono: "DM Mono", monospace;
+
+// Piano
+$bg: #0a0a0f;
+$surface: #111118;
+$surface2: #1a1a24;
+$border: #2a2a3a;
+$accent: #c9a86c;
+$accent2: #ff3d6b;
+$accent3: #c9a86c;
+$text: #e8e8f0;
+$text-dim: #6b6b88;
+
+$white-key-border: #b0a898;
+$white-key-bg: linear-gradient(180deg, #f4efe6 0%, #e9dcc6 40%, #fffaf2 100%);
+$white-key-bg-active: linear-gradient(180deg, #e6d2ad 0%, #d6b982 50%, #c9a86c 100%);
+$black-key-bg: linear-gradient(180deg, #2b2620 0%, #1f1a15 60%, #14110d 100%);
+$black-key-bg-active: linear-gradient(180deg, #c9a86c 0%, #a88447 60%, #7a5f2f 100%);

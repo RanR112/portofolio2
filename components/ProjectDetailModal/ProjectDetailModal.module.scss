@@ -1,0 +1,407 @@
+// components/ProjectDetailModal/ProjectDetailModal.module.scss
+
+@use "../../styles/variables" as *;
+
+// ============================================================
+// Backdrop — full-screen overlay
+// ============================================================
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200; // above everything (PianoSidebar z-100, Topbar z-50)
+
+    background-color: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-5);
+
+    // Entry animation
+    animation: backdropIn 200ms ease forwards;
+
+    @media (max-width: $breakpoint-mobile) {
+        padding: 0;
+        align-items: flex-end;
+    }
+}
+
+@keyframes backdropIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+// ============================================================
+// Dialog box
+// ============================================================
+
+.dialog {
+    position: relative;
+    width: 100%;
+    max-width: 840px;
+    max-height: 90vh;
+
+    background-color: var(--color-surface-1);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+
+    display: flex;
+    flex-direction: column;
+
+    // Entry animation — fade + slide up
+    animation: dialogIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+    transition:
+        background-color var(--transition-theme),
+        border-color var(--transition-theme);
+
+    @media (max-width: $breakpoint-mobile) {
+        max-height: 92vh;
+        border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    }
+}
+
+@keyframes dialogIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+// ============================================================
+// Close button — fixed inside dialog, top-right corner
+// ============================================================
+
+.closeBtn {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 10;
+
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border-default);
+    color: var(--color-text-muted);
+
+    transition:
+        color var(--transition-base),
+        background-color var(--transition-base),
+        border-color var(--transition-base),
+        background-color var(--transition-theme);
+
+    &:hover {
+        color: var(--color-text-primary);
+        background-color: var(--color-surface-3);
+        border-color: var(--color-border-strong);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+}
+
+// ============================================================
+// Scrollable content area
+// ============================================================
+
+.content {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding-bottom: var(--space-8);
+
+    // Custom scrollbar
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--color-border-strong);
+        border-radius: 4px;
+    }
+}
+
+// ============================================================
+// Thumbnail — top of modal, no padding
+// ============================================================
+
+.thumbnailWrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    // No border-radius here — dialog overflow:hidden clips it
+    flex-shrink: 0;
+}
+
+.thumbnail {
+    object-fit: cover;
+    transition: transform 0.4s ease;
+
+    .thumbnailWrap:hover & {
+        transform: scale(1.03);
+    }
+}
+
+// ============================================================
+// Header — meta + title + short description
+// ============================================================
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-inline: var(--space-7);
+    padding-block-start: var(--space-2);
+}
+
+.meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.year {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    letter-spacing: 0.06em;
+    transition: color var(--transition-theme);
+}
+
+.dot {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    transition: color var(--transition-theme);
+}
+
+.category {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    transition: color var(--transition-theme);
+    text-transform: uppercase;
+}
+
+.status {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+}
+
+.status--live {
+    color: #4caf8a;
+    border-color: rgba(76, 175, 138, 0.25);
+    background-color: rgba(76, 175, 138, 0.08);
+}
+
+.status--wip {
+    color: var(--color-accent);
+    border-color: var(--color-accent-dim);
+    background-color: var(--color-accent-dim);
+}
+
+.status--archived {
+    color: var(--color-text-muted);
+    border-color: var(--color-border-subtle);
+}
+
+.title {
+    font-family: $font-display;
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    line-height: 1.1;
+    transition: color var(--transition-theme);
+}
+
+.description {
+    font-size: var(--text-base);
+    font-weight: 300;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    transition: color var(--transition-theme);
+}
+
+// ============================================================
+// Section divider
+// ============================================================
+
+.divider {
+    height: 1px;
+    background-color: var(--color-border-subtle);
+    margin-inline: var(--space-7);
+    transition: background-color var(--transition-theme);
+}
+
+// ============================================================
+// Section label
+// ============================================================
+
+.sectionLabel {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-block-end: var(--space-3);
+    transition: color var(--transition-theme);
+}
+
+// ============================================================
+// Long description body
+// ============================================================
+
+.body {
+    padding-inline: var(--space-7);
+}
+
+.bodyText {
+    font-size: var(--text-base);
+    font-weight: 300;
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+    transition: color var(--transition-theme);
+}
+
+// ============================================================
+// Tech stack tags
+// ============================================================
+
+.stack {
+    padding-inline: var(--space-7);
+}
+
+.tagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.tag {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    letter-spacing: 0.04em;
+    color: var(--color-text-secondary);
+    padding: var(--space-1) var(--space-3);
+
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-full);
+
+    transition:
+        color var(--transition-theme),
+        background-color var(--transition-theme),
+        border-color var(--transition-theme);
+}
+
+// ============================================================
+// Action links — GitHub + Live Demo
+// ============================================================
+
+.links {
+    display: grid;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline: var(--space-7);
+    flex-wrap: wrap;
+}
+
+.linkBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    margin-right: var(--space-2);
+
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-decoration: none;
+
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    background-color: transparent;
+
+    transition:
+        color var(--transition-base),
+        border-color var(--transition-base),
+        background-color var(--transition-base),
+        transform var(--transition-fast);
+
+    &:hover {
+        color: var(--color-text-primary);
+        border-color: var(--color-border-strong);
+        background-color: var(--color-surface-2);
+        transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+}
+
+// Primary variant — accent fill for Live Demo
+.linkBtnPrimary {
+    background-color: var(--color-accent-dim);
+    border-color: rgba(201, 168, 108, 0.3);
+    color: var(--color-accent);
+
+    &:hover {
+        background-color: rgba(201, 168, 108, 0.18);
+        border-color: rgba(201, 168, 108, 0.5);
+        color: var(--color-accent-hover);
+    }
+}
+
+// ============================================================
+// Reduced motion
+// ============================================================
+
+@media (prefers-reduced-motion: reduce) {
+    .backdrop {
+        animation: none;
+    }
+    .dialog {
+        animation: none;
+    }
+}

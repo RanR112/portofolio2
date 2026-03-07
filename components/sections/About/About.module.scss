@@ -1,0 +1,160 @@
+// components/sections/About/About.module.scss
+
+@use "../../../styles/variables" as *;
+
+// ============================================================
+// Two-column layout
+// ============================================================
+
+.layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--space-12);
+    align-items: start;
+
+    @media (max-width: $breakpoint-tablet) {
+        grid-template-columns: 1fr 240px;
+        gap: var(--space-8);
+    }
+
+    @media (max-width: $breakpoint-mobile) {
+        // Single column — info card moves below bio on mobile
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+}
+
+// ============================================================
+// Left column — biography text
+// ============================================================
+
+.bioColumn {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.bioParagraph {
+    font-size: var(--text-md);
+    font-weight: 300;
+    line-height: 1.8;
+    color: var(--color-text-secondary);
+    transition: color var(--transition-theme);
+
+    // Emphasised inline text within paragraphs
+    strong {
+        font-weight: 500;
+        color: var(--color-text-primary);
+        transition: color var(--transition-theme);
+    }
+
+    @media (max-width: $breakpoint-mobile) {
+        font-size: var(--text-base);
+    }
+}
+
+// ============================================================
+// Right column — info card
+// ============================================================
+
+.infoColumn {
+    // Sticks to top of viewport while bio scrolls past (desktop only)
+    position: sticky;
+    top: calc(#{$topbar-height} + var(--space-8));
+
+    @media (max-width: $breakpoint-mobile) {
+        position: static;
+    }
+}
+
+.infoCard {
+    padding: var(--space-6);
+    background-color: var(--color-surface-1);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    transition:
+        background-color var(--transition-theme),
+        border-color var(--transition-theme);
+}
+
+.infoCardTitle {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-block-end: var(--space-5);
+    padding-block-end: var(--space-4);
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition:
+        color var(--transition-theme),
+        border-color var(--transition-theme);
+}
+
+// ============================================================
+// Info list — definition list
+// ============================================================
+
+.infoList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.infoItem {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.infoKey {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    font-weight: 400;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    transition: color var(--transition-theme);
+}
+
+.infoValue {
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--color-text-primary);
+    line-height: 1.4;
+    transition: color var(--transition-theme);
+}
+
+// Accent variant — used for "Open to work" status
+.infoValueAccent {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: #4caf8a; // green — not themed, intentionally constant
+
+    font-weight: 500;
+}
+
+// Pulsing green dot for "available" status
+.statusDot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: var(--radius-full);
+    background-color: #4caf8a;
+    flex-shrink: 0;
+
+    // Subtle pulse — draws attention without being distracting
+    animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.45;
+    }
+}

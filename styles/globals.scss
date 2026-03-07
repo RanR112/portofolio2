@@ -1,0 +1,260 @@
+// ============================================================
+// styles/globals.scss
+// Global resets, base element styles, and font loading.
+// No component-specific styles here — those live in .module.scss
+// ============================================================
+
+@use "./variables" as *;
+@use "./theme";
+
+// --- Google Fonts ---
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap");
+
+// --- Box model reset ---
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+// --- Root & HTML ---
+html {
+    scroll-behavior: smooth;
+    font-size: 100%; // 16px base — respect user preferences
+
+    // Match body background — eliminates the white flash that appears
+    // for ~1 frame before CSS custom properties resolve on first load.
+    // The value here is the dark-theme default; light theme overrides via
+    // data-theme="light" which is set synchronously in ThemeToggle.
+    background-color: #0e0f11;
+
+    // Respect reduced-motion preference: disable smooth scroll
+    // and all CSS transitions/animations globally
+    @media (prefers-reduced-motion: reduce) {
+        scroll-behavior: auto;
+    }
+}
+
+// --- Body ---
+body {
+    font-family: $font-body;
+    font-size: var(--text-base);
+    font-weight: 400;
+    line-height: 1.6;
+    background: rgba(0, 0, 0, 0.5);
+    color: var(--color-text-primary);
+
+    // Smooth theme transitions — only on intentional properties
+    transition:
+        background-color var(--transition-theme),
+        color var(--transition-theme);
+
+    // Prevent layout shift from scrollbar
+    overflow-x: hidden;
+
+    // Better font rendering
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+// Light theme: override html background to match — prevents flash on theme switch
+[data-theme="light"] html,
+[data-theme="light"] {
+    background-color: #f5f5f3;
+}
+
+// --- Reduced motion: kill all transitions and animations ---
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+.mainBackground {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    // right: 11px;
+    z-index: -1;
+    pointer-events: none;
+}
+
+// --- Skip navigation link (accessibility) ---
+// Visually hidden until focused via keyboard — lets keyboard/screen reader
+// users skip the sidebar and jump directly to main content.
+.skip-nav {
+    position: fixed;
+    top: var(--space-4);
+    left: var(--space-4);
+    z-index: 9999;
+
+    padding: var(--space-3) var(--space-5);
+    background-color: var(--color-accent);
+    color: var(--color-text-inverse);
+    border-radius: var(--radius-md);
+
+    font-family: $font-mono;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+
+    // Hidden until focused
+    transform: translateY(calc(-100% - var(--space-8)));
+    transition: transform var(--transition-base);
+
+    &:focus {
+        transform: translateY(0);
+        outline: 2px solid var(--color-text-inverse);
+        outline-offset: 2px;
+    }
+}
+
+// --- App shell — sidebar fixed left, content scrolls right ---
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    // Stretch all flex children to fill height — ensures PageTransition
+    // and PageShell both fill the viewport without explicit heights
+    align-items: stretch;
+}
+
+// --- Typography base ---
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: $font-display;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    transition: color var(--transition-theme);
+}
+
+p {
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    transition: color var(--transition-theme);
+}
+
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+    transition: color var(--transition-base);
+
+    &:hover {
+        color: var(--color-accent-hover);
+    }
+}
+
+// --- Button reset ---
+button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    padding: 0;
+    line-height: 1;
+}
+
+// --- Input reset ---
+input,
+textarea,
+select {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    border: none;
+    outline: none;
+    background: none;
+}
+
+// --- List reset ---
+ul,
+ol {
+    list-style: none;
+}
+
+// --- Image ---
+img,
+picture,
+video,
+canvas,
+svg {
+    display: block;
+    max-width: 100%;
+}
+
+// --- Focus visible — keyboard accessibility ---
+// High-contrast amber ring on focus — WCAG AA compliant
+:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+}
+
+// Suppress focus ring for mouse users (still visible for keyboard)
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+// --- Custom scrollbar ---
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: var(--radius-full);
+    transition: background var(--transition-theme);
+
+    &:hover {
+        background: var(--color-border-strong);
+    }
+}
+
+// Firefox scrollbar
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-surface-3) transparent;
+}
+
+// --- Utility: visually hidden (accessibility) ---
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+// --- Utility: text truncation ---
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

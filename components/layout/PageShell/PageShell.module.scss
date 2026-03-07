@@ -1,0 +1,34 @@
+// components/layout/PageShell/PageShell.module.scss
+// Mirrors MainContent.module.scss — shares same offset/wrapper pattern.
+
+@use "../../../styles/variables" as *;
+
+.wrapper {
+    // Fills the remaining width after the fixed sidebar.
+    // The sidebar is position:fixed so it's out of flow — but we still
+    // need margin-inline-start to push content clear of it.
+    flex: 1;
+    min-width: 0; // prevent flex blowout on narrow viewports
+    margin-inline-start: $sidebar-width;
+    min-height: 100vh;
+    min-width: 95%;
+    display: flex;
+    flex-direction: column;
+    transition:
+        margin-inline-start var(--transition-slow),
+        background-color var(--transition-theme);
+
+    @media (max-width: $breakpoint-tablet) {
+        margin-inline-start: $sidebar-width-tablet;
+    }
+
+    @media (max-width: $breakpoint-mobile) {
+        margin-inline-start: 0;
+    }
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}

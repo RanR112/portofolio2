@@ -1,0 +1,164 @@
+@use "../../../styles/variables.scss" as v;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// White key
+// ─────────────────────────────────────────────────────────────────────────────
+.whiteKey {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    height: var(--wkh);
+    background: v.$white-key-bg;
+    border-right: 1px solid v.$white-key-border;
+    border-bottom: 1px solid v.$white-key-border;
+    border-top: none;
+    border-left: none;
+    border-radius: 0 0 5px 5px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: max(4px, calc(var(--wkh) * 0.05));
+    box-shadow:
+        inset 0 -3px 6px rgba(0, 0, 0, 0.15),
+        2px 4px 8px rgba(0, 0, 0, 0.4);
+    transition:
+        background 0.05s,
+        box-shadow 0.05s;
+    z-index: 1;
+    touch-action: none;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    &.firstKey {
+        border-left: 1px solid v.$white-key-border;
+    }
+
+    &.active {
+        background: v.$white-key-bg-active;
+        box-shadow:
+            inset 0 -3px 6px rgba(201, 168, 108, 0.25),
+            0 0 15px rgba(201, 168, 108, 0.45),
+            2px 4px 8px rgba(0, 0, 0, 0.4);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Black key
+// ─────────────────────────────────────────────────────────────────────────────
+.blackKey {
+    position: absolute;
+    top: 0;
+    width: var(--bkw);
+    height: var(--bkh);
+    transform: translateX(-50%);
+    background: v.$black-key-bg;
+    border: 1px solid #000;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: max(3px, calc(var(--bkh) * 0.05));
+    z-index: 2;
+    box-shadow:
+        inset 0 -2px 4px rgba(255, 255, 255, 0.05),
+        3px 6px 12px rgba(0, 0, 0, 0.7);
+    transition:
+        background 0.05s,
+        box-shadow 0.05s;
+    touch-action: none;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    &.active {
+        background: v.$black-key-bg-active;
+        box-shadow:
+            inset 0 -3px 6px rgba(201, 168, 108, 0.25),
+            0 0 15px rgba(201, 168, 108, 0.45),
+            2px 4px 8px rgba(0, 0, 0, 0.4);
+
+        .keyLabel {
+            color: rgba(255, 255, 255, 0.9);
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Labels — white key
+// ─────────────────────────────────────────────────────────────────────────────
+.whiteKey .keyLabel {
+    font-family: v.$font-mono;
+    font-size: max(0.38rem, calc(var(--wkw) * 0.14));
+    font-weight: 700;
+    color: #444;
+    text-align: center;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+
+    @media (min-width: 1024px) {
+        font-size: 0.72rem;
+    }
+}
+
+.whiteKey .noteLabel {
+    font-family: v.$font-body;
+    font-size: max(0.3rem, calc(var(--wkw) * 0.11));
+    color: #888;
+    text-align: center;
+    margin-top: 2px;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+
+    @media (min-width: 1024px) {
+        font-size: 0.58rem;
+    }
+    @media (max-width: 600px) {
+        display: none;
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Labels — black key
+// ─────────────────────────────────────────────────────────────────────────────
+.blackKey .keyLabel {
+    font-family: v.$font-mono;
+    font-size: max(0.3rem, calc(var(--bkw) * 0.18));
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+
+    @media (min-width: 1024px) {
+        font-size: 0.58rem;
+    }
+}
+
+.blackKey .noteLabel {
+    font-family: v.$font-body;
+    font-size: max(0.26rem, calc(var(--bkw) * 0.14));
+    color: rgba(255, 255, 255, 0.3);
+    text-align: center;
+    margin-top: 1px;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+
+    @media (min-width: 1024px) {
+        font-size: 0.46rem;
+    }
+    @media (max-width: 600px) {
+        display: none;
+    }
+}

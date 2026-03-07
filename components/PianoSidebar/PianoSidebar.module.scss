@@ -1,0 +1,389 @@
+// components/PianoSidebar/PianoSidebar.module.scss
+
+@use "../../styles/variables" as *;
+
+// ============================================================
+// Hamburger button — only visible on mobile
+// ============================================================
+
+.hamburger {
+    display: none; // hidden on desktop/tablet
+
+    position: fixed;
+    top: calc((#{$topbar-height-mobile} - 36px) / 2);
+    left: var(--space-4);
+    z-index: 150; // above sidebar backdrop, below modal
+
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-default);
+
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+
+    align-items: center;
+    justify-content: center;
+
+    transition:
+        background-color var(--transition-base),
+        border-color var(--transition-base),
+        color var(--transition-base),
+        background-color var(--transition-theme);
+    transition: all 0.2s linear;
+
+    &:hover {
+        background-color: var(--color-surface-2);
+        color: var(--color-text-primary);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+
+    @media (max-width: $breakpoint-mobile) {
+        display: flex;
+    }
+}
+
+.open {
+    transform: translateX(var(--space-16));
+    transition: all 0.2s linear;
+}
+
+// ============================================================
+// Mobile backdrop
+// ============================================================
+
+.mobileBackdrop {
+    display: none;
+
+    @media (max-width: $breakpoint-mobile) {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 98;
+        background-color: var(--backdrop-bg);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        animation: fadeIn 200ms ease both;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+// ============================================================
+// Sidebar shell
+// ============================================================
+
+.sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 100;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: $sidebar-width;
+
+    background-color: var(--color-bg-secondary);
+    border-right: 1px solid var(--color-border-subtle);
+
+    transition:
+        background-color var(--transition-theme),
+        border-color var(--transition-theme),
+        transform var(--transition-slow),
+        width var(--transition-slow);
+
+    overflow: hidden;
+
+    // ---- Tablet — slightly narrower ----
+    @media (max-width: $breakpoint-tablet) {
+        width: $sidebar-width-tablet;
+    }
+
+    // ---- Mobile — hidden off-screen until toggled ----
+    @media (max-width: $breakpoint-mobile) {
+        width: $sidebar-width; // restore full width when revealed as drawer
+        transform: translateX(-100%);
+        box-shadow: none;
+    }
+}
+
+// Visible state on mobile
+.sidebarOpen {
+    @media (max-width: $breakpoint-mobile) {
+        transform: translateX(0);
+        box-shadow: var(--shadow-xl);
+    }
+}
+
+// ============================================================
+// Logo area
+// ============================================================
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: $topbar-height;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition: border-color var(--transition-theme);
+
+    @media (max-width: $breakpoint-mobile) {
+        height: $topbar-height-mobile;
+    }
+}
+
+.logoMark {
+    color: var(--color-text-primary);
+    transition: color var(--transition-theme);
+}
+
+// ============================================================
+// Nav + key list
+// ============================================================
+
+.nav {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-block: var(--space-3);
+    overflow-y: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+.keyList {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    list-style: none;
+
+    li {
+        display: contents;
+    }
+}
+
+// ============================================================
+// Piano keys — white keys only (Step 10)
+// ============================================================
+
+.key {
+    // Reset link appearance
+    text-decoration: none;
+
+    position: relative;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    height: 56px;
+
+    background-color: transparent;
+    color: var(--color-text-muted);
+
+    transition:
+        background-color var(--transition-base),
+        color var(--transition-base);
+
+    overflow: visible;
+
+    &:hover {
+        background-color: var(--color-bg-elevated);
+        color: var(--color-text-secondary);
+
+        .keyTooltip {
+            opacity: 1;
+            transform: translateY(-50%) translateX(0);
+            pointer-events: auto;
+        }
+
+        .keyShortcut {
+            opacity: 1;
+        }
+
+        .keyNotch {
+            height: 32px;
+            background-color: var(--color-border-strong);
+        }
+
+        .keyIcon {
+            transform: translateY(-5px);
+            transition: all 0.2s linear;
+        }
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: -2px;
+    }
+
+    @media (max-width: $breakpoint-tablet) {
+        height: 48px;
+    }
+}
+
+.keyActive {
+    color: var(--color-accent);
+
+    .keyNotch {
+        height: 36px;
+        background-color: var(--color-accent);
+        width: 3px;
+    }
+
+    .keyIcon {
+        opacity: 1;
+    }
+}
+
+.keyPressed {
+    animation: keyStrike 180ms ease-out forwards;
+}
+
+@keyframes keyStrike {
+    0% {
+        background-color: var(--color-accent-dim);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+// ============================================================
+// Key sub-elements
+// ============================================================
+
+.keyNotch {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 0;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    background-color: transparent;
+    transition:
+        height var(--transition-base),
+        background-color var(--transition-base);
+}
+
+.keyIcon {
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.6;
+    transition: opacity var(--transition-base);
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    margin-bottom: 5px;
+    transition: all 0.2s linear;
+
+    .keyActive & {
+        opacity: 1;
+    }
+
+    @media (max-width: $breakpoint-tablet) {
+        font-size: 12px;
+    }
+}
+
+.keyShortcut {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    line-height: 1;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    opacity: 0;
+    transition: opacity var(--transition-base);
+    position: relative;
+    z-index: 1;
+    transform: translateY(-7px);
+}
+
+// Tooltip — appears to the right, hidden on mobile (not enough space)
+.keyTooltip {
+    position: absolute;
+    inset-inline-start: calc(100% + var(--space-3));
+    inset-block-start: 50%;
+    transform: translateY(-50%) translateX(-6px);
+
+    background-color: var(--color-surface-2);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+
+    font-family: $font-body;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+
+    box-shadow: var(--shadow-md);
+
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity var(--transition-base),
+        transform var(--transition-base);
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset-inline-end: 100%;
+        inset-block-start: 50%;
+        transform: translateY(-50%);
+        border: 5px solid transparent;
+        border-inline-end-color: var(--color-border-default);
+    }
+
+    &::after {
+        content: "";
+        position: absolute;
+        inset-inline-end: 100%;
+        inset-block-start: 50%;
+        transform: translateY(-50%) translateX(2px);
+        border: 5px solid transparent;
+        border-inline-end-color: var(--color-surface-2);
+    }
+
+    // Hide tooltip when sidebar is in mobile overlay mode
+    @media (max-width: $breakpoint-mobile) {
+        display: none;
+    }
+}
+
+// ============================================================
+// Bottom controls
+// ============================================================
+
+.bottom {
+    width: 100%;
+    padding-block: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    border-top: 1px solid var(--color-border-subtle);
+    flex-shrink: 0;
+    transition: border-color var(--transition-theme);
+}

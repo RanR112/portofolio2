@@ -1,0 +1,267 @@
+@use "../../../styles/variables.scss" as v;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Header bar
+// ─────────────────────────────────────────────────────────────────────────────
+.header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 20px;
+    background: v.$surface;
+    border-bottom: 1px solid v.$border;
+    z-index: 100;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+
+    @media (max-width: 900px) {
+        padding: 7px 12px;
+        gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+        padding: 6px 8px;
+        gap: 7px;
+    }
+}
+
+.logo {
+    font-family: v.$font-display;
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    color: v.$accent;
+    text-shadow: 0 0 20px rgba(201, 168, 108, 0.4);
+    flex: 0 0 auto;
+    line-height: 1;
+
+    @media (max-width: 900px) {
+        font-size: 1.4rem;
+    }
+}
+
+.divider {
+    width: 1px;
+    height: 36px;
+    background: v.$border;
+    flex: 0 0 auto;
+
+    @media (max-width: 900px) {
+        height: 26px;
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Control group
+// ─────────────────────────────────────────────────────────────────────────────
+.controlGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.ctrlLabel {
+    font-family: v.$font-mono;
+    font-size: 0.65rem;
+    color: v.$text-dim;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+
+    @media (max-width: 600px) {
+        display: none;
+    }
+}
+
+.ctrlValue {
+    font-family: v.$font-mono;
+    font-size: 0.9rem;
+    color: v.$accent;
+    min-width: 36px;
+    text-align: center;
+}
+
+.ctrlBtn {
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    color: v.$text;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    font-family: v.$font-mono;
+
+    &:hover {
+        border-color: v.$accent;
+        color: v.$accent;
+    }
+    &:active {
+        transform: scale(0.92);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Volume slider
+// ─────────────────────────────────────────────────────────────────────────────
+.volumeSlider {
+    -webkit-appearance: none;
+    width: 90px;
+    height: 4px;
+    background: v.$border;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+
+    @media (max-width: 900px) {
+        width: 68px;
+    }
+    @media (max-width: 600px) {
+        width: 56px;
+    }
+
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: v.$accent;
+        cursor: pointer;
+        box-shadow: 0 0 8px rgba(201, 168, 108, 0.6);
+    }
+    &::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: v.$accent;
+        cursor: pointer;
+        border: none;
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Transpose slider
+// ─────────────────────────────────────────────────────────────────────────────
+.transposeSlider {
+    -webkit-appearance: none;
+    width: 90px;
+    height: 4px;
+    background: v.$border;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+
+    @media (max-width: 900px) {
+        width: 68px;
+    }
+    @media (max-width: 600px) {
+        width: 56px;
+    }
+
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: v.$accent;
+        cursor: pointer;
+        box-shadow: 0 0 8px rgba(201, 168, 108, 0.6);
+    }
+    &::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: v.$accent;
+        cursor: pointer;
+        border: none;
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sustain button + LED
+// ─────────────────────────────────────────────────────────────────────────────
+.sustainBtn {
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    color: v.$text-dim;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: v.$font-mono;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &.active {
+        background: rgba(255, 61, 107, 0.15);
+        border-color: v.$accent2;
+        color: v.$accent2;
+        box-shadow: 0 0 12px rgba(255, 61, 107, 0.3);
+
+        .led {
+            background: v.$accent2;
+            box-shadow: 0 0 6px v.$accent2;
+        }
+    }
+}
+
+.led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: v.$text-dim;
+    transition: all 0.15s;
+}
+
+.keyHint {
+    font-family: v.$font-mono;
+    font-size: 0.55rem;
+    color: v.$text-dim;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bar color swatches
+// ─────────────────────────────────────────────────────────────────────────────
+.colorSwatches {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition:
+        transform 0.12s,
+        border-color 0.12s;
+    flex-shrink: 0;
+
+    &:hover {
+        transform: scale(1.2);
+    }
+
+    &.selected {
+        border-color: #fff;
+        transform: scale(1.15);
+        box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+    }
+}
+
+.close {
+    margin-left: auto;
+}

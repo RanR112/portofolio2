@@ -1,0 +1,401 @@
+{
+    "nav": {
+        "id": {
+            "dashboard": "dashboard",
+            "about": "about",
+            "stack": "tech stack",
+            "projects": "projects",
+            "timeline": "timeline",
+            "music": "music",
+            "contact": "contact",
+            "comments": "comments"
+        },
+        "label": {
+            "dashboard": "Dashboard",
+            "about": "About",
+            "stack": "Tech Stack",
+            "projects": "Projects",
+            "timeline": "Timeline",
+            "music": "Music",
+            "contact": "Contact",
+            "comments": "Comments"
+        }
+    },
+    "topbar": {
+        "available": "available for work",
+        "dashboard": "Dashboard",
+        "about": "About",
+        "stack": "Tech Stack",
+        "projects": "Projects",
+        "timeline": "Timeline",
+        "music": "Music",
+        "contact": "Contact",
+        "comments": "Comments"
+    },
+    "dashboard": {
+        "label": "01 — Home",
+        "title": "Randy Rafael",
+        "subtitle": "Full Stack Developer focused on building reliable end-to-end web applications, turning ideas into practical systems through clean code and thoughtful design.",
+        "stats": {
+            "years": "Years coding",
+            "projects": "Projects built",
+            "focus": "Fullstack focus",
+            "stack": "Technologies used"
+        }
+    },
+    "about": {
+        "label": "02 — About",
+        "title": "About me.",
+        "subtitle": "A bit about who I am, what I do, and how I got here.",
+        "bio1": "Hi! I'm a Full Stack Developer with a strong interest in building end-to-end web applications that are both functional and user-centered.",
+        "bio2": "Currently pursuing a degree in Information Systems, I actively deepen my technical skills beyond the classroom through self-directed learning and hands-on projects. This approach has allowed me to gain practical experience in both frontend and backend development, working with modern technologies and real-world use cases.",
+        "bio3": "I've worked on personal, collaborative, and professional projects involving responsive user interfaces, RESTful APIs, and full-stack web systems using tools such as React, Express.js, Laravel, and related web technologies. I enjoy breaking down complex problems, learning new concepts, and transforming ideas into reliable and maintainable applications.",
+        "bio4": "My interests include full-stack web development, software architecture, and building scalable solutions that deliver meaningful impact for users and organizations.",
+        "bio5": "I'm continuously looking to grow, contribute to real-world projects, and collaborate with people in the tech community.",
+        "infoCard": {
+            "title": "Quick info",
+            "location": "Location",
+            "locationValue": "Indonesia",
+            "role": "Role",
+            "roleValue": "Frontend, Backend, Fullstack",
+            "stack": "Primary Stack",
+            "stackValue": "React, Express, TypeScript",
+            "available": "Availability",
+            "availableValue": "Open to freelance & collaborations",
+            "focus": "Focus",
+            "focusValue": "Web Systems & Backend Architecture",
+            "education": "Education",
+            "educationValue": "B.S. Information Systems (In Progress)",
+            "status": "Status",
+            "statusValue": "Open to work"
+        }
+    },
+    "stack": {
+        "label": "03 — Stack",
+        "title": "Tech stack.",
+        "subtitle": "Tools and technologies I work with regularly."
+    },
+    "projects": {
+        "label": "04 — Projects",
+        "title": "All Projects.",
+        "subtitle": "Things I've built, from production apps to side experiments.",
+        "viewDetails": "Details",
+        "heading": "Featured projects",
+        "viewAll": "View all projects",
+        "status": {
+            "live": "Live",
+            "wip": "In Progress",
+            "archived": "Archived"
+        },
+        "modal": {
+            "overview": "About this project",
+            "techStack": "Tech stack",
+            "links": "Project links",
+            "github": "GitHub Repository",
+            "liveDemo": "Live Demo",
+            "close": "Close project details"
+        },
+        "items": {
+            "enerkomp": {
+                "description": "A modern corporate website with a custom admin dashboard for managing company content, built to improve performance, usability, and responsiveness.",
+                "longDescription": "Enerkomp is a redesigned corporate website built to modernize the company's online presence and improve user experience across devices. The project includes a custom admin dashboard developed with React and Express, allowing the team to manage content efficiently without relying on external CMS platforms. The site focuses on performance, accessibility, and maintainability, while ensuring the interface aligns with the company's branding and marketing goals through close collaboration with the business team."
+            },
+            "kanban-request": {
+                "description": "An internal Kanban-based request management system that digitalizes employee requests with authentication, approval workflows, and status tracking.",
+                "longDescription": "The Kanban Request System is an internal web application designed to streamline operational request management within the organization. Employees can submit requests through a dynamic Kanban-style form, while managers review and approve them through a structured workflow. The platform includes secure user authentication, role-based access control, and real-time status tracking for each request. Built with React.js, Express.js, Node.js, and MySQL, the system replaces manual processes with a centralized digital solution that improves transparency and operational efficiency."
+            },
+            "teater-bara": {
+                "description": "A cinematic portfolio website for a theatre organization featuring interactive galleries, animated storytelling elements, and a dynamic content system.",
+                "longDescription": "Teater Bara is a premium portfolio website designed to present the theatre organization's works through a cinematic and immersive digital experience. The site includes interactive components such as a filterable gallery, animated timeline, 3D flip cards, and responsive navigation with a mobile-friendly hamburger menu. Gallery images are automatically fetched using the Google Drive API, with categories dynamically generated from the folder structure to simplify content management. Built with React, TypeScript, and SCSS Modules, the project emphasizes a cohesive black-and-white design system, smooth animations, and fully responsive layouts across desktop, tablet, and mobile devices."
+            },
+            "drive-gallery-system": {
+                "description": "A dynamic gallery system integrated with Google Drive API that automatically fetches and organizes images with filtering, previews, and progressive loading.",
+                "longDescription": "Dynamic Gallery System is a full-stack gallery solution designed to manage and deliver image content directly from Google Drive. The frontend is built with React and TypeScript, while a dedicated API service layer handles communication with the Google Drive API to retrieve images dynamically. Categories are automatically generated from the folder structure, enabling seamless filtering and browsing of gallery content. The system includes advanced features such as parallel data fetching for improved performance, progressive loading with pagination, animated scroll-based transitions, and an interactive image preview modal with keyboard navigation. A flexible architecture and comprehensive TypeScript typing ensure maintainability, while a mock data layer allows development and testing without backend dependencies."
+            },
+            "bala-teater": {
+                "description": "A theatre registration website with Google Sheets-based data management, redesigned to deliver a more modern interface, improved performance, and enhanced registration features.",
+                "longDescription": "Bala Teater is a registration website developed to introduce the theatre organization and streamline the participant registration process. The platform uses Google Sheets as a lightweight database through AppScript integration, enabling non-technical administrators to easily manage registration data. The application was initially built with React and Sass, focusing on a clear and user-friendly interface. In a later redesign, the website was upgraded with a more dynamic and modern design, improved performance, and additional features including automated email notifications for registrants. These improvements enhanced both the user experience and the efficiency of managing registration data."
+            },
+            "tetris": {
+                "description": "A browser-based implementation of the classic Tetris puzzle game where players arrange falling blocks to clear lines and achieve the highest score.",
+                "longDescription": "This project is a web-based recreation of the classic Tetris puzzle game, where players control falling block shapes and strategically arrange them to complete horizontal lines. When a line is filled, it clears from the board and increases the player's score. The game focuses on smooth gameplay mechanics, responsive controls, and clear visual feedback for an engaging user experience. Built using React, JavaScript, and SCSS, the project demonstrates interactive UI development and real-time game state management in the browser."
+            },
+            "typing-test": {
+                "description": "A browser-based typing practice tool that measures typing speed and accuracy through timed exercises.",
+                "longDescription": "Typing Test is a web-based application designed to help users practice and evaluate their typing skills through timed typing exercises. The tool measures typing speed and accuracy in real time, allowing users to track their performance as they type. With a clean interface and responsive feedback, the application provides an engaging environment for improving typing proficiency. Built using React, JavaScript, and SCSS, the project demonstrates interactive UI development and real-time input handling within the browser."
+            },
+            "wj-tour": {
+                "description": "A tourism website showcasing destinations in West Java, designed to provide visitors with accessible information about attractions and travel opportunities.",
+                "longDescription": "WJ Tour is a tourism website developed to present destinations and travel information across West Java. The platform is designed to help users explore attractions, discover travel opportunities, and access relevant information in a clear and engaging interface. Built with a full-stack architecture using React for the frontend and Node.js with Express.js for the backend, the application uses MySQL for data management. The project emphasizes responsive design, structured data handling, and a scalable architecture suitable for content-driven tourism platforms."
+            },
+            "bimba-ife": {
+                "description": "A promotional landing page developed to introduce and promote a Bimba IFE branch with an engaging and cheerful design.",
+                "longDescription": "Bimba IFE is a promotional landing page created to support the online presence of a Bimba IFE learning center branch. The website focuses on presenting information about the program in a clear and friendly way while encouraging potential students and parents to learn more about the services offered. The interface was designed to be engaging and cheerful to reflect the educational environment for children. Built using React and Sass, the project emphasizes responsive layout, clean component structure, and a visually approachable design tailored to the client's needs."
+            },
+            "toko-online": {
+                "description": "An e-commerce web application developed as a university project featuring product browsing, shopping functionality, and a built-in CMS for managing store content.",
+                "longDescription": "Toko Online is a web-based e-commerce application developed as part of a university project. The platform allows users to browse products, view product details, and simulate a typical online shopping experience. In addition to the customer-facing store interface, the project also includes a content management system (CMS) that enables administrators to manage products and store information efficiently. Built using Laravel, the application demonstrates fundamental concepts of web development such as database-driven content, CRUD operations, and separation between user and admin functionality."
+            },
+            "galatix": {
+                "description": "A cinema ticket booking web application with separate customer and admin interfaces, built using the MERN stack.",
+                "longDescription": "Galatix is a web-based cinema ticket booking application designed to simulate an online movie ticket reservation system. The platform includes a customer interface where users can browse available movies, view show schedules, and book tickets. In addition, an admin dashboard allows administrators to manage movies, schedules, and ticket availability. Built using the MERN stack (MongoDB, Express.js, React, and Node.js), the project demonstrates full-stack development with a clear separation between user-facing features and administrative management tools."
+            }
+        }
+    },
+    "timeline": {
+        "label": "05 — Timeline",
+        "title": "How I got here.",
+        "subtitle": "A structured account of the phases that shaped the way I build software.",
+        "current": "Current",
+        "mode": {
+            "journey": "Journey",
+            "career": "Career"
+        },
+        "journey": {
+            "exploration": {
+                "phase": "Phase 01",
+                "title": "First Exposure to Programming",
+                "description": "My journey into programming began unexpectedly. During high school I had little interest in technology and did not even own a laptop. I originally planned to study statistics, but after failing the entrance path I decided to enroll in the Information Systems program at Universitas Bina Sarana Informatika. Entering a technology major without any prior experience made me feel unprepared, so I started learning programming independently using only my phone. During this time I explored the basics of Python as well as HTML and CSS, building my first understanding of how software and web pages work.",
+                "highlights": [
+                    "Started learning programming independently without a laptop",
+                    "Self-studied Python fundamentals",
+                    "Learned basic HTML and CSS using only a mobile device",
+                    "Developed initial curiosity about how software and websites work"
+                ]
+            },
+            "structured": {
+                "phase": "Phase 02",
+                "title": "Academic Foundations",
+                "description": "In my first semester at university I finally obtained my first laptop, which significantly expanded my ability to experiment with code. Through coursework I learned programming fundamentals including Python, algorithms, and problem-solving techniques. At the same time my curiosity about web development grew stronger, leading me to begin learning JavaScript and exploring how interactive websites are built.",
+                "highlights": [
+                    "First personal laptop enabled deeper coding practice",
+                    "Learned programming fundamentals through university coursework",
+                    "Studied algorithms and computational thinking",
+                    "Began exploring JavaScript and interactive web development"
+                ]
+            },
+            "creative": {
+                "phase": "Phase 03",
+                "title": "Independent Project Building",
+                "description": "By the second semester I felt that the learning pace from formal modules was too slow for my curiosity. I began exploring React independently and started applying it to my academic assignments, even when the projects were originally intended to use basic HTML, CSS, and JavaScript. During this phase I also built a website for my former high school theater organization, Bala Teater, and completed a freelance project to develop a website for Bimba IFE, marking my first experience working with real clients.",
+                "highlights": [
+                    "Self-learned React outside of formal coursework",
+                    "Applied React to academic projects beyond course requirements",
+                    "Developed Bala Teater organization website",
+                    "Completed freelance website project for Bimba IFE"
+                ]
+            },
+            "systems": {
+                "phase": "Phase 04",
+                "title": "Backend and System Development",
+                "description": "After gaining confidence in frontend development, I began focusing more deeply on backend engineering. I expanded my JavaScript knowledge and started building server-side systems using Express.js, Prisma, and MongoDB. During this time I developed a Kanban Request System website for PT Automotive Fasteners Aoyama Indonesia. A few months later I also participated in the IT Bootcamp competition 'Software Development for Industry' organized by my university, where my team achieved 3rd place.",
+                "highlights": [
+                    "Transitioned from frontend focus to backend development",
+                    "Built backend systems with Express.js, Prisma, and MongoDB",
+                    "Developed Kanban Request System for PT Automotive Fasteners Aoyama Indonesia",
+                    "Won 3rd place in the 'Software Development for Industry' IT Bootcamp"
+                ]
+            },
+            "production": {
+                "phase": "Phase 05",
+                "title": "Professional Engineering Experience",
+                "description": "In the fifth semester, students were required to complete an internship. I joined PT Enerkomp Persada Raya where I was responsible for redesigning the company's profile website. During this project I used the opportunity to learn TypeScript and expand the scope of the system beyond a simple company profile site. The final project included not only the public-facing website but also a custom backend and CMS. I worked with one teammate who focused on frontend development while I primarily handled backend architecture and system logic.",
+                "highlights": [
+                    "Internship at PT Enerkomp Persada Raya",
+                    "Redesigned company profile website architecture",
+                    "Learned and applied TypeScript in production development",
+                    "Built custom CMS and backend system",
+                    "Collaborated in a small development team with separated roles"
+                ]
+            }
+        },
+        "career": {
+            "bala-teater-initial": {
+                "phase": "Phase 01",
+                "title": "First Client Project",
+                "description": "Started professional work by developing a registration website for a theatre organization. The project focused on delivering a simple and practical system for non-technical users, using Google Sheets as a lightweight database through AppScript integration.",
+                "highlights": [
+                    "Developed a registration website using React and Sass",
+                    "Integrated Google Sheets as a lightweight backend database",
+                    "Designed a simple and user-friendly interface for non-technical users",
+                    "Delivered a working system used by a real organization"
+                ]
+            },
+            "bimba-ife": {
+                "phase": "Phase 02",
+                "title": "Client Website Development",
+                "description": "Worked directly with a client who owned a Bimba IFE branch to build a promotional landing page. The project focused on creating an engaging and cheerful interface tailored to an educational environment.",
+                "highlights": [
+                    "Built a promotional landing page using React and Sass",
+                    "Designed a cheerful interface aligned with children's education branding",
+                    "Collaborated directly with the client to understand requirements",
+                    "Delivered a responsive and user-friendly marketing website"
+                ]
+            },
+            "bala-teater-redesign": {
+                "phase": "Phase 03",
+                "title": "Website Redesign & Feature Expansion",
+                "description": "Returned to the Bala Teater project to improve the existing platform. The website was redesigned to provide a more modern interface, improved performance, and additional functionality for the registration system.",
+                "highlights": [
+                    "Redesigned the website to improve UI/UX and responsiveness",
+                    "Optimized performance and loading speed",
+                    "Added new features including automated email notifications",
+                    "Enhanced overall user experience and interaction design"
+                ]
+            },
+            "kanban-request": {
+                "phase": "Phase 04",
+                "title": "Business Process Automation",
+                "description": "Developed an internal Kanban Request system for a manufacturing company to streamline operational workflows. The platform digitized request submissions, approval processes, and status tracking.",
+                "highlights": [
+                    "Built a full-stack web application using React, Node.js, Express, and MySQL",
+                    "Implemented secure authentication and role-based access control",
+                    "Designed an approval workflow for managerial review",
+                    "Replaced manual request processes with a digital system"
+                ]
+            },
+            "kaizen-code": {
+                "phase": "Phase 05",
+                "title": "Professional Web Development",
+                "description": "Worked as a Full Stack Developer at Kaizen Code, building websites and web applications for clients. Focused on developing scalable, high-performance solutions while collaborating with a development team.",
+                "highlights": [
+                    "Developed modern and responsive websites for clients",
+                    "Optimized performance and usability of web applications",
+                    "Collaborated with a development team on scalable solutions",
+                    "Translated client ideas into functional web platforms"
+                ]
+            },
+            "enerkomp-intern": {
+                "phase": "Phase 06",
+                "title": "Industry Internship",
+                "description": "Joined PT Enerkomp Persada Raya as a Full Stack Developer intern, contributing to the redesign of the company's website and development of an internal content management dashboard.",
+                "highlights": [
+                    "Redesigned the corporate website for improved UX and responsiveness",
+                    "Developed an admin dashboard using React and Express",
+                    "Improved accessibility, performance, and maintainability",
+                    "Collaborated with the business team to align UI/UX with branding"
+                ]
+            },
+            "segaratech": {
+                "phase": "Phase 07",
+                "title": "Full Stack Engineering",
+                "description": "Currently working as a Full Stack Developer at SegaraTech, developing end-to-end web applications and collaborating with cross-functional teams to deliver scalable and maintainable software solutions.",
+                "highlights": [
+                    "Developed full-stack web applications using modern technologies",
+                    "Built and optimized RESTful APIs for frontend-backend integration",
+                    "Integrated third-party services and external APIs",
+                    "Participated in agile development cycles including sprint planning and stand-ups",
+                    "Maintained code quality through reviews, testing, and performance tuning"
+                ]
+            }
+        }
+    },
+    "music": {
+        "label": "06 — Music",
+        "title": "Music console.",
+        "subtitle": "Also try my hobby",
+        "journey1": "I started playing piano when I was 10 years old. At first it was simply curiosity, learning melodies, exploring chords, and slowly becoming familiar with the language of music. Over time it became more than just a hobby; it turned into a space where I could think, experiment, and express ideas without needing words.",
+        "journey2": "Music, taught me to listen carefully and stay comfortable with exploration. A simple progression can evolve in many directions depending on how you interpret it. When I spend time at the piano, it helps clear my mind and often brings new perspectives to whatever I'm working on."
+    },
+    "contact": {
+        "label": "07 — Contact",
+        "title": "Get in touch.",
+        "subtitle": "Whether it's a project, a question, or just to say hello.",
+        "text": "I'm currently open to fullstack roles, freelance projects, and interesting collaborations. The fastest way to reach me is email.",
+        "availability": "Available for new opportunities — usually reply within 24 hours.",
+        "form": {
+            "title": "Send a message",
+            "subtitle": "I read every message and reply personally.",
+            "name": "Name",
+            "namePlaceholder": "Your name",
+            "email": "Email",
+            "emailPlaceholder": "your@email.com",
+            "message": "Message",
+            "messagePlaceholder": "What's on your mind?",
+            "submit": "Send message",
+            "sending": "Sending…",
+            "successTitle": "Message sent",
+            "successMessage": "Thanks for reaching out. I'll get back to you soon.",
+            "errorTitle": "Something went wrong"
+        }
+    },
+    "comments": {
+        "label": "08 — Comments",
+        "title": "Leave a comment.",
+        "subtitle": "Share your thoughts on the work, projects, or anything else.",
+        "as": "Commenting as",
+        "your": "Your Comment",
+        "placeholder": "Write a comment…",
+        "submit": "Post comment",
+        "posting": "Posting…",
+        "hint": "Comments are visible to everyone.",
+        "loginTitle": "Login to comment",
+        "loginHint": "Sign in with Google or GitHub to join the conversation.",
+        "privacy-guest": "Authentication is handled securely. Read our",
+        "privacy-auth": "By posting, you agree to our",
+        "privacyLink": "Privacy Policy",
+        "count_one": "comment",
+        "count_other": "comments",
+        "noComment": "No comments yet. Be the first to leave one.",
+        "loading": "Loading comments…",
+        "error": "Could not load comments",
+        "deleteLabel": "Delete comment",
+        "commentingAs": "Commenting as"
+    },
+    "auth": {
+        "login": "Login",
+        "signOut": "Sign out",
+        "eyebrow": "Sign in to continue",
+        "title": "Welcome back",
+        "description": "Sign in to leave comments and engage with the portfolio.",
+        "google": "Continue with Google",
+        "github": "Continue with GitHub",
+        "privacy": "Authentication is handled securely. Read our",
+        "privacyLink": "Privacy Policy"
+    },
+    "privacy": {
+        "label": "Legal",
+        "title": "Privacy Policy",
+        "subtitle": "Last updated: February 2025",
+        "intro": "This privacy policy explains how this portfolio website collects, uses, and protects your personal information.",
+        "sections": {
+            "dataCollected": "Data I Collect",
+            "dataCollectedContent": "When you authenticate via Google or GitHub OAuth, i receive your public profile information: display name, email address, and profile avatar URL. This data is provided by the OAuth provider and stored securely in our database. When you post a comment, i store the comment text, your user ID, and a timestamp. I do not collect payment information, location data, or any sensitive personal data.",
+            "oauthUsage": "OAuth Authentication",
+            "oauthContent": "I use Google and GitHub OAuth solely for authentication purposes — to verify your identity and allow you to post comments. I do not access your repositories, contacts, emails beyond what is shown in your public profile, or any other resources beyond basic profile information. You may revoke access at any time through your Google or GitHub account settings.",
+            "supabase": "Database & Storage",
+            "supabaseContent": "User data and comments are stored in Supabase, a secure cloud database platform. Supabase is GDPR-compliant and stores data in secure data centers. Your data is never sold to third parties. For Supabase's own privacy practices, refer to supabase.com/privacy.",
+            "emailUsage": "Email Address Usage",
+            "emailContent": "Your email address is collected as part of the OAuth authentication process. It is used solely to identify your account and is never used for marketing, newsletters, or shared with third parties.",
+            "retention": "Data Retention",
+            "retentionContent": "Your account data and comments are retained for as long as you maintain an active account. You may request deletion of your data at any time by contacting us. Deleted comments are removed immediately. Account data is removed within 30 days of a deletion request.",
+            "rights": "Your Rights",
+            "rightsContent": "You have the right to access the personal data i hold about you, request correction of inaccurate data, request deletion of your data, withdraw consent at any time, and lodge a complaint with a supervisory authority. To exercise any of these rights, contact us using the email address below.",
+            "security": "Security",
+            "securityContent": "I take reasonable technical and organizational measures to protect your personal information. All data is transmitted over HTTPS. OAuth tokens are never stored — only the resulting user profile is persisted. I regularly review our security practices.",
+            "contact": "Contact",
+            "contactContent": "For any privacy-related questions or data requests, contact:"
+        }
+    },
+    "engineeringPrinciples": {
+        "heading": "Engineering principles",
+        "principles": {
+            "performance": {
+                "title": "Performance First",
+                "description": "Applications should remain fast and responsive. Optimization and efficient rendering are always considered."
+            },
+            "architecture": {
+                "title": "Clean Architecture",
+                "description": "Code should be structured, readable, and maintainable so that future development becomes easier."
+            },
+            "userCentered": {
+                "title": "User-Centered Design",
+                "description": "Good software is not only functional but also intuitive and pleasant for users to interact with."
+            },
+            "learning": {
+                "title": "Continuous Learning",
+                "description": "Technology evolves quickly. Continuous experimentation and learning are part of my development process."
+            }
+        }
+    }
+}

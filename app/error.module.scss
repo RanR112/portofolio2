@@ -1,0 +1,143 @@
+// app/error.module.scss
+//
+// Intentionally self-contained — error.tsx renders outside the
+// normal layout, so it cannot rely on the app-shell or sidebar.
+// CSS variables still work because they're on :root in globals.scss.
+
+@use "../styles/variables" as *;
+
+.container {
+    min-height: 100vh;
+    display: flex;
+    margin: auto;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    background-color: none;
+    transition: background-color var(--transition-theme);
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-5);
+    max-width: 440px;
+    width: 100%;
+    padding: var(--space-10) var(--space-8);
+
+    background-color: var(--color-surface-1);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-xl);
+    text-align: center;
+
+    transition:
+        background-color var(--transition-theme),
+        border-color var(--transition-theme);
+}
+
+.iconWrap {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: rgba(224, 85, 85, 0.1);
+    border: 1px solid rgba(224, 85, 85, 0.2);
+    color: #e05555;
+    flex-shrink: 0;
+}
+
+.title {
+    font-family: $font-display;
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    transition: color var(--transition-theme);
+}
+
+.message {
+    font-size: var(--text-sm);
+    font-weight: 300;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    transition: color var(--transition-theme);
+}
+
+// Dev-only error digest
+.digest {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    color: #e05555;
+    line-height: 1.6;
+    text-align: left;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.buttonPrimary {
+    padding: var(--space-3) var(--space-6);
+    background-color: var(--color-accent);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+
+    font-family: $font-body;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-inverse);
+    cursor: pointer;
+
+    transition:
+        background-color var(--transition-base),
+        transform var(--transition-fast);
+
+    &:hover {
+        background-color: var(--color-accent-hover);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+.buttonSecondary {
+    padding: var(--space-3) var(--space-6);
+    background-color: transparent;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+
+    font-family: $font-body;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+
+    transition:
+        border-color var(--transition-base),
+        color var(--transition-base),
+        background-color var(--transition-theme);
+
+    &:hover {
+        border-color: var(--color-border-strong);
+        color: var(--color-text-primary);
+    }
+}

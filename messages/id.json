@@ -1,0 +1,401 @@
+{
+    "nav": {
+        "id": {
+            "dashboard": "beranda",
+            "about": "tentang",
+            "stack": "teknologi",
+            "projects": "proyek",
+            "timeline": "perjalanan",
+            "music": "musik",
+            "contact": "kontak",
+            "comments": "komentar"
+        },
+        "label": {
+            "dashboard": "Beranda",
+            "about": "Tentang",
+            "stack": "Teknologi",
+            "projects": "Proyek",
+            "timeline": "Perjalanan",
+            "music": "Musik",
+            "contact": "Kontak",
+            "comments": "Komentar"
+        }
+    },
+    "topbar": {
+        "available": "tersedia untuk bekerja",
+        "dashboard": "Beranda",
+        "about": "Tentang",
+        "stack": "Teknologi",
+        "projects": "Proyek",
+        "timeline": "Perjalanan",
+        "music": "Musik",
+        "contact": "Kontak",
+        "comments": "Komentar"
+    },
+    "dashboard": {
+        "label": "01 — Beranda",
+        "title": "Randy Rafael",
+        "subtitle": "Full Stack Developer yang berfokus pada pembangunan aplikasi web end-to-end yang andal, mengubah ide menjadi sistem yang nyata melalui kode yang bersih dan desain yang matang.",
+        "stats": {
+            "years": "Tahun coding",
+            "projects": "Proyek dibangun",
+            "focus": "Fokus fullstack",
+            "stack": "Teknologi digunakan"
+        }
+    },
+    "about": {
+        "label": "02 — Tentang",
+        "title": "Tentang saya.",
+        "subtitle": "Sedikit tentang siapa saya, apa yang saya lakukan, dan bagaimana saya sampai di sini.",
+        "bio1": "Halo! Saya seorang Full Stack Developer yang memiliki ketertarikan besar dalam membangun aplikasi web end-to-end yang tidak hanya berfungsi dengan baik, tetapi juga berpusat pada kebutuhan pengguna.",
+        "bio2": "Saat ini saya sedang menempuh pendidikan di bidang Sistem Informasi dan secara aktif memperdalam kemampuan teknis di luar perkuliahan melalui pembelajaran mandiri serta proyek-proyek praktik. Pendekatan ini memungkinkan saya memperoleh pengalaman dalam pengembangan frontend maupun backend dengan teknologi modern dan studi kasus nyata.",
+        "bio3": "Saya telah mengerjakan berbagai proyek pribadi, kolaboratif, maupun profesional yang melibatkan antarmuka pengguna responsif, RESTful API, serta sistem web full-stack menggunakan teknologi seperti React, Express.js, Laravel, dan berbagai teknologi web lainnya. Saya menikmati proses memecahkan masalah yang kompleks, mempelajari konsep baru, dan mengubah ide menjadi aplikasi yang andal serta mudah dipelihara.",
+        "bio4": "Ketertarikan saya meliputi pengembangan web full-stack, arsitektur perangkat lunak, serta membangun solusi yang skalabel dan memberikan dampak nyata bagi pengguna maupun organisasi.",
+        "bio5": "Saya terus berusaha untuk berkembang, berkontribusi dalam proyek nyata, serta berkolaborasi dengan orang-orang di komunitas teknologi.",
+        "infoCard": {
+            "title": "Informasi Singkat",
+            "location": "Lokasi",
+            "locationValue": "Indonesia",
+            "role": "Peran",
+            "roleValue": "Frontend, Backend, Fullstack",
+            "stack": "Teknologi Utama",
+            "stackValue": "React, Express, TypeScript",
+            "available": "Ketersediaan",
+            "availableValue": "Terbuka untuk freelance & kolaborasi",
+            "focus": "Fokus",
+            "focusValue": "Sistem Web & Arsitektur Backend",
+            "education": "Pendidikan",
+            "educationValue": "S1 Sistem Informasi (Sedang Berjalan)",
+            "status": "Status",
+            "statusValue": "Terbuka untuk peluang kerja"
+        }
+    },
+    "stack": {
+        "label": "03 — Teknologi",
+        "title": "Teknologi.",
+        "subtitle": "Alat dan teknologi yang rutin saya gunakan."
+    },
+    "projects": {
+        "label": "04 — Proyek",
+        "title": "Semua Proyek.",
+        "subtitle": "Hal-hal yang telah saya bangun, dari aplikasi produksi hingga eksperimen.",
+        "viewDetails": "Detail",
+        "heading": "Proyek unggulan",
+        "viewAll": "Lihat semua proyek",
+        "status": {
+            "live": "Aktif",
+            "wip": "Dalam Pengerjaan",
+            "archived": "Diarsipkan"
+        },
+        "modal": {
+            "overview": "Tentang proyek ini",
+            "techStack": "Teknologi",
+            "links": "Tautan proyek",
+            "github": "Repositori GitHub",
+            "liveDemo": "Demo Langsung",
+            "close": "Tutup detail proyek"
+        },
+        "items": {
+            "enerkomp": {
+                "description": "Website perusahaan modern dengan dashboard admin khusus untuk mengelola konten secara efisien, dirancang untuk meningkatkan performa, usability, dan responsivitas.",
+                "longDescription": "Enerkomp merupakan website perusahaan yang didesain ulang untuk memodernisasi kehadiran digital perusahaan serta meningkatkan pengalaman pengguna di berbagai perangkat. Proyek ini mencakup pengembangan dashboard admin khusus menggunakan React dan Express, sehingga tim dapat mengelola konten dengan lebih efisien tanpa bergantung pada CMS eksternal. Fokus utama pengembangan adalah pada performa, aksesibilitas, dan kemudahan pemeliharaan, sekaligus memastikan antarmuka selaras dengan identitas brand dan tujuan pemasaran perusahaan melalui kolaborasi langsung dengan tim bisnis."
+            },
+            "kanban-request": {
+                "description": "Aplikasi manajemen permintaan internal berbasis Kanban yang mendigitalisasi proses pengajuan dengan sistem autentikasi, alur persetujuan, dan pelacakan status.",
+                "longDescription": "Kanban Request System merupakan aplikasi web internal yang dirancang untuk menyederhanakan pengelolaan permintaan operasional di dalam organisasi. Karyawan dapat mengajukan permintaan melalui formulir berbasis Kanban yang dinamis, sementara manajer dapat meninjau dan menyetujui permintaan melalui alur persetujuan yang terstruktur. Sistem ini dilengkapi dengan autentikasi pengguna yang aman, kontrol akses berbasis peran, serta pelacakan status secara real-time untuk setiap permintaan. Dibangun menggunakan React.js, Express.js, Node.js, dan MySQL, platform ini menggantikan proses manual dengan solusi digital terpusat yang meningkatkan transparansi dan efisiensi operasional."
+            },
+            "teater-bara": {
+                "description": "Website portofolio sinematik untuk organisasi teater dengan galeri interaktif, elemen storytelling animatif, dan sistem konten yang dinamis.",
+                "longDescription": "Teater Bara merupakan website portofolio premium yang dirancang untuk menampilkan karya organisasi teater melalui pengalaman digital yang sinematik dan imersif. Situs ini menghadirkan berbagai komponen interaktif seperti galeri yang dapat difilter, timeline animatif, kartu 3D flip, serta navigasi responsif dengan menu hamburger untuk perangkat mobile. Gambar galeri diambil secara otomatis melalui integrasi Google Drive API, dengan kategori yang dihasilkan secara dinamis berdasarkan struktur folder sehingga mempermudah pengelolaan konten. Dibangun menggunakan React, TypeScript, dan SCSS Modules, proyek ini menekankan sistem desain hitam-putih yang konsisten, animasi yang halus, serta tata letak responsif untuk pengalaman optimal di desktop, tablet, dan perangkat mobile."
+            },
+            "drive-gallery-system": {
+                "description": "Sistem galeri dinamis yang terintegrasi dengan Google Drive API untuk mengambil dan mengelola gambar secara otomatis dengan fitur filter, preview, dan progressive loading.",
+                "longDescription": "Dynamic Gallery System merupakan solusi galeri full-stack yang dirancang untuk mengelola dan menampilkan konten gambar langsung dari Google Drive. Frontend dibangun menggunakan React dan TypeScript, sementara lapisan layanan API menangani komunikasi dengan Google Drive API untuk mengambil gambar secara dinamis. Kategori galeri dihasilkan secara otomatis dari struktur folder sehingga pengguna dapat menelusuri dan memfilter konten dengan mudah. Sistem ini dilengkapi berbagai fitur seperti pengambilan data paralel untuk meningkatkan performa, progressive loading dengan pagination, animasi berbasis scroll, serta modal preview gambar interaktif dengan navigasi keyboard. Arsitektur yang fleksibel dan penggunaan TypeScript secara menyeluruh memastikan kemudahan pemeliharaan, sementara lapisan mock data memungkinkan proses pengembangan dan pengujian tanpa ketergantungan langsung pada backend."
+            },
+            "bala-teater": {
+                "description": "Website pendaftaran teater dengan sistem pengelolaan data berbasis Google Sheets yang kemudian didesain ulang untuk menghadirkan tampilan lebih modern, performa lebih baik, dan fitur pendaftaran yang lebih lengkap.",
+                "longDescription": "Bala Teater merupakan website pendaftaran yang dikembangkan untuk memperkenalkan organisasi teater sekaligus mempermudah proses registrasi peserta. Sistem ini menggunakan Google Sheets sebagai database melalui integrasi AppScript, sehingga pengelolaan data pendaftaran dapat dilakukan dengan mudah oleh administrator yang tidak memiliki latar belakang teknis. Aplikasi awalnya dibangun menggunakan React dan Sass dengan fokus pada antarmuka yang sederhana dan mudah digunakan. Pada tahap pengembangan selanjutnya, website ini didesain ulang dengan tampilan yang lebih modern dan interaktif, peningkatan performa, serta penambahan fitur baru seperti notifikasi email otomatis bagi peserta yang melakukan pendaftaran. Pembaruan ini meningkatkan pengalaman pengguna sekaligus efisiensi dalam pengelolaan data registrasi."
+            },
+            "tetris": {
+                "description": "Implementasi game puzzle klasik Tetris berbasis browser di mana pemain menyusun balok yang jatuh untuk membersihkan baris dan mendapatkan skor.",
+                "longDescription": "Proyek ini merupakan rekreasi game puzzle klasik Tetris yang dijalankan di browser. Pemain mengontrol berbagai bentuk balok yang jatuh dan menyusunnya secara strategis untuk membentuk baris horizontal yang penuh. Ketika satu baris berhasil terbentuk, baris tersebut akan hilang dari papan permainan dan menambah skor pemain. Game ini menekankan mekanisme permainan yang halus, kontrol yang responsif, serta umpan balik visual yang jelas untuk memberikan pengalaman bermain yang menarik. Dibangun menggunakan React, JavaScript, dan SCSS, proyek ini menunjukkan implementasi antarmuka interaktif serta pengelolaan state permainan secara real-time di browser."
+            },
+            "typing-test": {
+                "description": "Aplikasi latihan mengetik berbasis browser yang mengukur kecepatan dan akurasi melalui latihan mengetik dengan batas waktu.",
+                "longDescription": "Typing Test merupakan aplikasi web yang dirancang untuk membantu pengguna melatih dan mengevaluasi kemampuan mengetik melalui latihan mengetik dengan waktu tertentu. Aplikasi ini mengukur kecepatan dan akurasi secara real-time sehingga pengguna dapat memantau performa mereka selama proses mengetik. Dengan antarmuka yang sederhana dan responsif, aplikasi ini memberikan pengalaman latihan yang nyaman untuk meningkatkan keterampilan mengetik. Dibangun menggunakan React, JavaScript, dan SCSS, proyek ini menunjukkan implementasi antarmuka interaktif serta pengolahan input secara real-time di browser."
+            },
+            "wj-tour": {
+                "description": "Website pariwisata yang menampilkan berbagai destinasi di Jawa Barat serta menyediakan informasi wisata yang mudah diakses oleh pengunjung.",
+                "longDescription": "WJ Tour merupakan website pariwisata yang dikembangkan untuk menampilkan berbagai destinasi dan informasi perjalanan di wilayah Jawa Barat. Platform ini dirancang untuk membantu pengguna menjelajahi tempat wisata, menemukan peluang perjalanan, serta memperoleh informasi secara jelas melalui antarmuka yang menarik. Dibangun dengan arsitektur full-stack menggunakan React pada sisi frontend serta Node.js dan Express.js pada backend, aplikasi ini menggunakan MySQL sebagai sistem pengelolaan data. Proyek ini menekankan desain responsif, pengelolaan data yang terstruktur, serta arsitektur yang skalabel untuk platform pariwisata berbasis konten."
+            },
+            "bimba-ife": {
+                "description": "Landing page promosi yang dibuat untuk memperkenalkan dan mempromosikan salah satu cabang Bimba IFE dengan desain yang menarik dan ceria.",
+                "longDescription": "Bimba IFE merupakan landing page promosi yang dikembangkan untuk mendukung kehadiran digital salah satu cabang lembaga belajar Bimba IFE. Website ini berfokus pada penyajian informasi program secara jelas dan ramah sehingga memudahkan calon siswa maupun orang tua untuk mengenal layanan yang ditawarkan. Antarmuka dirancang dengan tampilan yang menarik dan ceria untuk mencerminkan lingkungan pendidikan anak. Dibangun menggunakan React dan Sass, proyek ini menekankan tata letak yang responsif, struktur komponen yang rapi, serta desain visual yang mudah dipahami sesuai dengan kebutuhan klien."
+            },
+            "toko-online": {
+                "description": "Aplikasi web e-commerce yang dikembangkan sebagai proyek kuliah dengan fitur katalog produk, simulasi belanja online, serta CMS untuk pengelolaan konten toko.",
+                "longDescription": "Toko Online merupakan aplikasi web e-commerce yang dikembangkan sebagai bagian dari proyek perkuliahan. Platform ini memungkinkan pengguna untuk menelusuri katalog produk, melihat detail produk, serta merasakan alur dasar pengalaman berbelanja online. Selain antarmuka toko untuk pengguna, proyek ini juga dilengkapi dengan sistem manajemen konten (CMS) yang memungkinkan administrator mengelola produk dan informasi toko dengan lebih mudah. Dibangun menggunakan Laravel, aplikasi ini menunjukkan penerapan konsep dasar pengembangan web seperti pengelolaan data berbasis database, operasi CRUD, serta pemisahan fungsi antara pengguna dan administrator."
+            },
+            "galatix": {
+                "description": "Aplikasi web pemesanan tiket bioskop dengan halaman khusus untuk pelanggan dan admin, dibangun menggunakan MERN stack.",
+                "longDescription": "Galatix merupakan aplikasi web pemesanan tiket bioskop yang dirancang untuk mensimulasikan sistem reservasi tiket film secara online. Platform ini menyediakan antarmuka pelanggan yang memungkinkan pengguna melihat daftar film, jadwal penayangan, serta melakukan pemesanan tiket. Selain itu, tersedia dashboard admin yang digunakan untuk mengelola data film, jadwal tayang, dan ketersediaan tiket. Dibangun menggunakan MERN stack (MongoDB, Express.js, React, dan Node.js), proyek ini menunjukkan implementasi pengembangan full-stack dengan pemisahan yang jelas antara fitur untuk pengguna dan sistem manajemen administrasi."
+            }
+        }
+    },
+    "timeline": {
+        "label": "05 — Timeline",
+        "title": "Perjalanan saya.",
+        "subtitle": "Rekam jejak fase-fase yang membentuk cara saya membangun perangkat lunak.",
+        "current": "Sekarang",
+        "mode": {
+            "journey": "Perjalanan",
+            "career": "Karier"
+        },
+        "journey": {
+            "exploration": {
+                "phase": "Fase 01",
+                "title": "Pertemuan Pertama dengan Programming",
+                "description": "Perjalanan saya di dunia programming dimulai secara tidak terduga. Saat masih SMA, saya sebenarnya tidak terlalu tertarik dengan teknologi dan bahkan belum memiliki laptop. Awalnya saya ingin melanjutkan kuliah di jurusan statistika, namun rencana tersebut tidak berhasil. Akhirnya saya memutuskan untuk mendaftar di Universitas Bina Sarana Informatika dengan jurusan Sistem Informasi. Masuk ke jurusan teknologi tanpa pengalaman membuat saya merasa kurang percaya diri, sehingga saya mulai belajar programming secara mandiri hanya menggunakan ponsel. Pada tahap ini saya mempelajari dasar-dasar Python serta HTML dan CSS untuk memahami bagaimana software dan website bekerja.",
+                "highlights": [
+                    "Mulai belajar programming secara mandiri tanpa laptop",
+                    "Mempelajari dasar-dasar Python",
+                    "Belajar HTML dan CSS hanya menggunakan ponsel",
+                    "Mulai memahami dasar cara kerja website dan software"
+                ]
+            },
+            "structured": {
+                "phase": "Fase 02",
+                "title": "Fondasi Akademik",
+                "description": "Pada semester pertama kuliah saya akhirnya memiliki laptop pertama saya, yang membuka lebih banyak kesempatan untuk bereksperimen dengan kode. Dari perkuliahan saya mempelajari dasar-dasar pemrograman seperti Python, algoritma, dan cara berpikir logis dalam menyelesaikan masalah. Pada saat yang sama rasa penasaran saya terhadap pengembangan web semakin besar, sehingga saya mulai mempelajari JavaScript dan bagaimana membuat website yang interaktif.",
+                "highlights": [
+                    "Memiliki laptop pertama untuk belajar coding",
+                    "Mempelajari dasar pemrograman melalui perkuliahan",
+                    "Memahami algoritma dan logika pemrograman",
+                    "Mulai mempelajari JavaScript dan web interaktif"
+                ]
+            },
+            "creative": {
+                "phase": "Fase 03",
+                "title": "Membangun Proyek Secara Mandiri",
+                "description": "Pada semester kedua saya merasa materi dari modul perkuliahan berjalan cukup lambat dibandingkan rasa penasaran saya untuk belajar lebih jauh. Saya mulai mempelajari React secara mandiri dan bahkan menggunakannya untuk mengerjakan beberapa tugas kuliah yang sebenarnya hanya diminta menggunakan HTML, CSS, dan JavaScript sederhana. Pada fase ini saya juga membuat website untuk organisasi teater SMA saya, Bala Teater. Selain itu saya mendapatkan klien pertama melalui rekomendasi teman untuk membuat website bagi Bimba IFE, yang menjadi pengalaman pertama saya mengerjakan proyek nyata dengan klien.",
+                "highlights": [
+                    "Belajar React secara mandiri di luar materi kuliah",
+                    "Menggunakan React untuk proyek tugas kuliah",
+                    "Membuat website untuk organisasi Bala Teater",
+                    "Mengerjakan proyek klien pertama untuk Bimba IFE"
+                ]
+            },
+            "systems": {
+                "phase": "Fase 04",
+                "title": "Pengembangan Backend dan Sistem",
+                "description": "Setelah cukup percaya diri di sisi frontend, saya mulai memperdalam pengembangan backend. Saya mempelajari JavaScript lebih dalam khususnya untuk pengembangan server menggunakan Express.js, Prisma, dan MongoDB. Pada fase ini saya mengerjakan proyek pembuatan website Kanban Request System untuk PT Automotive Fasteners Aoyama Indonesia. Beberapa bulan kemudian saya juga mengikuti kompetisi IT Bootcamp 'Software Development for Industry' yang diselenggarakan oleh kampus saya dan berhasil meraih juara 3.",
+                "highlights": [
+                    "Mulai fokus pada pengembangan backend",
+                    "Membangun sistem backend dengan Express.js, Prisma, dan MongoDB",
+                    "Mengembangkan Kanban Request System untuk PT Automotive Fasteners Aoyama Indonesia",
+                    "Meraih juara 3 dalam kompetisi IT Bootcamp 'Software Development for Industry'"
+                ]
+            },
+            "production": {
+                "phase": "Fase 05",
+                "title": "Pengalaman Engineering di Dunia Kerja",
+                "description": "Pada semester lima mahasiswa diwajibkan mengikuti program magang. Saya menjalani magang di PT Enerkomp Persada Raya dengan tugas merancang ulang website company profile mereka. Dalam proyek ini saya mengambil kesempatan untuk mempelajari TypeScript dan mengembangkan sistem yang lebih lengkap, tidak hanya website company profile tetapi juga backend dan CMS untuk mengelola kontennya. Saya bekerja bersama satu orang rekan tim yang berfokus pada frontend, sementara saya lebih berfokus pada pengembangan backend dan arsitektur sistem.",
+                "highlights": [
+                    "Magang di PT Enerkomp Persada Raya",
+                    "Merancang ulang website company profile",
+                    "Mempelajari dan menerapkan TypeScript dalam proyek",
+                    "Membangun backend dan CMS untuk website",
+                    "Bekerja dalam tim kecil dengan pembagian peran frontend dan backend"
+                ]
+            }
+        },
+        "career": {
+            "bala-teater-initial": {
+                "phase": "Fase 01",
+                "title": "Proyek Klien Pertama",
+                "description": "Memulai pekerjaan profesional dengan mengembangkan website pendaftaran untuk sebuah organisasi teater. Proyek ini berfokus pada pembuatan sistem yang sederhana dan praktis untuk pengguna non-teknis dengan memanfaatkan Google Sheets sebagai database ringan melalui integrasi AppScript.",
+                "highlights": [
+                    "Mengembangkan website pendaftaran menggunakan React dan Sass",
+                    "Mengintegrasikan Google Sheets sebagai database sederhana",
+                    "Merancang antarmuka yang mudah digunakan untuk pengguna non-teknis",
+                    "Menyelesaikan sistem yang digunakan oleh organisasi nyata"
+                ]
+            },
+            "bimba-ife": {
+                "phase": "Fase 02",
+                "title": "Pengembangan Website Klien",
+                "description": "Bekerja langsung dengan klien yang merupakan pemilik salah satu cabang Bimba IFE untuk membangun landing page promosi. Proyek ini berfokus pada pembuatan antarmuka yang menarik dan ceria sesuai dengan lingkungan pendidikan anak.",
+                "highlights": [
+                    "Membangun landing page promosi menggunakan React dan Sass",
+                    "Merancang tampilan ceria yang selaras dengan branding pendidikan anak",
+                    "Berkolaborasi langsung dengan klien untuk memahami kebutuhan",
+                    "Menghasilkan website marketing yang responsif dan mudah digunakan"
+                ]
+            },
+            "bala-teater-redesign": {
+                "phase": "Fase 03",
+                "title": "Redesign Website & Penambahan Fitur",
+                "description": "Kembali mengerjakan proyek Bala Teater untuk meningkatkan platform yang sudah ada. Website didesain ulang dengan tampilan yang lebih modern, performa yang lebih baik, serta penambahan fitur baru pada sistem pendaftaran.",
+                "highlights": [
+                    "Melakukan redesign website untuk meningkatkan UI/UX dan responsivitas",
+                    "Mengoptimalkan performa dan kecepatan loading",
+                    "Menambahkan fitur baru termasuk notifikasi email otomatis",
+                    "Meningkatkan pengalaman pengguna secara keseluruhan"
+                ]
+            },
+            "kanban-request": {
+                "phase": "Fase 04",
+                "title": "Automasi Proses Bisnis",
+                "description": "Mengembangkan sistem Kanban Request internal untuk sebuah perusahaan manufaktur guna menyederhanakan alur kerja operasional. Platform ini mendigitalisasi proses pengajuan permintaan, alur persetujuan, serta pelacakan status.",
+                "highlights": [
+                    "Membangun aplikasi web full-stack menggunakan React, Node.js, Express, dan MySQL",
+                    "Mengimplementasikan autentikasi aman dan kontrol akses berbasis peran",
+                    "Merancang workflow persetujuan untuk proses review oleh manajer",
+                    "Menggantikan proses manual dengan sistem digital yang lebih efisien"
+                ]
+            },
+            "kaizen-code": {
+                "phase": "Fase 05",
+                "title": "Pengembangan Web Profesional",
+                "description": "Bekerja sebagai Full Stack Developer di Kaizen Code dengan fokus membangun website dan aplikasi web untuk berbagai klien. Berkontribusi dalam pengembangan solusi digital yang skalabel, efisien, dan berkualitas tinggi.",
+                "highlights": [
+                    "Mengembangkan website modern dan responsif untuk klien",
+                    "Mengoptimalkan performa dan pengalaman pengguna",
+                    "Berkolaborasi dengan tim developer dalam membangun solusi skalabel",
+                    "Mengubah ide klien menjadi platform web yang fungsional"
+                ]
+            },
+            "enerkomp-intern": {
+                "phase": "Fase 06",
+                "title": "Magang di Industri",
+                "description": "Bergabung dengan PT Enerkomp Persada Raya sebagai Full Stack Developer intern dan berkontribusi dalam redesign website perusahaan serta pengembangan dashboard admin untuk pengelolaan konten.",
+                "highlights": [
+                    "Melakukan redesign website perusahaan untuk meningkatkan UX dan responsivitas",
+                    "Mengembangkan dashboard admin menggunakan React dan Express",
+                    "Meningkatkan performa, aksesibilitas, dan maintainability website",
+                    "Berkolaborasi dengan tim bisnis untuk menyesuaikan UI/UX dengan identitas brand"
+                ]
+            },
+            "segaratech": {
+                "phase": "Fase 07",
+                "title": "Full Stack Engineering",
+                "description": "Saat ini bekerja sebagai Full Stack Developer di SegaraTech, mengembangkan aplikasi web end-to-end serta berkolaborasi dengan berbagai tim untuk menghasilkan solusi perangkat lunak yang skalabel dan mudah dipelihara.",
+                "highlights": [
+                    "Mengembangkan aplikasi web full-stack menggunakan teknologi modern",
+                    "Membangun dan mengoptimalkan RESTful API untuk integrasi frontend dan backend",
+                    "Mengintegrasikan layanan pihak ketiga dan API eksternal",
+                    "Berpartisipasi dalam proses agile seperti sprint planning dan daily stand-up",
+                    "Menjaga kualitas kode melalui code review, testing, dan optimasi performa"
+                ]
+            }
+        }
+    },
+    "music": {
+        "label": "06 — Music",
+        "title": "Music console.",
+        "subtitle": "Coba juga hobi saya",
+        "journey1": "Saya mulai bermain piano sejak usia delapan tahun. Awalnya hanya rasa penasaran, mempelajari melodi, mencoba berbagai akor, dan perlahan mengenal bahasa musik. Seiring waktu, musik menjadi lebih dari sekadar hobi; ia menjadi ruang untuk berpikir, bereksperimen, dan mengekspresikan ide tanpa harus menggunakan kata-kata.",
+        "journey2": "Musik, mengajarkan saya untuk benar-benar mendengarkan dan nyaman dengan eksplorasi. Sebuah progresi sederhana bisa berkembang ke banyak arah tergantung bagaimana kita menafsirkannya. Waktu yang saya habiskan di depan piano sering membantu menjernihkan pikiran dan memberikan perspektif baru terhadap hal-hal yang sedang saya kerjakan."
+    },
+    "contact": {
+        "label": "07 — Kontak",
+        "title": "Hubungi saya.",
+        "subtitle": "Baik itu proyek, pertanyaan, atau sekadar menyapa.",
+        "text": "Saat ini saya terbuka untuk posisi fullstack developer, proyek freelance, maupun kolaborasi menarik. Cara tercepat untuk menghubungi saya adalah melalui email.",
+        "availability": "Terbuka untuk peluang baru — biasanya membalas dalam waktu 24 jam.",
+        "form": {
+            "title": "Kirim pesan",
+            "subtitle": "Saya membaca setiap pesan dan membalasnya secara pribadi.",
+            "name": "Nama",
+            "namePlaceholder": "Nama Anda",
+            "email": "Email",
+            "emailPlaceholder": "email@anda.com",
+            "message": "Pesan",
+            "messagePlaceholder": "Apa yang ingin Anda sampaikan?",
+            "submit": "Kirim pesan",
+            "sending": "Mengirim…",
+            "successTitle": "Pesan terkirim",
+            "successMessage": "Terima kasih sudah menghubungi. Saya akan membalas segera.",
+            "errorTitle": "Terjadi kesalahan"
+        }
+    },
+    "comments": {
+        "label": "08 — Komentar",
+        "title": "Tinggalkan komentar.",
+        "subtitle": "Bagikan pemikiran Anda tentang pekerjaan, proyek, atau hal lainnya.",
+        "as": "Berkomentar sebagai",
+        "your": "Komentar Anda",
+        "placeholder": "Tulis komentar…",
+        "submit": "Posting komentar",
+        "posting": "Memposting…",
+        "hint": "Komentar terlihat oleh semua orang.",
+        "loginTitle": "Login untuk berkomentar",
+        "loginHint": "Masuk dengan Google atau GitHub untuk bergabung dalam percakapan.",
+        "privacy-guest": "Autentikasi ditangani dengan aman. Baca",
+        "privacy-auth": "Dengan memposting, Anda menyetujui",
+        "privacyLink": "Kebijakan Privasi",
+        "count_one": "komentar",
+        "count_other": "komentar",
+        "noComment": "Belum ada komentar. Jadilah yang pertama meninggalkan komentar.",
+        "loading": "Memuat komentar…",
+        "error": "Tidak dapat memuat komentar",
+        "deleteLabel": "Hapus komentar",
+        "commentingAs": "Berkomentar sebagai"
+    },
+    "auth": {
+        "login": "Masuk",
+        "signOut": "Keluar",
+        "eyebrow": "Masuk untuk melanjutkan",
+        "title": "Selamat datang",
+        "description": "Masuk untuk meninggalkan komentar dan berinteraksi dengan portofolio.",
+        "google": "Lanjutkan dengan Google",
+        "github": "Lanjutkan dengan GitHub",
+        "privacy": "Autentikasi ditangani dengan aman. Baca",
+        "privacyLink": "Kebijakan Privasi"
+    },
+    "privacy": {
+        "label": "Legal",
+        "title": "Kebijakan Privasi",
+        "subtitle": "Terakhir diperbarui: Februari 2025",
+        "intro": "Kebijakan privasi ini menjelaskan bagaimana situs web portofolio ini mengumpulkan, menggunakan, dan melindungi informasi pribadi Anda.",
+        "sections": {
+            "dataCollected": "Data yang Saya Kumpulkan",
+            "dataCollectedContent": "Ketika Anda mengautentikasi melalui Google atau GitHub OAuth, saya menerima informasi profil publik Anda: nama tampilan, alamat email, dan URL avatar profil. Data ini disediakan oleh penyedia OAuth dan disimpan dengan aman di database saya. Ketika Anda memposting komentar, saya menyimpan teks komentar, ID pengguna Anda, dan timestamp. Saya tidak mengumpulkan informasi pembayaran, data lokasi, atau data pribadi sensitif apa pun.",
+            "oauthUsage": "Autentikasi OAuth",
+            "oauthContent": "Saya menggunakan Google dan GitHub OAuth semata-mata untuk tujuan autentikasi — untuk memverifikasi identitas Anda dan memungkinkan Anda memposting komentar. Saya tidak mengakses repositori, kontak, email di luar yang ditampilkan di profil publik Anda, atau sumber daya lain di luar informasi profil dasar. Anda dapat mencabut akses kapan saja melalui pengaturan akun Google atau GitHub Anda.",
+            "supabase": "Database & Penyimpanan",
+            "supabaseContent": "Data pengguna dan komentar disimpan di Supabase, platform database cloud yang aman. Supabase mematuhi GDPR dan menyimpan data di pusat data yang aman. Data Anda tidak pernah dijual kepada pihak ketiga. Untuk praktik privasi Supabase sendiri, lihat supabase.com/privacy.",
+            "emailUsage": "Penggunaan Alamat Email",
+            "emailContent": "Alamat email Anda dikumpulkan sebagai bagian dari proses autentikasi OAuth. Ini digunakan semata-mata untuk mengidentifikasi akun Anda dan tidak pernah digunakan untuk pemasaran, buletin, atau dibagikan kepada pihak ketiga.",
+            "retention": "Retensi Data",
+            "retentionContent": "Data akun dan komentar Anda disimpan selama Anda mempertahankan akun aktif. Anda dapat meminta penghapusan data Anda kapan saja dengan menghubungi saya. Komentar yang dihapus dihapus segera. Data akun dihapus dalam 30 hari setelah permintaan penghapusan.",
+            "rights": "Hak-Hak Anda",
+            "rightsContent": "Anda memiliki hak untuk mengakses data pribadi yang saya pegang tentang Anda, meminta koreksi data yang tidak akurat, meminta penghapusan data Anda, mencabut persetujuan kapan saja, dan mengajukan keluhan kepada otoritas pengawas. Untuk menggunakan salah satu hak ini, hubungi saya menggunakan alamat email di bawah.",
+            "security": "Keamanan",
+            "securityContent": "Saya mengambil langkah-langkah teknis dan organisasi yang wajar untuk melindungi informasi pribadi Anda. Semua data ditransmisikan melalui HTTPS. Token OAuth tidak pernah disimpan — hanya profil pengguna yang dihasilkan yang disimpan. Saya secara berkala meninjau praktik keamanan saya.",
+            "contact": "Kontak",
+            "contactContent": "Untuk pertanyaan terkait privasi atau permintaan data, hubungi:"
+        }
+    },
+    "engineeringPrinciples": {
+        "heading": "Prinsip rekayasa",
+        "principles": {
+            "performance": {
+                "title": "Performa Utama",
+                "description": "Aplikasi harus tetap cepat dan responsif. Optimisasi dan rendering yang efisien selalu dipertimbangkan."
+            },
+            "architecture": {
+                "title": "Arsitektur Bersih",
+                "description": "Kode harus terstruktur, mudah dibaca, dan dapat dipelihara agar pengembangan ke depan menjadi lebih mudah."
+            },
+            "userCentered": {
+                "title": "Desain Berpusat pada Pengguna",
+                "description": "Perangkat lunak yang baik tidak hanya fungsional tetapi juga intuitif dan menyenangkan bagi pengguna."
+            },
+            "learning": {
+                "title": "Pembelajaran Berkelanjutan",
+                "description": "Teknologi berkembang pesat. Eksperimentasi dan pembelajaran terus-menerus merupakan bagian dari proses pengembangan saya."
+            }
+        }
+    }
+}

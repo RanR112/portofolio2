@@ -1,0 +1,24 @@
+{
+    "name": "Randy Rafael — Fullstack Developer",
+    "short_name": "Randy Rafael",
+    "description": "Portfolio of Randy Rafael — fullstack developer and system builder.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0e0f11",
+    "theme_color": "#0e0f11",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/icons/logo.jpg",
+            "sizes": "192x192",
+            "type": "image/jpg",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icons/logo.jpg",
+            "sizes": "512x512",
+            "type": "image/jpg",
+            "purpose": "any maskable"
+        }
+    ]
+}

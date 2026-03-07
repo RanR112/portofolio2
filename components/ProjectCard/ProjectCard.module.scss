@@ -1,0 +1,320 @@
+// components/ProjectCard/ProjectCard.module.scss
+// Step 19: Added thumbnail, refined layout.
+
+@use "../../styles/variables" as *;
+
+// ============================================================
+// Card shell
+// ============================================================
+
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+
+    background-color: var(--color-surface-1);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-xl);
+
+    overflow: hidden; // clips thumbnail corners + accent line
+
+    transition:
+        border-color var(--transition-base),
+        box-shadow var(--transition-base),
+        transform var(--transition-base),
+        background-color var(--transition-theme);
+
+    &:hover {
+        border-color: var(--color-border-default);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-4px);
+
+        .cardAccentLine {
+            transform: scaleX(1);
+        }
+        .thumbnail {
+            transform: scale(1.04);
+        }
+        .detailsButton svg {
+            transform: translateX(3px);
+        }
+    }
+}
+
+// ============================================================
+// Top accent line — slides in on hover
+// ============================================================
+
+.cardAccentLine {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    height: 2px;
+    z-index: 2;
+
+    background-color: var(--color-accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--transition-base);
+}
+
+// ============================================================
+// Thumbnail — 16:9, zoom on card hover
+// ============================================================
+
+.thumbnailWrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    flex-shrink: 0;
+    background-color: var(--color-surface-2);
+}
+
+.thumbnail {
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+// ============================================================
+// Card body — all content below the thumbnail
+// ============================================================
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    flex: 1; // stretches so footer always aligns to bottom
+}
+
+// ============================================================
+// Header row — year + status badge | external links
+// ============================================================
+
+.cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.cardMeta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.cardYear {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    transition: color var(--transition-theme);
+}
+
+.cardDot {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    transition: color var(--transition-theme);
+}
+
+.cardCategory {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    transition: color var(--transition-theme);
+    text-transform: uppercase;
+}
+
+.cardStatus {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    transition:
+        color var(--transition-theme),
+        border-color var(--transition-theme),
+        background-color var(--transition-theme);
+}
+
+.cardStatus--live {
+    color: #4caf8a;
+    border-color: rgba(76, 175, 138, 0.25);
+    background-color: rgba(76, 175, 138, 0.08);
+}
+
+.cardStatus--wip {
+    color: var(--color-accent);
+    border-color: var(--color-accent-dim);
+    background-color: var(--color-accent-dim);
+}
+
+.cardStatus--archived {
+    color: var(--color-text-muted);
+    border-color: var(--color-border-subtle);
+    background-color: transparent;
+}
+
+// External link icons
+.cardLinks {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+}
+
+.cardLink {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    transition:
+        color var(--transition-base),
+        background-color var(--transition-base);
+
+    &:hover {
+        color: var(--color-accent);
+        background-color: var(--color-accent-dim);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+}
+
+// ============================================================
+// Title
+// ============================================================
+
+.cardTitle {
+    font-family: $font-display;
+    font-size: var(--text-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-text-primary);
+    line-height: 1.2;
+    transition: color var(--transition-theme);
+}
+
+// ============================================================
+// Description — clamped to 2 lines
+// ============================================================
+
+.cardDescription {
+    font-size: var(--text-sm);
+    font-weight: 300;
+    color: var(--color-text-secondary);
+    line-height: 1.65;
+
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    transition: color var(--transition-theme);
+}
+
+// ============================================================
+// Footer — pill tags + Details button
+// ============================================================
+
+.cardFooter {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-block-start: auto;
+    padding-block-start: var(--space-2);
+}
+
+.tagList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.tag {
+    font-family: $font-mono;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    padding: 3px var(--space-2);
+    background-color: var(--color-surface-2);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-full);
+    white-space: nowrap;
+
+    transition:
+        color var(--transition-theme),
+        background-color var(--transition-theme),
+        border-color var(--transition-theme);
+}
+
+.tagMore {
+    font-family: $font-mono;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+
+    color: var(--color-text-muted);
+
+    padding: 3px var(--space-2);
+
+    background-color: transparent;
+    border: 1px dashed var(--color-border-subtle);
+    border-radius: var(--radius-full);
+
+    white-space: nowrap;
+
+    opacity: 0.8;
+
+    transition:
+        color var(--transition-theme),
+        border-color var(--transition-theme),
+        opacity 160ms ease;
+}
+
+.card:hover .tagMore {
+    opacity: 1;
+}
+
+// ============================================================
+// Details button
+// ============================================================
+
+.detailsButton {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    flex-shrink: 0;
+
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+
+    transition: color var(--transition-base);
+
+    svg {
+        transition: transform var(--transition-base);
+    }
+
+    &:hover {
+        color: var(--color-accent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}
