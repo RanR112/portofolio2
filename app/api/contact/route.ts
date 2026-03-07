@@ -178,7 +178,7 @@ function buildEmailHtml(name: string, email: string, message: string): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio Contact</title>
 </head>
-<body style="margin:0;padding:0;background:#0e0f11;font-family:'DM Sans',sans-serif;">
+<body style="margin:0;padding:0;background:#0e0f11;font-family:'Arial',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0e0f11;padding:40px 20px;">
     <tr>
       <td align="center">
