@@ -293,8 +293,9 @@
     "music": {
         "label": "06 — Music",
         "title": "Music console.",
-        "subtitle": "Also try my hobby",
-        "journey1": "I started playing piano when I was 10 years old. At first it was simply curiosity, learning melodies, exploring chords, and slowly becoming familiar with the language of music. Over time it became more than just a hobby; it turned into a space where I could think, experiment, and express ideas without needing words.",
+        "subtitle": "Try playing the piano — click \"Full Mode\" to use all 61 keys.",
+        "full": "Full Mode",
+        "journey1": "I started playing piano when I was 10 years old. At first it was simply curiosity, learning melodies, exploring chords, and slowly becoming familiar with the language of music. Over time it became more than just a hobby, it turned into a space where I could think, experiment, and express ideas without needing words.",
         "journey2": "Music, taught me to listen carefully and stay comfortable with exploration. A simple progression can evolve in many directions depending on how you interpret it. When I spend time at the piano, it helps clear my mind and often brings new perspectives to whatever I'm working on."
     },
     "contact": {

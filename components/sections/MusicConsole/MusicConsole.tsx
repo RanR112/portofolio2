@@ -108,7 +108,7 @@ export default function MusicConsole() {
                         aria-label="Open full piano mode"
                     >
                         <ExpandIcon />
-                        Full Mode
+                        {t("full")}
                     </Link>
                 </div>
 
