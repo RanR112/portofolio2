@@ -1,181 +1,274 @@
 /**
  * lib/pianoEngine.ts
  *
- * Pure audio engine — zero React, zero DOM, zero side-effects outside Web Audio.
+ * Pure Web Audio engine — no React, no DOM (except AudioContext).
+ * Handles: sample loading, pitch shifting, voice management, sustain pedal.
  *
- * Architecture
- * ─────────────
- * • Single AudioContext shared for the entire session.
- * • One master GainNode that controls global volume.
- * • Per-note GainNode chain: noteGain → masterGain → destination.
- *   This lets us fade each note independently without touching the master.
- * • Oscillator nodes are lightweight and created per-press; they are
- *   garbage-collected automatically after osc.onended fires.
- * • Sustain is implemented with a "sustainedKeys" Set — released keys stay
- *   alive until the pedal is lifted, then quick-released together.
- * • Volume balance curve: low notes are boosted slightly, high notes are
- *   attenuated, producing a natural, even keyboard response.
- *
- * Public API
- * ─────────────
- *   init()               — call once on first user interaction
- *   playNote(label)      — start a note
- *   stopNote(label)      — release a note (respects sustain)
- *   setVolume(0–100)     — master volume
- *   setTranspose(−12…12) — semitone shift
- *   setSustain(bool)     — pedal on/off
- *   destroy()            — teardown (unmount)
+ * Usage:
+ *   import { pianoEngine } from "../lib/pianoEngine";
+ *   await pianoEngine.loadSamples();   // call once on mount
+ *   pianoEngine.setVolume(0.8);
+ *   pianoEngine.playNote("C4", 60);    // noteLabel, targetMidi
+ *   pianoEngine.stopNote("C4");
+ *   pianoEngine.setSustain(false);
+ *   pianoEngine.destroy();             // cleanup on unmount
  */
 
-import { ALL_NOTES } from "./keyMap";
-
 // ─────────────────────────────────────────────────────────────────────────────
-// Constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-const NATURAL_DECAY = 3.0; // seconds — note decays naturally after press
-const RELEASE_TIME = 0.35; // seconds — quick-release when sustain is off
-const ATTACK_TIME = 0.006; // seconds
-const DECAY_TIME = 0.12; // seconds
-
-// Volume balance curve: C2 (midi 36) → ×1.10, C7 (midi 96) → ×0.75
-const BAL_MIN = 36;
-const BAL_MAX = 96;
-const BAL_TOP = 1.1;
-const BAL_SPAN = 0.35; // top − bottom
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Internal types
+// Sample map — @audio-samples/piano-mp3-velocity4
+// 30 MP3 files, single velocity layer (v4 = mp).
+// Sampled in minor-thirds: C / Ds / Fs / A per octave (# renamed to s).
+// key → root MIDI of the recorded sample.
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface ActiveNote {
-    osc: OscillatorNode;
+const SAMPLE_MAP: Record<string, number> = {
+    A0v4: 21,
+    C1v4: 24,
+    Ds1v4: 27,
+    Fs1v4: 30,
+    A1v4: 33,
+    C2v4: 36,
+    Ds2v4: 39,
+    Fs2v4: 42,
+    A2v4: 45,
+    C3v4: 48,
+    Ds3v4: 51,
+    Fs3v4: 54,
+    A3v4: 57,
+    C4v4: 60,
+    Ds4v4: 63,
+    Fs4v4: 66,
+    A4v4: 69,
+    C5v4: 72,
+    Ds5v4: 75,
+    Fs5v4: 78,
+    A5v4: 81,
+    C6v4: 84,
+    Ds6v4: 87,
+    Fs6v4: 90,
+    A6v4: 93,
+    C7v4: 96,
+    Ds7v4: 99,
+    Fs7v4: 102,
+    A7v4: 105,
+    C8v4: 108,
+};
+
+const SAMPLE_NAMES = Object.keys(SAMPLE_MAP);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audio timing constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ATTACK_TIME = 0.006; // seconds — brief ramp-in to avoid click
+const NATURAL_DURATION = 5.0; // seconds — envelope ceiling; samples decay naturally
+const RELEASE_TIME = 0.4; // seconds — key-up fade when sustain is OFF
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** playbackRate = 2^(semitones/12) */
+function semitonesToRate(semitones: number): number {
+    return Math.pow(2, semitones / 12);
+}
+
+/** Find the sample name whose root MIDI is nearest to targetMidi. */
+function nearestSample(targetMidi: number): string {
+    let best = SAMPLE_NAMES[0];
+    let bestDist = Infinity;
+    for (const name of SAMPLE_NAMES) {
+        const dist = Math.abs(SAMPLE_MAP[name] - targetMidi);
+        if (dist < bestDist) {
+            bestDist = dist;
+            best = name;
+        }
+    }
+    return best;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ActiveVoice {
+    source: AudioBufferSourceNode;
     gain: GainNode;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Pure helpers (no closures, no allocations beyond arithmetic)
-// ─────────────────────────────────────────────────────────────────────────────
-
-function midiToFreq(midi: number): number {
-    return 440 * Math.pow(2, (midi - 69) / 12);
-}
-
-/** Smooth gain multiplier: 1.10 at C2, 0.75 at C7 */
-function balancedGain(midi: number, base: number): number {
-    const norm =
-        (Math.max(BAL_MIN, Math.min(BAL_MAX, midi)) - BAL_MIN) /
-        (BAL_MAX - BAL_MIN);
-    return base * (BAL_TOP - norm * BAL_SPAN);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Engine class
+// PianoEngine class
 // ─────────────────────────────────────────────────────────────────────────────
 
 class PianoEngine {
     private ctx: AudioContext | null = null;
     private masterGain: GainNode | null = null;
+    private ctxReady = false;
 
-    // noteLabel → live oscillator+gain pair
-    private activeNotes = new Map<string, ActiveNote>();
-    // keys held while sustain is on but physical key already released
+    private buffers = new Map<string, AudioBuffer>();
+    private activeVoices = new Map<string, ActiveVoice>();
     private sustainedKeys = new Set<string>();
 
-    private volume = 0.75; // 0–1
-    private transpose = 0; // semitones
-    private sustain = true; // default ON (matches original behaviour)
-    private ready = false;
+    private _samplesReady = false;
+    private _sustain = true;
+    private _volume = 0.75; // 0–1
 
-    // ── Lifecycle ─────────────────────────────────────────────────────────────
+    private _loading: Promise<void> | null = null;
 
-    /** Must be called from a user-gesture handler (click / keydown). */
-    init(): void {
-        if (this.ready) {
-            // Already initialised — just un-suspend if the browser paused us
+    /** True once all 30 samples have finished decoding. */
+    get samplesReady(): boolean {
+        return this._samplesReady;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Initialise AudioContext on first user gesture.
+    // Safe to call multiple times — only creates context once.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    initAudio(): void {
+        if (this.ctxReady) {
             this.ctx?.resume();
             return;
         }
-
         const AudioCtx =
             window.AudioContext ??
             (window as unknown as { webkitAudioContext: typeof AudioContext })
                 .webkitAudioContext;
 
-        this.ctx = new AudioCtx();
-        this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
-        this.masterGain.connect(this.ctx.destination);
-        this.ready = true;
+        const ctx = new AudioCtx();
+        const mg = ctx.createGain();
+        mg.gain.setValueAtTime(this._volume, ctx.currentTime);
+        mg.connect(ctx.destination);
+
+        this.ctx = ctx;
+        this.masterGain = mg;
+        this.ctxReady = true;
     }
 
-    destroy(): void {
-        this.activeNotes.forEach((_, label) => this._hardStop(label));
-        this.activeNotes.clear();
-        this.sustainedKeys.clear();
-        this.ctx?.close();
-        this.ctx = null;
-        this.masterGain = null;
-        this.ready = false;
+    // ─────────────────────────────────────────────────────────────────────────
+    // Load all 30 MP3 samples in parallel.
+    // Idempotent — safe to call from multiple components on different pages.
+    // Returns the same Promise if already loading; resolves immediately if done.
+    // Files: /public/piano/{name}.mp3  (30 files, '#' renamed to 's' in filename)
+    //   e.g. /piano/C4v4.mp3, /piano/Ds2v4.mp3, /piano/Fs3v4.mp3
+    // ─────────────────────────────────────────────────────────────────────────
+
+    async loadSamples(): Promise<void> {
+        if (this._samplesReady) return; // already loaded
+        if (this._loading) return this._loading; // already in progress
+
+        const AudioCtx =
+            window.AudioContext ??
+            (window as unknown as { webkitAudioContext: typeof AudioContext })
+                .webkitAudioContext;
+        const decodeCtx = this.ctx ?? new AudioCtx();
+
+        this._loading = Promise.all(
+            SAMPLE_NAMES.map(async (name) => {
+                try {
+                    const resp = await fetch(`/audio/piano/${name}.mp3`);
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const raw = await resp.arrayBuffer();
+                    const buffer = await decodeCtx.decodeAudioData(raw);
+                    this.buffers.set(name, buffer);
+                } catch (err) {
+                    console.warn(
+                        `[pianoEngine] Could not load ${name}.mp3:`,
+                        err,
+                    );
+                }
+            }),
+        ).then(() => {
+            this._samplesReady = this.buffers.size > 0;
+            this._loading = null;
+        });
+
+        return this._loading;
     }
 
-    // ── Note playback ─────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Volume — 0–1 float
+    // ─────────────────────────────────────────────────────────────────────────
 
-    playNote(noteLabel: string): void {
-        if (!this.ready) this.init();
+    setVolume(value: number): void {
+        this._volume = Math.max(0, Math.min(1, value));
+        const ctx = this.ctx;
+        const mg = this.masterGain;
+        if (!ctx || !mg) return;
+        mg.gain.setTargetAtTime(this._volume, ctx.currentTime, 0.02);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Sustain pedal
+    // ─────────────────────────────────────────────────────────────────────────
+
+    setSustain(on: boolean): void {
+        this._sustain = on;
+        if (!on) {
+            this.sustainedKeys.forEach((label) => this._quickRelease(label));
+            this.sustainedKeys.clear();
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Play a note.
+    // noteLabel — used as voice key for retrigger/stop (e.g. "C4")
+    // targetMidi — the actual MIDI pitch to play (after transpose)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    playNote(noteLabel: string, targetMidi: number): void {
+        this.initAudio();
         const ctx = this.ctx!;
         const mg = this.masterGain!;
 
-        // Resume if browser suspended the context
         if (ctx.state === "suspended") ctx.resume();
+        if (!this._samplesReady) return;
 
-        const nd = ALL_NOTES.find((n) => n.label === noteLabel);
-        if (!nd) return;
+        // Find nearest recorded sample
+        const sampleName = nearestSample(targetMidi);
+        const buffer = this.buffers.get(sampleName);
+        if (!buffer) return;
 
-        const freq = midiToFreq(nd.midi + this.transpose);
+        const semitones = targetMidi - SAMPLE_MAP[sampleName];
+        const rate = semitonesToRate(semitones);
 
-        // Retrigger: stop any existing voice for this note cleanly
+        // Retrigger cleanly
         this._hardStop(noteLabel);
         this.sustainedKeys.delete(noteLabel);
 
-        const osc = ctx.createOscillator();
+        // Build voice: source → noteGain → masterGain → destination
+        const source = ctx.createBufferSource();
         const gain = ctx.createGain();
 
-        osc.type = "triangle";
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        source.buffer = buffer;
+        source.playbackRate.value = rate;
+        source.loop = false;
 
-        // Envelope with per-note volume balance
-        const peak = balancedGain(nd.midi, 0.75);
-        const sustLvl = balancedGain(nd.midi, 0.35);
+        // Envelope — brief attack, then natural sample decay
+        const now = ctx.currentTime;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(1.0, now + ATTACK_TIME);
+        gain.gain.setValueAtTime(1.0, now + ATTACK_TIME);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + NATURAL_DURATION);
 
-        gain.gain.setValueAtTime(0, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(peak, ctx.currentTime + ATTACK_TIME);
-        gain.gain.exponentialRampToValueAtTime(
-            sustLvl,
-            ctx.currentTime + DECAY_TIME,
-        );
-        gain.gain.exponentialRampToValueAtTime(
-            0.001,
-            ctx.currentTime + NATURAL_DECAY,
-        );
-
-        osc.connect(gain);
+        source.connect(gain);
         gain.connect(mg);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + NATURAL_DECAY + 0.05);
+        source.start(now);
 
-        this.activeNotes.set(noteLabel, { osc, gain });
-
-        osc.onended = () => {
-            this.activeNotes.delete(noteLabel);
+        this.activeVoices.set(noteLabel, { source, gain });
+        source.onended = () => {
+            this.activeVoices.delete(noteLabel);
             this.sustainedKeys.delete(noteLabel);
         };
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Stop a note — honours sustain pedal
+    // ─────────────────────────────────────────────────────────────────────────
+
     stopNote(noteLabel: string): void {
-        if (this.sustain) {
-            // Pedal held — keep the voice alive, track it so we can release later
-            if (this.activeNotes.has(noteLabel)) {
+        if (this._sustain) {
+            if (this.activeVoices.has(noteLabel)) {
                 this.sustainedKeys.add(noteLabel);
             }
             return;
@@ -183,76 +276,63 @@ class PianoEngine {
         this._quickRelease(noteLabel);
     }
 
-    // ── Controls ──────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Internal: fade out and stop a voice
+    // ─────────────────────────────────────────────────────────────────────────
 
-    setVolume(v: number): void {
-        this.volume = Math.max(0, Math.min(100, v)) / 100;
-        const ctx = this.ctx;
-        const mg = this.masterGain;
-        if (!ctx || !mg) return;
-        // Smooth ramp to avoid clicks
-        mg.gain.setTargetAtTime(this.volume, ctx.currentTime, 0.02);
-    }
-
-    setTranspose(semitones: number): void {
-        this.transpose = Math.max(-12, Math.min(12, semitones));
-        // Active notes keep their original pitch — transpose applies to new presses
-    }
-
-    setSustain(on: boolean): void {
-        this.sustain = on;
-        if (!on) {
-            // Pedal released — quick-release every note that was held by sustain
-            this.sustainedKeys.forEach((label) => this._quickRelease(label));
-            this.sustainedKeys.clear();
-        }
-    }
-
-    // ── Private helpers ───────────────────────────────────────────────────────
-
-    /** Fade out and stop a note voice. Safe to call when voice doesn't exist. */
     private _quickRelease(noteLabel: string): void {
         const ctx = this.ctx;
-        const note = this.activeNotes.get(noteLabel);
-        if (!ctx || !note) return;
+        const voice = this.activeVoices.get(noteLabel);
+        if (!ctx || !voice) return;
 
         const t = ctx.currentTime;
-        const gp = note.gain.gain;
+        const gp = voice.gain.gain;
         gp.cancelScheduledValues(t);
         gp.setValueAtTime(Math.max(gp.value, 0.0001), t);
         gp.exponentialRampToValueAtTime(0.0001, t + RELEASE_TIME);
 
         try {
-            note.osc.stop(t + RELEASE_TIME + 0.02);
+            voice.source.stop(t + RELEASE_TIME + 0.02);
         } catch (_) {
-            /* already stopped */
+            /* already ended */
         }
 
-        this.activeNotes.delete(noteLabel);
+        this.activeVoices.delete(noteLabel);
         this.sustainedKeys.delete(noteLabel);
     }
 
-    /** Immediately silence a note with no fade (used on retrigger). */
+    // ─────────────────────────────────────────────────────────────────────────
+    // Internal: immediate hard stop (used for retrigger)
+    // ─────────────────────────────────────────────────────────────────────────
+
     private _hardStop(noteLabel: string): void {
-        const note = this.activeNotes.get(noteLabel);
-        if (!note) return;
+        const voice = this.activeVoices.get(noteLabel);
+        if (!voice) return;
         try {
-            note.osc.stop();
+            voice.source.stop();
         } catch (_) {
-            /* already stopped */
+            /* already ended */
         }
-        this.activeNotes.delete(noteLabel);
+        this.activeVoices.delete(noteLabel);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Cleanup — call on component unmount
+    // ─────────────────────────────────────────────────────────────────────────
+
+    destroy(): void {
+        this.activeVoices.forEach((_, label) => this._hardStop(label));
+        this.activeVoices.clear();
+        this.sustainedKeys.clear();
+        this.ctx?.close();
+        this.ctx = null;
+        this.masterGain = null;
+        this.ctxReady = false;
+        this._samplesReady = false;
+        this._loading = null;
+        this.buffers.clear();
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Singleton export
-//
-// A module-level singleton means:
-//  • Only one AudioContext is ever created (browser limit: 6 concurrent).
-//  • The engine survives React fast-refresh in development without leaking.
-//  • No React context or provider needed.
-// ─────────────────────────────────────────────────────────────────────────────
-
+// Singleton — one engine instance shared across the app
 export const pianoEngine = new PianoEngine();
-export type { PianoEngine };

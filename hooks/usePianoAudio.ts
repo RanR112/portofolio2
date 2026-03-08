@@ -1,119 +1,61 @@
 // hooks/usePianoAudio.ts
 //
-// Synthesizes a piano-like tone using the Web Audio API.
-// No external library. Uses a triangle oscillator with an ADSR-style
-// amplitude envelope to approximate the attack/decay of a real piano key.
+// Plays piano notes using the shared pianoEngine sample library
+// (the same MP3 samples used by the main keyboard).
 //
-// Why triangle wave:
-//   Sine = too pure/hollow. Sawtooth = too harsh. Triangle sits between
-//   them — warm, slightly complex, readable as a pitched instrument.
+// Drop-in replacement for the oscillator version — API is identical:
+//   const { playNote } = usePianoAudio();
+//   playNote("C4");   // plays the real piano sample
 //
-// Why no OscillatorNode.type = 'custom':
-//   A PeriodicWave would be more accurate but adds complexity.
-//   Triangle + subtle detuning gives a convincing result for UI feedback.
+// Self-contained: loads samples on first mount if not already loaded.
+// Safe to use on any page — pianoEngine.loadSamples() is idempotent.
 
-import { useRef, useCallback } from "react";
+import { useEffect, useCallback } from "react";
+import { pianoEngine } from "@/lib/pianoEngine";
 
-// Frequency map — equal temperament, full chromatic octave C4–C5
-// White keys: C D E F G A B C
-// Black keys: C# D# F# G# A#
-const NOTE_FREQUENCIES: Record<string, number> = {
-    C4: 261.63,
-    Cs4: 277.18, // C#4
-    D4: 293.66,
-    Ds4: 311.13, // D#4
-    E4: 329.63,
-    F4: 349.23,
-    Fs4: 369.99, // F#4
-    G4: 392.0,
-    Gs4: 415.3, // G#4
-    A4: 440.0,
-    As4: 466.16, // A#4
-    B4: 493.88,
-    C5: 523.25,
+// ─────────────────────────────────────────────────────────────────────────────
+// Note → MIDI map (equal temperament, same names as the original hook)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const NOTE_MIDI: Record<string, number> = {
+    C4: 60,
+    Cs4: 61, // C#4
+    D4: 62,
+    Ds4: 63, // D#4
+    E4: 64,
+    F4: 65,
+    Fs4: 66, // F#4
+    G4: 67,
+    Gs4: 68, // G#4
+    A4: 69,
+    As4: 70, // A#4
+    B4: 71,
+    C5: 72,
 };
 
-// Envelope shape — tuned to feel like a soft piano key, not a synth blip
-const ENVELOPE = {
-    attackTime: 0.008, // seconds — fast but not instant (avoids click artifact)
-    peakGain: 0.35, // 0–1 — soft volume, sidebar feedback not a performance
-    decayTime: 1.2, // seconds — natural piano decay
-    releaseGain: 0.001, // near-zero target for exponentialRampToValueAtTime
-};
+// ─────────────────────────────────────────────────────────────────────────────
+// Hook
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function usePianoAudio() {
-    // AudioContext is lazily initialized on first user interaction.
-    // Browsers block AudioContext creation until a user gesture has occurred.
-    const ctxRef = useRef<AudioContext | null>(null);
-
-    const getContext = useCallback((): AudioContext => {
-        if (!ctxRef.current) {
-            ctxRef.current = new (
-                window.AudioContext || (window as any).webkitAudioContext
-            )();
+    // Load samples on first mount if not already loaded.
+    // pianoEngine.loadSamples() is idempotent — safe to call multiple times
+    // from multiple components; it checks internally if already loaded.
+    useEffect(() => {
+        if (!pianoEngine.samplesReady) {
+            pianoEngine.loadSamples();
         }
-        // Resume if suspended (browser autoplay policy can suspend it)
-        if (ctxRef.current.state === "suspended") {
-            ctxRef.current.resume();
-        }
-        return ctxRef.current;
     }, []);
 
-    const playNote = useCallback(
-        (note: string) => {
-            const freq = NOTE_FREQUENCIES[note];
-            if (!freq) {
-                console.warn(`[usePianoAudio] Unknown note: "${note}"`);
-                return;
-            }
-
-            const ctx = getContext();
-            const now = ctx.currentTime;
-
-            // --- Oscillator ---
-            const oscillator = ctx.createOscillator();
-            oscillator.type = "triangle";
-
-            // Primary frequency
-            oscillator.frequency.setValueAtTime(freq, now);
-
-            // Subtle detuning at onset — real piano strings vibrate slightly
-            // sharp at the moment of strike, then settle to pitch
-            oscillator.frequency.setValueAtTime(freq * 1.002, now + 0.005);
-            oscillator.frequency.linearRampToValueAtTime(freq, now + 0.05);
-
-            // --- Gain (amplitude envelope) ---
-            const gainNode = ctx.createGain();
-            gainNode.gain.setValueAtTime(0, now);
-
-            // Attack — linear ramp from 0 to peak
-            gainNode.gain.linearRampToValueAtTime(
-                ENVELOPE.peakGain,
-                now + ENVELOPE.attackTime,
-            );
-
-            // Decay — exponential falloff mimics natural string/hammer decay
-            gainNode.gain.exponentialRampToValueAtTime(
-                ENVELOPE.releaseGain,
-                now + ENVELOPE.decayTime,
-            );
-
-            // --- Signal chain: oscillator → gain → output ---
-            oscillator.connect(gainNode);
-            gainNode.connect(ctx.destination);
-
-            // Start and schedule auto-stop after decay completes
-            oscillator.start(now);
-            oscillator.stop(now + ENVELOPE.decayTime);
-
-            // Clean up nodes after they've finished to avoid memory accumulation
-            oscillator.onended = () => {
-                oscillator.disconnect();
-                gainNode.disconnect();
-            };
-        },
-        [getContext],
-    );
+    const playNote = useCallback((note: string) => {
+        const midi = NOTE_MIDI[note];
+        if (midi === undefined) {
+            console.warn(`[usePianoAudio] Unknown note: "${note}"`);
+            return;
+        }
+        // Use note name as voice key so rapid retriggers don't stack
+        pianoEngine.playNote(note, midi);
+    }, []);
 
     return { playNote };
 }

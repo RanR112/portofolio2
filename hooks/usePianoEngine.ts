@@ -1,35 +1,24 @@
-/**
- * hooks/usePianoEngine.ts
- *
- * React bridge between the UI and the pure audio engine.
- *
- * What this hook does
- * ────────────────────
- * • Initialises pianoEngine once on first user interaction.
- * • Exposes pressNote / releaseNote to UI components — these are stable
- *   function references that NEVER change, so React.memo'd children never
- *   re-render because of them.
- * • Owns all DOM-touching animation logic (canvas RAF loop, black-key
- *   repositioning) via refs — this code runs completely outside React's
- *   render cycle.
- * • Owns the keyboard listener (keydown / keyup) — fires pianoEngine directly,
- *   never setState.
- * • useState is used ONLY for the four controls that must drive UI updates:
- *   volume, transpose, sustain, barColor.
- *
- * What this hook does NOT do
- * ────────────────────────────
- * • Touch Web Audio directly — delegated entirely to pianoEngine.
- * • setState on note press/release — active-class toggling is pure DOM.
- * • Re-render on every animation frame — RAF loop manipulates canvas directly.
- */
+"use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { pianoEngine } from "../lib/pianoEngine";
-import { WHITE_NOTES, ARROW_CODES, resolveKeyToNote } from "../lib/keyMap";
+import {
+    ALL_NOTES,
+    WHITE_NOTES,
+    ARROW_CODES,
+    resolveKeyToNote,
+} from "@/lib/keyMap";
+import { pianoEngine } from "@/lib/pianoEngine";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Bar shape (animation only — no audio data here)
+// Animation constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GROW_RATE = 0.18; // px/ms
+const SCROLL_SPEED = 2.5; // px/frame
+const MAX_GROW_FRAC = 0.92;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface Bar {
@@ -40,18 +29,6 @@ export interface Bar {
     isReleased: boolean;
     keyEl: HTMLElement | null;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Animation constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-const GROW_RATE = 0.14; // px/ms
-const SCROLL_SPEED = 2.5; // px/frame
-const MAX_GROW_FRAC = 0.92;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Public surface returned from the hook
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface PianoEngineRefs {
     canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -68,6 +45,7 @@ export interface PianoEngineState {
     transpose: number;
     sustain: boolean;
     barColor: string;
+    samplesReady: boolean;
     setVolume: React.Dispatch<React.SetStateAction<number>>;
     setTranspose: React.Dispatch<React.SetStateAction<number>>;
     setSustain: React.Dispatch<React.SetStateAction<boolean>>;
@@ -75,10 +53,6 @@ export interface PianoEngineState {
 }
 
 export interface UsePianoEngineOptions {
-    /**
-     * The hashed SCSS-module class name for the "active" key state.
-     * Passed from Piano.tsx so classList manipulation uses the correct name.
-     */
     activeClassName: string;
 }
 
@@ -96,15 +70,27 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
 } {
     const { activeClassName } = options;
 
-    // ── React state — ONLY what must drive UI re-renders ─────────────────────
+    // ── UI state (only these ever cause React re-renders) ─────────────────────
     const [volume, setVolume] = useState(75);
     const [transpose, setTranspose] = useState(0);
     const [sustain, setSustain] = useState(true);
     const [barColor, setBarColor] = useState("#f0a63a");
 
+    // samplesReady drives the loading overlay in Piano.tsx
+    const [samplesReady, setSamplesReady] = useState(false);
+
+    // ── Shadow refs — stale-closure-safe copies of state ──────────────────────
+    const transposeRef = useRef(0);
     const barColorRef = useRef("#f0a63a");
 
-    // ── Animation refs (never trigger re-renders) ─────────────────────────────
+    useEffect(() => {
+        transposeRef.current = transpose;
+    }, [transpose]);
+    useEffect(() => {
+        barColorRef.current = barColor;
+    }, [barColor]);
+
+    // ── Animation refs ─────────────────────────────────────────────────────────
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const vizAreaRef = useRef<HTMLDivElement | null>(null);
     const activeBarsRef = useRef<Record<string, Bar>>({});
@@ -112,30 +98,43 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     const rafRef = useRef<number>(0);
     const lastTimeRef = useRef(0);
 
-    // ── Piano DOM refs ────────────────────────────────────────────────────────
+    // ── Piano DOM refs ─────────────────────────────────────────────────────────
     const pianoRef = useRef<HTMLDivElement | null>(null);
     const keyElementsRef = useRef<Record<string, HTMLElement>>({});
 
-    // ── Keyboard tracking (physical, not musical state) ───────────────────────
+    // ── Keyboard tracking ──────────────────────────────────────────────────────
     const pressedPhysRef = useRef<Set<string>>(new Set());
     const keyCodeToNoteRef = useRef<Record<string, string>>({});
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Sync state → engine (no audio re-init, just parameter updates)
+    // Load samples on mount — pianoEngine does all the work,
+    // we just flip samplesReady when it's done so the overlay hides.
     // ─────────────────────────────────────────────────────────────────────────
 
     useEffect(() => {
-        pianoEngine.setVolume(volume);
-    }, [volume]);
+        pianoEngine.loadSamples().then(() => {
+            setSamplesReady(pianoEngine.samplesReady);
+        });
+        return () => {
+            pianoEngine.destroy();
+        };
+    }, []);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Sync volume → pianoEngine (smooth ramp handled inside engine)
+    // ─────────────────────────────────────────────────────────────────────────
+
     useEffect(() => {
-        pianoEngine.setTranspose(transpose);
-    }, [transpose]);
+        pianoEngine.setVolume(volume / 100);
+    }, [volume]);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Sync sustain → pianoEngine
+    // ─────────────────────────────────────────────────────────────────────────
+
     useEffect(() => {
         pianoEngine.setSustain(sustain);
     }, [sustain]);
-    useEffect(() => {
-        barColorRef.current = barColor;
-    }, [barColor]);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Canvas / animation helpers
@@ -148,7 +147,6 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
         canvas.height = canvas.offsetHeight;
     }, []);
 
-    // Register a bar when a key is pressed (pure DOM geometry, no audio)
     const animRegisterKey = useCallback(
         (noteLabel: string, keyEl: HTMLElement) => {
             if (activeBarsRef.current[noteLabel]) return;
@@ -167,7 +165,6 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
         [],
     );
 
-    // Freeze a bar's height and hand it to the scrolling pool
     const animReleaseKey = useCallback((noteLabel: string) => {
         const bar = activeBarsRef.current[noteLabel];
         if (!bar) return;
@@ -178,7 +175,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     }, []);
 
     // ─────────────────────────────────────────────────────────────────────────
-    // RAF draw loop — runs entirely outside React, manipulates canvas directly
+    // RAF draw loop — outside React, direct canvas manipulation
     // ─────────────────────────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -259,13 +256,11 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
 
             const maxH = H * MAX_GROW_FRAC;
 
-            // Growing bars (key held)
             Object.values(activeBarsRef.current).forEach((bar) => {
                 bar.height = Math.min(bar.height + GROW_RATE * delta, maxH);
                 drawBar(ctx2d, bar, H);
             });
 
-            // Released bars scrolling upward
             const rel = releasedBarsRef.current;
             for (let i = rel.length - 1; i >= 0; i--) {
                 const bar = rel[i];
@@ -286,25 +281,21 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     }, [resizeCanvas]);
 
     // ─────────────────────────────────────────────────────────────────────────
-    // pressNote / releaseNote
-    //
-    // These are STABLE references (deps are all refs, never re-created).
-    // React.memo'd PianoKey children will NEVER re-render because of them.
-    // Active-class toggling is pure DOM — zero setState, zero re-renders.
+    // pressNote / releaseNote — stable callbacks, zero React state on note events
     // ─────────────────────────────────────────────────────────────────────────
 
     const pressNote = useCallback(
         (noteLabel: string) => {
             const el = keyElementsRef.current[noteLabel];
             if (!el || el.classList.contains(activeClassName)) return;
-
-            // DOM mutation — no React state involved
             el.classList.add(activeClassName);
 
-            // Fire audio engine — runs on audio thread, does not block UI
-            pianoEngine.playNote(noteLabel);
+            const nd = ALL_NOTES.find((n) => n.label === noteLabel);
+            if (nd) {
+                const targetMidi = nd.midi + transposeRef.current;
+                pianoEngine.playNote(noteLabel, targetMidi);
+            }
 
-            // Start growing bar for this key
             animRegisterKey(noteLabel, el);
         },
         [activeClassName, animRegisterKey],
@@ -314,7 +305,6 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
         (noteLabel: string) => {
             const el = keyElementsRef.current[noteLabel];
             if (el) el.classList.remove(activeClassName);
-
             pianoEngine.stopNote(noteLabel);
             animReleaseKey(noteLabel);
         },
@@ -322,7 +312,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     );
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Keyboard listener — fires engine directly, never setState for note events
+    // Keyboard listener
     // ─────────────────────────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -331,7 +321,6 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
 
             if (ARROW_CODES.has(e.code)) {
                 e.preventDefault();
-                // These DO call setState because they must update visible control UI
                 if (e.code === "ArrowRight")
                     setVolume((v) => Math.min(100, v + 5));
                 if (e.code === "ArrowLeft")
@@ -380,8 +369,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     }, [pressNote, releaseNote]);
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Black key repositioning + resize
-    // Uses data-is-black attribute selector — immune to SCSS module class hashing
+    // Black key repositioning + resize throttle
     // ─────────────────────────────────────────────────────────────────────────
 
     const repositionBlackKeys = useCallback(() => {
@@ -430,22 +418,13 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     }, [resizeCanvas, repositionBlackKeys]);
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Cleanup on unmount
-    // ─────────────────────────────────────────────────────────────────────────
-
-    useEffect(() => {
-        return () => {
-            pianoEngine.destroy();
-        };
-    }, []);
-
-    // ─────────────────────────────────────────────────────────────────────────
     return {
         state: {
             volume,
             transpose,
             sustain,
             barColor,
+            samplesReady,
             setVolume,
             setTranspose,
             setSustain,
