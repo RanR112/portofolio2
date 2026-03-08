@@ -310,7 +310,7 @@
             "name": "Nama",
             "namePlaceholder": "Nama Anda",
             "email": "Email",
-            "emailPlaceholder": "email@anda.com",
+            "emailPlaceholder": "anda@email.com",
             "message": "Pesan",
             "messagePlaceholder": "Apa yang ingin Anda sampaikan?",
             "submit": "Kirim pesan",
