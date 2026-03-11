@@ -5,6 +5,7 @@
             "about": "about",
             "stack": "tech stack",
             "projects": "projects",
+            "services": "services",
             "timeline": "timeline",
             "music": "music",
             "contact": "contact",
@@ -15,6 +16,7 @@
             "about": "About",
             "stack": "Tech Stack",
             "projects": "Projects",
+            "services": "Services",
             "timeline": "Timeline",
             "music": "Music",
             "contact": "Contact",
@@ -27,6 +29,7 @@
         "about": "About",
         "stack": "Tech Stack",
         "projects": "Projects",
+        "services": "Services",
         "timeline": "Timeline",
         "music": "Music",
         "contact": "Contact",
@@ -142,8 +145,151 @@
             }
         }
     },
+    "services": {
+        "label": "05 — Services",
+        "title": "What I Can Build for You.",
+        "subtitle": "Practical web development work — from initial concept to deployed product.",
+        "overview": {
+            "label": "Overview",
+            "title": "How I Work",
+            "description": "I take on web projects end-to-end: from planning and design to development and deployment. My focus is on clean code, good performance, and interfaces that are easy to maintain long-term.",
+            "availability": "Available for remote collaboration and local projects in Banjarnegara and surrounding areas."
+        },
+        "list": {
+            "label": "Services",
+            "title": "What I Offer",
+            "items": {
+                "webDevelopment": {
+                    "title": "Website Development",
+                    "description": "Building websites from scratch. Start from company profiles, portfolios, landing pages, and informational sites. Focused on clean structure, good performance, and mobile-friendly layouts.",
+                    "useCases": [
+                        "Company profile websites",
+                        "Personal or professional portfolios",
+                        "Product landing pages",
+                        "Event or campaign pages"
+                    ]
+                },
+                "webApp": {
+                    "title": "Custom Web Applications",
+                    "description": "Developing web applications with specific business logic, such as dashboards, internal tools, or user-facing platforms that go beyond static content.",
+                    "useCases": [
+                        "Admin dashboards and internal tools",
+                        "Client portals with authentication",
+                        "Data entry and management interfaces",
+                        "Booking or scheduling systems"
+                    ]
+                },
+                "redesign": {
+                    "title": "Website Redesign",
+                    "description": "Rebuilding an existing website with improved structure, updated design, and better performance while preserving the content and purpose of the original.",
+                    "useCases": [
+                        "Outdated websites needing a visual refresh",
+                        "Sites with poor mobile experience",
+                        "Rebranding with updated design system",
+                        "Migrating from page builders to custom code"
+                    ]
+                },
+                "optimization": {
+                    "title": "Website Optimization",
+                    "description": "Improving the technical performance of existing websites — faster load times, better Lighthouse scores, and smoother user experience.",
+                    "useCases": [
+                        "Core Web Vitals and Lighthouse improvements",
+                        "Image and asset optimization",
+                        "Code splitting and lazy loading",
+                        "SEO technical audit and fixes"
+                    ]
+                },
+                "maintenance": {
+                    "title": "Website Maintenance",
+                    "description": "Ongoing support for live websites — content updates, bug fixes, dependency upgrades, and general upkeep to keep the site running smoothly.",
+                    "useCases": [
+                        "Regular content and copy updates",
+                        "Dependency and security patching",
+                        "Bug fixes and minor feature additions",
+                        "Monitoring and performance checks"
+                    ]
+                }
+            }
+        },
+        "clientsGet": {
+            "label": "What You Get",
+            "title": "What Clients Receive",
+            "items": [
+                {
+                    "title": "Fast, Modern Website",
+                    "description": "A clean and modern website built for speed, usability, and a professional first impression."
+                },
+                {
+                    "title": "Responsive on All Devices",
+                    "description": "Every layout is tested across screen sizes. Mobile is not an afterthought."
+                },
+                {
+                    "title": "Direct Communication",
+                    "description": "No account managers. You communicate directly with the developer working on your project."
+                },
+                {
+                    "title": "Deployment Ready",
+                    "description": "Projects are delivered production-ready — configured, tested, and deployed to your hosting of choice."
+                }
+            ]
+        },
+        "process": {
+            "label": "Process",
+            "title": "How a Project Runs",
+            "steps": [
+                {
+                    "number": "01",
+                    "title": "Discovery",
+                    "description": "We discuss the project scope, requirements, timeline, and any technical constraints. This can be a short call or a written brief — whichever works for you."
+                },
+                {
+                    "number": "02",
+                    "title": "Planning",
+                    "description": "I outline the technical approach, page structure, and feature scope. For larger projects, this includes a rough wireframe or sitemap."
+                },
+                {
+                    "number": "03",
+                    "title": "Development",
+                    "description": "The main build phase. I keep you updated at key milestones and share progress via a staging environment when relevant."
+                },
+                {
+                    "number": "04",
+                    "title": "Review & Launch",
+                    "description": "You review the result, we address any feedback, and then launch. Post-launch support is available for any immediate issues."
+                }
+            ]
+        },
+        "faq": {
+            "label": "FAQ",
+            "title": "Common Questions",
+            "items": [
+                {
+                    "question": "Do you work with clients outside of Indonesia?",
+                    "answer": "Yes. Most of my work is done remotely. Communication happens over email, chat, or video call — timezone differences are manageable for async-friendly projects."
+                },
+                {
+                    "question": "What technologies do you use?",
+                    "answer": "Primarily React and Next.js for the frontend, with Node.js or serverless functions for backend logic. The stack is chosen based on what fits the project, not what's trending."
+                },
+                {
+                    "question": "How do you handle project pricing?",
+                    "answer": "Pricing depends on scope and complexity. Most projects are quoted as fixed-price after an initial discussion. Ongoing maintenance is usually a monthly arrangement."
+                },
+                {
+                    "question": "Can you work with an existing codebase?",
+                    "answer": "Yes. I'm comfortable joining an existing project for optimization, bug fixes, or feature additions — as long as there's reasonable documentation or I can review the code first."
+                }
+            ]
+        },
+        "cta": {
+            "label": "Get in Touch",
+            "title": "Have a Project in Mind?",
+            "description": "If you have something to build or a problem to solve, feel free to reach out. A brief description of what you need is enough to start.",
+            "button": "Discuss Your Project"
+        }
+    },
     "timeline": {
-        "label": "05 — Timeline",
+        "label": "06 — Timeline",
         "title": "How I got here.",
         "subtitle": "A structured account of the phases that shaped the way I build software.",
         "current": "Current",
@@ -291,7 +437,7 @@
         }
     },
     "music": {
-        "label": "06 — Music",
+        "label": "07 — Music",
         "title": "Music console.",
         "subtitle": "Try playing the piano — click \"Full Mode\" to play with 61 keys.",
         "full": "Full Mode",
@@ -299,7 +445,7 @@
         "journey2": "Music, taught me to listen carefully and stay comfortable with exploration. A simple progression can evolve in many directions depending on how you interpret it. When I spend time at the piano, it helps clear my mind and often brings new perspectives to whatever I'm working on."
     },
     "contact": {
-        "label": "07 — Contact",
+        "label": "08 — Contact",
         "title": "Get in touch.",
         "subtitle": "Whether it's a project, a question, or just to say hello.",
         "text": "I'm currently open to fullstack roles, freelance projects, and interesting collaborations. The fastest way to reach me is email.",
@@ -321,7 +467,7 @@
         }
     },
     "comments": {
-        "label": "08 — Comments",
+        "label": "09 — Comments",
         "title": "Leave a comment.",
         "subtitle": "Share your thoughts on the work, projects, or anything else.",
         "as": "Commenting as",

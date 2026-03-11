@@ -5,6 +5,7 @@
             "about": "tentang",
             "stack": "teknologi",
             "projects": "proyek",
+            "services": "layanan",
             "timeline": "perjalanan",
             "music": "musik",
             "contact": "kontak",
@@ -15,6 +16,7 @@
             "about": "Tentang",
             "stack": "Teknologi",
             "projects": "Proyek",
+            "services": "Layanan",
             "timeline": "Perjalanan",
             "music": "Musik",
             "contact": "Kontak",
@@ -27,6 +29,7 @@
         "about": "Tentang",
         "stack": "Teknologi",
         "projects": "Proyek",
+        "services": "Layanan",
         "timeline": "Perjalanan",
         "music": "Musik",
         "contact": "Kontak",
@@ -142,8 +145,151 @@
             }
         }
     },
+    "services": {
+        "label": "05 — Layanan",
+        "title": "Apa yang Bisa Saya Bangun.",
+        "subtitle": "Pengembangan web yang praktis — dari konsep awal hingga produk yang siap digunakan.",
+        "overview": {
+            "label": "Ikhtisar",
+            "title": "Cara Saya Bekerja",
+            "description": "Saya menangani proyek web secara menyeluruh: dari perencanaan dan desain hingga pengembangan dan deployment. Fokus saya adalah kode yang bersih, performa yang baik, dan antarmuka yang mudah dirawat jangka panjang.",
+            "availability": "Tersedia untuk kolaborasi jarak jauh maupun proyek lokal di Banjarnegara dan sekitarnya."
+        },
+        "list": {
+            "label": "Layanan",
+            "title": "Yang Saya Tawarkan",
+            "items": {
+                "webDevelopment": {
+                    "title": "Pengembangan Website",
+                    "description": "Membangun website dari awal — profil perusahaan, portofolio, landing page, dan situs informasi. Fokus pada struktur yang bersih, performa yang baik, dan tampilan yang ramah perangkat mobile.",
+                    "useCases": [
+                        "Website profil perusahaan",
+                        "Portofolio pribadi atau profesional",
+                        "Landing page produk",
+                        "Halaman acara atau kampanye"
+                    ]
+                },
+                "webApp": {
+                    "title": "Aplikasi Web Kustom",
+                    "description": "Mengembangkan aplikasi web dengan logika bisnis tertentu — dashboard, alat internal, atau platform berbasis pengguna yang melampaui konten statis.",
+                    "useCases": [
+                        "Dashboard admin dan alat internal",
+                        "Portal klien dengan autentikasi",
+                        "Antarmuka input dan manajemen data",
+                        "Sistem pemesanan atau penjadwalan"
+                    ]
+                },
+                "redesign": {
+                    "title": "Redesain Website",
+                    "description": "Membangun ulang website yang sudah ada dengan struktur yang lebih baik, desain yang diperbarui, dan performa yang ditingkatkan — sambil mempertahankan konten dan tujuan aslinya.",
+                    "useCases": [
+                        "Website lama yang butuh tampilan baru",
+                        "Situs dengan pengalaman mobile yang buruk",
+                        "Rebranding dengan sistem desain terbaru",
+                        "Migrasi dari page builder ke kode kustom"
+                    ]
+                },
+                "optimization": {
+                    "title": "Optimasi Website",
+                    "description": "Meningkatkan performa teknis website yang sudah ada — waktu muat lebih cepat, skor Lighthouse lebih baik, dan pengalaman pengguna yang lebih lancar.",
+                    "useCases": [
+                        "Peningkatan Core Web Vitals dan Lighthouse",
+                        "Optimasi gambar dan aset",
+                        "Code splitting dan lazy loading",
+                        "Audit teknis SEO dan perbaikannya"
+                    ]
+                },
+                "maintenance": {
+                    "title": "Pemeliharaan Website",
+                    "description": "Dukungan berkelanjutan untuk website yang sudah live — pembaruan konten, perbaikan bug, pembaruan dependensi, dan perawatan umum agar situs berjalan lancar.",
+                    "useCases": [
+                        "Pembaruan konten dan teks secara rutin",
+                        "Patching dependensi dan keamanan",
+                        "Perbaikan bug dan penambahan fitur kecil",
+                        "Pemantauan dan pengecekan performa"
+                    ]
+                }
+            }
+        },
+        "clientsGet": {
+            "label": "Yang Anda Dapatkan",
+            "title": "Yang Diterima Klien",
+            "items": [
+                {
+                    "title": "Website Cepat dan Modern",
+                    "description": "Website modern yang dirancang dengan fokus pada kecepatan, kemudahan penggunaan, dan tampilan profesional."
+                },
+                {
+                    "title": "Responsif di Semua Perangkat",
+                    "description": "Setiap tampilan diuji di berbagai ukuran layar. Mobile bukan hal yang diabaikan."
+                },
+                {
+                    "title": "Komunikasi Langsung",
+                    "description": "Tanpa perantara. Anda berkomunikasi langsung dengan developer yang mengerjakan proyek Anda."
+                },
+                {
+                    "title": "Siap Deployment",
+                    "description": "Proyek diserahkan dalam kondisi siap produksi — dikonfigurasi, diuji, dan di-deploy ke hosting pilihan Anda."
+                }
+            ]
+        },
+        "process": {
+            "label": "Proses",
+            "title": "Bagaimana Proyek Berjalan",
+            "steps": [
+                {
+                    "number": "01",
+                    "title": "Diskusi Awal",
+                    "description": "Kita membahas ruang lingkup proyek, kebutuhan, timeline, dan batasan teknis. Bisa berupa obrolan singkat atau brief tertulis — mana yang lebih nyaman untuk Anda."
+                },
+                {
+                    "number": "02",
+                    "title": "Perencanaan",
+                    "description": "Saya menyusun pendekatan teknis, struktur halaman, dan ruang lingkup fitur. Untuk proyek yang lebih besar, ini mencakup wireframe kasar atau sitemap."
+                },
+                {
+                    "number": "03",
+                    "title": "Pengembangan",
+                    "description": "Fase pembangunan utama. Saya memberi update di titik-titik penting dan berbagi progres melalui staging environment bila diperlukan."
+                },
+                {
+                    "number": "04",
+                    "title": "Review & Peluncuran",
+                    "description": "Anda meninjau hasilnya, kami menangani masukan, lalu diluncurkan. Dukungan pasca-peluncuran tersedia untuk masalah yang muncul segera setelahnya."
+                }
+            ]
+        },
+        "faq": {
+            "label": "FAQ",
+            "title": "Pertanyaan Umum",
+            "items": [
+                {
+                    "question": "Apakah Anda menerima klien dari luar Indonesia?",
+                    "answer": "Ya. Sebagian besar pekerjaan saya dilakukan secara remote. Komunikasi bisa melalui email, chat, atau video call — perbedaan zona waktu bisa dikelola untuk proyek yang bersifat asinkronus."
+                },
+                {
+                    "question": "Teknologi apa yang Anda gunakan?",
+                    "answer": "Terutama React dan Next.js untuk frontend, dengan Node.js atau serverless function untuk logika backend. Stack dipilih berdasarkan kecocokan dengan proyek, bukan sekadar mengikuti tren."
+                },
+                {
+                    "question": "Bagaimana cara penentuan harga proyek?",
+                    "answer": "Harga bergantung pada ruang lingkup dan kompleksitas. Sebagian besar proyek dikutip dengan harga tetap setelah diskusi awal. Pemeliharaan berkelanjutan biasanya dalam bentuk paket bulanan."
+                },
+                {
+                    "question": "Apakah Anda bisa bekerja dengan basis kode yang sudah ada?",
+                    "answer": "Ya. Saya terbiasa bergabung dengan proyek yang sudah berjalan untuk optimasi, perbaikan bug, atau penambahan fitur — selama ada dokumentasi yang memadai atau saya bisa meninjau kodenya terlebih dahulu."
+                }
+            ]
+        },
+        "cta": {
+            "label": "Hubungi Saya",
+            "title": "Punya Proyek yang Ingin Dikerjakan?",
+            "description": "Jika Anda memiliki sesuatu yang ingin dibangun atau masalah yang perlu diselesaikan, jangan ragu untuk menghubungi saya. Deskripsi singkat tentang kebutuhan Anda sudah cukup untuk memulai.",
+            "button": "Diskusikan Proyek Anda"
+        }
+    },
     "timeline": {
-        "label": "05 — Timeline",
+        "label": "06 — Timeline",
         "title": "Perjalanan saya.",
         "subtitle": "Rekam jejak fase-fase yang membentuk cara saya membangun perangkat lunak.",
         "current": "Sekarang",
@@ -291,7 +437,7 @@
         }
     },
     "music": {
-        "label": "06 — Music",
+        "label": "07 — Music",
         "title": "Music console.",
         "subtitle": "Coba mainkan piano — klik \"Mode Penuh\" untuk bermain dengan 61 tuts.",
         "full": "Mode Penuh",
@@ -299,7 +445,7 @@
         "journey2": "Musik, mengajarkan saya untuk benar-benar mendengarkan dan nyaman dengan eksplorasi. Sebuah progresi sederhana bisa berkembang ke banyak arah tergantung bagaimana kita menafsirkannya. Waktu yang saya habiskan di depan piano sering membantu menjernihkan pikiran dan memberikan perspektif baru terhadap hal-hal yang sedang saya kerjakan."
     },
     "contact": {
-        "label": "07 — Kontak",
+        "label": "08 — Kontak",
         "title": "Hubungi saya.",
         "subtitle": "Baik itu proyek, pertanyaan, atau sekadar menyapa.",
         "text": "Saat ini saya terbuka untuk posisi fullstack developer, proyek freelance, maupun kolaborasi menarik. Cara tercepat untuk menghubungi saya adalah melalui email.",
@@ -321,7 +467,7 @@
         }
     },
     "comments": {
-        "label": "08 — Komentar",
+        "label": "09 — Komentar",
         "title": "Tinggalkan komentar.",
         "subtitle": "Bagikan pemikiran Anda tentang pekerjaan, proyek, atau hal lainnya.",
         "as": "Berkomentar sebagai",

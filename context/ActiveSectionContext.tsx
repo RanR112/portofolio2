@@ -30,7 +30,11 @@ export function ActiveSectionProvider({ children }: { children: ReactNode }) {
             : pathname;
 
         const activeItem =
-            navItems.find((item) => item.route === routePath) ?? navItems[0];
+            navItems.find((item) =>
+                item.route === "/"
+                    ? routePath === "/"
+                    : routePath.startsWith(item.route),
+            ) ?? navItems[0];
 
         return {
             activeId: activeItem.id,

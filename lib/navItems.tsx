@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ReactNode } from "react";
+import { MdHomeRepairService } from "react-icons/md";
 
 export type NavItem = {
     id: string;
@@ -67,10 +68,18 @@ export function useNavItems(): NavItem[] {
             shortcut: t("label.projects"),
         },
         {
+            id: t("id.services"),
+            label: "services",
+            route: "/services",
+            note: "G4",
+            icon: <MdHomeRepairService size={18} />,
+            shortcut: t("label.services"),
+        },
+        {
             id: t("id.timeline"),
             label: "timeline",
             route: "/timeline",
-            note: "G4",
+            note: "A4",
             icon: <Activity size={18} />,
             shortcut: t("label.timeline"),
         },
@@ -78,7 +87,7 @@ export function useNavItems(): NavItem[] {
             id: t("id.music"),
             label: "music",
             route: "/music",
-            note: "A4",
+            note: "B4",
             icon: <Piano size={18} />,
             shortcut: t("label.music"),
         },
@@ -86,7 +95,7 @@ export function useNavItems(): NavItem[] {
             id: t("id.contact"),
             label: "contact",
             route: "/contact",
-            note: "B4",
+            note: "C5",
             icon: <Phone size={18} />,
             shortcut: t("label.contact"),
         },
@@ -94,7 +103,7 @@ export function useNavItems(): NavItem[] {
             id: t("id.comments"),
             label: "comments",
             route: "/comments",
-            note: "C5",
+            note: "D5",
             icon: <MessageSquareMore size={18} />,
             shortcut: t("label.comments"),
         },
