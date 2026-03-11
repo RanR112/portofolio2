@@ -52,7 +52,7 @@
         "subtitle": "Sedikit tentang siapa saya, apa yang saya lakukan, dan bagaimana saya sampai di sini.",
         "bio1": "Halo! Saya seorang Full Stack Developer yang memiliki ketertarikan besar dalam membangun aplikasi web end-to-end yang tidak hanya berfungsi dengan baik, tetapi juga berpusat pada kebutuhan pengguna.",
         "bio2": "Saat ini saya sedang menempuh pendidikan di bidang Sistem Informasi dan secara aktif memperdalam kemampuan teknis di luar perkuliahan melalui pembelajaran mandiri serta proyek-proyek praktik. Pendekatan ini memungkinkan saya memperoleh pengalaman dalam pengembangan frontend maupun backend dengan teknologi modern dan studi kasus nyata.",
-        "bio3": "Saya telah mengerjakan berbagai proyek pribadi, kolaboratif, maupun profesional yang melibatkan antarmuka pengguna responsif, RESTful API, serta sistem web full-stack menggunakan teknologi seperti React, Express.js, Laravel, dan berbagai teknologi web lainnya. Saya menikmati proses memecahkan masalah yang kompleks, mempelajari konsep baru, dan mengubah ide menjadi aplikasi yang andal serta mudah dipelihara.",
+        "bio3": "Saya telah mengerjakan berbagai proyek pribadi, kolaboratif, maupun profesional yang melibatkan antarmuka pengguna responsif, RESTful API, serta sistem web full-stack menggunakan teknologi seperti Next, Express.js, Laravel, dan berbagai teknologi web lainnya. Saya menikmati proses memecahkan masalah yang kompleks, mempelajari konsep baru, dan mengubah ide menjadi aplikasi yang andal serta mudah dipelihara.",
         "bio4": "Ketertarikan saya meliputi pengembangan web full-stack, arsitektur perangkat lunak, serta membangun solusi yang skalabel dan memberikan dampak nyata bagi pengguna maupun organisasi.",
         "bio5": "Saya terus berusaha untuk berkembang, berkontribusi dalam proyek nyata, serta berkolaborasi dengan orang-orang di komunitas teknologi.",
         "infoCard": {
@@ -62,7 +62,7 @@
             "role": "Peran",
             "roleValue": "Frontend, Backend, Fullstack",
             "stack": "Teknologi Utama",
-            "stackValue": "React, Express, TypeScript",
+            "stackValue": "Next, Express, TypeScript",
             "available": "Ketersediaan",
             "availableValue": "Terbuka untuk freelance & kolaborasi",
             "focus": "Fokus",

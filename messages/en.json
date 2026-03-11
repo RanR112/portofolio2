@@ -52,7 +52,7 @@
         "subtitle": "A bit about who I am, what I do, and how I got here.",
         "bio1": "Hi! I'm a Full Stack Developer with a strong interest in building end-to-end web applications that are both functional and user-centered.",
         "bio2": "Currently pursuing a degree in Information Systems, I actively deepen my technical skills beyond the classroom through self-directed learning and hands-on projects. This approach has allowed me to gain practical experience in both frontend and backend development, working with modern technologies and real-world use cases.",
-        "bio3": "I've worked on personal, collaborative, and professional projects involving responsive user interfaces, RESTful APIs, and full-stack web systems using tools such as React, Express.js, Laravel, and related web technologies. I enjoy breaking down complex problems, learning new concepts, and transforming ideas into reliable and maintainable applications.",
+        "bio3": "I've worked on personal, collaborative, and professional projects involving responsive user interfaces, RESTful APIs, and full-stack web systems using tools such as Next, Express.js, Laravel, and related web technologies. I enjoy breaking down complex problems, learning new concepts, and transforming ideas into reliable and maintainable applications.",
         "bio4": "My interests include full-stack web development, software architecture, and building scalable solutions that deliver meaningful impact for users and organizations.",
         "bio5": "I'm continuously looking to grow, contribute to real-world projects, and collaborate with people in the tech community.",
         "infoCard": {
@@ -62,7 +62,7 @@
             "role": "Role",
             "roleValue": "Frontend, Backend, Fullstack",
             "stack": "Primary Stack",
-            "stackValue": "React, Express, TypeScript",
+            "stackValue": "Next, Express, TypeScript",
             "available": "Availability",
             "availableValue": "Open to freelance & collaborations",
             "focus": "Focus",
