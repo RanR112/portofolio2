@@ -2,6 +2,7 @@
 import type { Metadata, Viewport } from "next";
 import { ActiveSectionProvider } from "@/context/ActiveSectionContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { Analytics } from "@vercel/analytics/next"
 import "../styles/globals.scss";
 
 // import LightPillar from "@/components/ui/LightPillar/LightPillar";
@@ -201,6 +202,7 @@ export default function RootLayout({
                             quality="medium"
                         />
                     </div>
+                    <Analytics/>
 
                     {/*
           Provider order (outermost → innermost):
