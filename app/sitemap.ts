@@ -33,7 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         for (const route of routes) {
             sitemap.push({
                 url: `${baseUrl}/${locale}${route}`,
-                lastModified: new Date(),
+                lastModified: new Date().toISOString().split("T")[0],
                 changeFrequency: route === "" ? "weekly" : "monthly",
                 priority: route === "" ? 1 : 0.8,
             });
@@ -43,7 +43,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         for (const slug of serviceSlugs) {
             sitemap.push({
                 url: `${baseUrl}/${locale}/services/${slug}`,
-                lastModified: new Date(),
+                lastModified: new Date().toISOString().split("T")[0],
                 changeFrequency: "monthly",
                 priority: 0.9,
             });
