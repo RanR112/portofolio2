@@ -78,8 +78,8 @@ const PianoControls = React.memo(function PianoControls({
             {/* Volume */}
             <div className={styles.controlGroup}>
                 <span className={styles.ctrlLabel}>VOL</span>
-                <button className={styles.ctrlBtn} onClick={onVolDown}>
-                    −
+                <button className={styles.ctrlBtn} onClick={onVolDown} suppressHydrationWarning>
+                    -
                 </button>
                 <input
                     type="range"
@@ -89,7 +89,7 @@ const PianoControls = React.memo(function PianoControls({
                     value={volume}
                     onChange={onVolSlide}
                 />
-                <button className={styles.ctrlBtn} onClick={onVolUp}>
+                <button className={styles.ctrlBtn} onClick={onVolUp} suppressHydrationWarning>
                     +
                 </button>
                 <span className={styles.ctrlValue}>{volume}</span>
@@ -100,8 +100,8 @@ const PianoControls = React.memo(function PianoControls({
             {/* Transpose */}
             <div className={styles.controlGroup}>
                 <span className={styles.ctrlLabel}>TRANSPOSE</span>
-                <button className={styles.ctrlBtn} onClick={onTranDown}>
-                    −
+                <button className={styles.ctrlBtn} onClick={onTranDown} suppressHydrationWarning>
+                    -
                 </button>
                 <input
                     type="range"
@@ -111,7 +111,7 @@ const PianoControls = React.memo(function PianoControls({
                     value={transpose}
                     onChange={onTranSlide}
                 />
-                <button className={styles.ctrlBtn} onClick={onTranUp}>
+                <button className={styles.ctrlBtn} onClick={onTranUp} suppressHydrationWarning>
                     +
                 </button>
                 <span className={styles.ctrlValue}>{transDisplay}</span>
@@ -123,6 +123,7 @@ const PianoControls = React.memo(function PianoControls({
             <button
                 className={`${styles.sustainBtn}${sustain ? ` ${styles.active}` : ""}`}
                 onClick={onSustainToggle}
+                suppressHydrationWarning
             >
                 <span className={styles.led} />
                 SUSTAIN

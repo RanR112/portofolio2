@@ -178,3 +178,47 @@ export const BAR_COLORS = [
     { label: "Green", value: "#69f0ae" },
     { label: "Purple", value: "#b388ff" },
 ];
+
+// Tambahkan di bawah BAR_COLORS
+export const KEY_GRADIENTS: Record<string, { white: string; black: string }> = {
+    "#f0a63a": {
+        // Orange (Default)
+        white: "linear-gradient(180deg, #e6d2ad 0%, #d6b982 50%, #c9a86c 100%)",
+        black: "linear-gradient(180deg, #c9a86c 0%, #a88447 60%, #7a5f2f 100%)",
+    },
+    "#ffffff": {
+        // White
+        white: "linear-gradient(180deg, #ffffff 0%, #e6e6e6 50%, #cccccc 100%)",
+        black: "linear-gradient(180deg, #cccccc 0%, #999999 60%, #666666 100%)",
+    },
+    "#00e5ff": {
+        // Cyan
+        white: "linear-gradient(180deg, #ccfaff 0%, #66efff 50%, #00e5ff 100%)",
+        black: "linear-gradient(180deg, #00e5ff 0%, #00b8cc 60%, #008999 100%)",
+    },
+    "#ff3d6b": {
+        // Red
+        white: "linear-gradient(180deg, #ffc2d1 0%, #ff7f9d 50%, #ff3d6b 100%)",
+        black: "linear-gradient(180deg, #ff3d6b 0%, #cc3156 60%, #992540 100%)",
+    },
+    "#ffd740": {
+        // Yellow
+        white: "linear-gradient(180deg, #fff5cc 0%, #ffe68c 50%, #ffd740 100%)",
+        black: "linear-gradient(180deg, #ffd740 0%, #ccac33 60%, #998126 100%)",
+    },
+    "#40a0ff": {
+        // Blue
+        white: "linear-gradient(180deg, #cce4ff 0%, #88c2ff 50%, #40a0ff 100%)",
+        black: "linear-gradient(180deg, #40a0ff 0%, #3380cc 60%, #266099 100%)",
+    },
+    "#69f0ae": {
+        // Green
+        white: "linear-gradient(180deg, #d2fae6 0%, #9df5c8 50%, #69f0ae 100%)",
+        black: "linear-gradient(180deg, #69f0ae 0%, #54c08b 60%, #3f9068 100%)",
+    },
+    "#b388ff": {
+        // Purple
+        white: "linear-gradient(180deg, #e7d6ff 0%, #cdb0ff 50%, #b388ff 100%)",
+        black: "linear-gradient(180deg, #b388ff 0%, #8f6ccc 60%, #6b5199 100%)",
+    },
+};

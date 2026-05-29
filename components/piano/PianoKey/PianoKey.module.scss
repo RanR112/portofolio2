@@ -36,7 +36,7 @@
     }
 
     &.active {
-        background: v.$white-key-bg-active;
+        background: var(--white-key-active, v.$white-key-bg-active);
         box-shadow:
             inset 0 -3px 6px rgba(201, 168, 108, 0.25),
             0 0 15px rgba(201, 168, 108, 0.45),
@@ -75,7 +75,7 @@
     overflow: hidden;
 
     &.active {
-        background: v.$black-key-bg-active;
+        background: var(--black-key-active, v.$black-key-bg-active);
         box-shadow:
             inset 0 -3px 6px rgba(201, 168, 108, 0.25),
             0 0 15px rgba(201, 168, 108, 0.45),

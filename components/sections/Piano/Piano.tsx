@@ -45,6 +45,7 @@ import {
     WHITE_NOTE_IDX,
     NOTE_TO_KEYS,
     getLeftWhiteLabel,
+    KEY_GRADIENTS,
 } from "@/lib/keyMap";
 import { Smartphone } from "lucide-react";
 
@@ -84,6 +85,9 @@ export default function Piano() {
     } = state;
 
     const { canvasRef, vizAreaRef, pianoRef, keyElementsRef } = refs;
+
+    const currentGradients =
+        KEY_GRADIENTS[barColor] || KEY_GRADIENTS["#f0a63a"];
 
     // ── Sync CSS custom prop for bar color ───────────────────────────────────
     useEffect(() => {
@@ -186,7 +190,16 @@ export default function Piano() {
 
             {/* Piano keys */}
             <div className={styles.pianoWrapper}>
-                <div className={styles.piano} ref={pianoCallbackRef}>
+                <div
+                    className={styles.piano}
+                    style={
+                        {
+                            "--white-key-active": currentGradients.white,
+                            "--black-key-active": currentGradients.black,
+                        } as React.CSSProperties
+                    }
+                    ref={pianoCallbackRef}
+                >
                     {/* White keys
               pressNote and releaseNote are stable refs from usePianoEngine.
               noteLabel, keyLabels, noteDisplay are pre-computed constants.
