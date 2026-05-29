@@ -61,8 +61,8 @@ const SAMPLE_NAMES = Object.keys(SAMPLE_MAP);
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ATTACK_TIME = 0.006; // seconds — brief ramp-in to avoid click
-const NATURAL_DURATION = 5.0; // seconds — envelope ceiling; samples decay naturally
-const RELEASE_TIME = 1.5; // seconds — key-up fade when sustain is OFF
+const NATURAL_DURATION = 10.0; // seconds — envelope ceiling; samples decay naturally
+const RELEASE_TIME = 2.0; // seconds — key-up fade when sustain is OFF
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
