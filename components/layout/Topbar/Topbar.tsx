@@ -5,7 +5,6 @@
 
 import { useActiveSectionContext } from "@/context/ActiveSectionContext";
 import { useLocale, useTranslations } from "next-intl";
-import AuthStatus from "@/components/AuthStatus/AuthStatus";
 import LanguageSwitcher from "@/components/LanguageSwitcher/LanguageSwitcher";
 import { useParams } from "next/navigation";
 import styles from "./Topbar.module.scss";
@@ -71,8 +70,6 @@ export default function Topbar() {
 
                 <span className={styles.divider} aria-hidden="true" />
                 <LanguageSwitcher />
-                <span className={styles.divider} aria-hidden="true" />
-                <AuthStatus />
             </div>
         </header>
     );

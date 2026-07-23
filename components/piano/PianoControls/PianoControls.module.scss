@@ -27,16 +27,25 @@
 }
 
 .logo {
-    font-family: v.$font-display;
-    font-size: 2rem;
-    letter-spacing: 0.1em;
-    color: v.$accent;
-    text-shadow: 0 0 20px rgba(201, 168, 108, 0.4);
+    // Reset — this is a <button> that reveals the SEO panel.
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
     flex: 0 0 auto;
     line-height: 1;
+    border-radius: 6px;
+    transition: opacity 0.15s;
 
-    @media (max-width: 900px) {
-        font-size: 1.4rem;
+    &:hover {
+        opacity: 0.85;
+    }
+
+    &:focus-visible {
+        outline: 2px solid v.$accent;
+        outline-offset: 2px;
     }
 }
 
@@ -262,6 +271,259 @@
     }
 }
 
-.close {
+// ─────────────────────────────────────────────────────────────────────────────
+// Keys mode toggle (61 / 88)
+// ─────────────────────────────────────────────────────────────────────────────
+.keyModeToggle {
+    display: flex;
+    gap: 4px;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.modeBtn {
+    background: transparent;
+    border: none;
+    color: v.$text-dim;
+    font-family: v.$font-mono;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 4px 9px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        color: v.$text;
+    }
+
+    &.modeActive {
+        background: v.$accent;
+        color: #1a1a10;
+        box-shadow: 0 0 10px rgba(201, 168, 108, 0.4);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Right-aligned action cluster (fullscreen · info · close)
+// ─────────────────────────────────────────────────────────────────────────────
+.rightCluster {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.iconBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: v.$text-dim;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition:
+        color 0.15s,
+        background 0.15s;
+
+    &:hover {
+        color: v.$accent;
+        background: v.$surface2;
+    }
+}
+
+.close {
+    display: flex;
+    align-items: center;
+    color: v.$text-dim;
+    transition: color 0.15s;
+
+    &:hover {
+        color: v.$accent2;
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Info modal
+// ─────────────────────────────────────────────────────────────────────────────
+.infoBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    animation: infoFade 160ms ease both;
+}
+
+@keyframes infoFade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.infoPanel {
+    width: 100%;
+    max-width: 460px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: v.$surface;
+    border: 1px solid v.$border;
+    border-radius: 12px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+    color: v.$text;
+}
+
+.infoHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid v.$border;
+    position: sticky;
+    top: 0;
+    background: v.$surface;
+}
+
+.infoTitle {
+    font-family: v.$font-display;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: v.$text;
+}
+
+.infoBody {
+    padding: 8px 20px 20px;
+}
+
+.infoSection {
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    p {
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: v.$text-dim;
+    }
+}
+
+.infoHeading {
+    font-family: v.$font-mono;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: v.$accent;
+    margin-bottom: 8px;
+}
+
+.infoList {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    li {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        color: v.$text-dim;
+    }
+}
+
+.infoNote {
+    margin-top: 10px;
+    font-size: 0.78rem !important;
+    color: v.$text-dim;
+    opacity: 0.85;
+}
+
+.ul {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.infoBody kbd {
+    font-family: v.$font-mono;
+    font-size: 0.72rem;
+    color: v.$text;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    border-radius: 4px;
+    padding: 1px 6px;
+    white-space: nowrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEO panel (revealed by clicking the logo)
+//
+// Always in the DOM for crawlability — only visibility is toggled. We use
+// visibility/opacity (not display:none / conditional mount) so the text is
+// present in the server-rendered HTML and indexable by search engines.
+// ─────────────────────────────────────────────────────────────────────────────
+.seoBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        opacity 0.16s ease,
+        visibility 0.16s ease;
+
+    &.seoOpen {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+.seoPanel {
+    width: 100%;
+    max-width: 520px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: v.$surface;
+    border: 1px solid v.$border;
+    border-radius: 12px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+    color: v.$text;
+}
+
+.seoText {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: v.$text-dim;
+    margin-bottom: 12px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
 }

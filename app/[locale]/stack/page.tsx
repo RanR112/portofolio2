@@ -1,13 +1,15 @@
-// app/page.tsx — Homepage (/)
-// Dashboard section is the landing page.
+// app/[locale]/stack/page.tsx
 
 import PageShell from "@/components/layout/PageShell/PageShell";
 import TechStack from "@/components/sections/TechStack/TechStack";
+import { buildPageMetadata, type MetaProps } from "@/lib/pageMetadata";
 
-export const metadata = { title: "Stack" };
+export async function generateMetadata({ params }: MetaProps) {
+    const { locale } = await params;
+    return buildPageMetadata(locale, "stack", "/stack");
+}
 
-
-export default function HomePage() {
+export default function StackPage() {
     return (
         <PageShell>
             <TechStack />

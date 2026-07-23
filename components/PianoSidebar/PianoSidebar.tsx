@@ -71,9 +71,6 @@ const PianoKey = memo(function PianoKey({
                 <span className={styles.keyShortcut} aria-hidden="true">
                     {item.shortcut}
                 </span>
-                <span className={styles.keyTooltip} role="tooltip">
-                    {item.label}
-                </span>
             </Link>
         </li>
     );
@@ -82,7 +79,7 @@ const PianoKey = memo(function PianoKey({
 // ---- Sidebar ----
 
 export default function PianoSidebar() {
-    const { playNote } = usePianoAudio();
+    const { playNote, preload } = usePianoAudio();
     const { activeId } = useActiveSectionContext();
 
     const [pressedId, setPressedId] = useState<string | null>(null);
@@ -173,6 +170,7 @@ export default function PianoSidebar() {
                     mobileOpen ? styles.open : ""
                 }`}
                 onClick={() => setMobileOpen((v) => !v)}
+                onPointerDown={preload}
                 aria-label={mobileOpen ? "Close navigation" : "Open navigation"}
                 aria-expanded={mobileOpen}
                 aria-controls="piano-sidebar"
@@ -199,6 +197,8 @@ export default function PianoSidebar() {
                     .filter(Boolean)
                     .join(" ")}
                 aria-label="Main navigation"
+                onPointerEnter={preload}
+                onFocusCapture={preload}
             >
                 {/* Logo */}
                 <div className={styles.logo}>

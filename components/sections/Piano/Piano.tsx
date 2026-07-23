@@ -31,7 +31,7 @@
  *    React.memo on BarLayer means it never re-renders after mount.
  */
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import styles from "./Piano.module.scss";
 import keyStyles from "@/components/piano/PianoKey/PianoKey.module.scss";
 
@@ -39,34 +39,8 @@ import { usePianoEngine } from "@/hooks/usePianoEngine";
 import PianoControls from "@/components/piano/PianoControls/PianoControls";
 import BarLayer from "@/components/piano/BarLayer/BarLayer";
 import PianoKey from "@/components/piano/PianoKey/PianoKey";
-import {
-    ALL_NOTES,
-    WHITE_NOTES,
-    WHITE_NOTE_IDX,
-    NOTE_TO_KEYS,
-    getLeftWhiteLabel,
-    KEY_GRADIENTS,
-} from "@/lib/keyMap";
+import { buildKeyboard, KEY_GRADIENTS, type KeyMode } from "@/lib/keyMap";
 import { Smartphone } from "lucide-react";
-
-// Module-level constants — computed once, never change
-const BLACK_NOTES = ALL_NOTES.filter(
-    (n) => n.isBlack && getLeftWhiteLabel(n) !== "",
-);
-
-// Pre-compute key-label strings once so JSX never allocates them on re-render
-const WHITE_KEY_LABELS = WHITE_NOTES.map((note) => ({
-    noteLabel: note.label,
-    keyLabels: (NOTE_TO_KEYS[note.label] ?? []).slice(0, 2).join("/"),
-    noteDisplay: note.label,
-}));
-
-const BLACK_KEY_LABELS = BLACK_NOTES.map((note) => ({
-    noteLabel: note.label,
-    keyLabels: (NOTE_TO_KEYS[note.label] ?? []).slice(0, 2).join("/"),
-    noteDisplay: note.note,
-    leftWhite: getLeftWhiteLabel(note),
-}));
 
 export default function Piano() {
     const engine = usePianoEngine({ activeClassName: keyStyles.active });
@@ -78,11 +52,20 @@ export default function Piano() {
         transpose,
         sustain,
         barColor,
+        keyMode,
+        isFullscreen,
+        lockActive,
         setVolume,
         setTranspose,
         setSustain,
         setBarColor,
+        setKeyMode,
+        toggleFullscreen,
     } = state;
+
+    // Rendered keyboard for the active mode (61 or 88). Recomputed only on
+    // mode change — pressing keys never touches this.
+    const layout = useMemo(() => buildKeyboard(keyMode), [keyMode]);
 
     const { canvasRef, vizAreaRef, pianoRef, keyElementsRef } = refs;
 
@@ -113,47 +96,62 @@ export default function Piano() {
         (c: string) => setBarColor(c),
         [setBarColor],
     );
+    const onKeyModeChange = useCallback(
+        (mode: KeyMode) => setKeyMode(mode),
+        [setKeyMode],
+    );
 
-    // ── Piano callback ref: register DOM nodes + stamp data-wIdx ────────────
-    const pianoCallbackRef = useCallback(
-        (el: HTMLDivElement | null) => {
-            pianoRef.current = el;
-            if (!el) return;
-
+    // ── Register key DOM nodes into the engine ref + reposition black keys ───
+    // wIdx (left-white index) is rendered directly onto each black key as
+    // data-w-idx by PianoKey, so this only collects nodes + triggers layout.
+    const registerKeys = useCallback(
+        (el: HTMLDivElement) => {
+            keyElementsRef.current = {};
             el.querySelectorAll<HTMLElement>("[data-note]").forEach((keyEl) => {
                 keyElementsRef.current[keyEl.dataset.note!] = keyEl;
             });
-
-            // data-is-black selector works here because it's a data attribute, not a class
-            el.querySelectorAll<HTMLElement>("[data-is-black='true']").forEach(
-                (bk) => {
-                    bk.dataset.wIdx = String(
-                        WHITE_NOTE_IDX[bk.dataset.leftWhite!] ?? "",
-                    );
-                },
-            );
-
             requestAnimationFrame(() => repositionBlackKeys());
         },
-        [pianoRef, keyElementsRef, repositionBlackKeys],
+        [keyElementsRef, repositionBlackKeys],
     );
 
+    const pianoCallbackRef = useCallback(
+        (el: HTMLDivElement | null) => {
+            pianoRef.current = el;
+            if (el) registerKeys(el);
+        },
+        [pianoRef, registerKeys],
+    );
+
+    // Re-register + reposition whenever the key mode changes (keys added/removed).
     useEffect(() => {
-        const enterFullscreen = async () => {
-            if (!document.documentElement.requestFullscreen) return;
+        if (pianoRef.current) registerKeys(pianoRef.current);
+    }, [keyMode, registerKeys, pianoRef]);
 
-            try {
-                await document.documentElement.requestFullscreen();
-            } catch {}
-        };
-
-        enterFullscreen();
-
-        return () => {
-            if (document.fullscreenElement) {
-                document.exitFullscreen().catch(() => {});
+    // Enter fullscreen when arriving via the "Full Mode" button, which sets a
+    // sessionStorage flag. Because Next.js does a same-document client
+    // navigation, the click's transient activation is still valid here, so
+    // requestFullscreen() is permitted — and it applies to /piano, not /music.
+    // The flag is cleared immediately so a StrictMode double-mount won't
+    // re-request. No exit-on-unmount cleanup: it would fire during StrictMode's
+    // dev double-invoke and cancel the fullscreen we just entered. Leaving
+    // fullscreen is handled by the close button, the fullscreen toggle, or Esc.
+    useEffect(() => {
+        let shouldEnter = false;
+        try {
+            if (sessionStorage.getItem("piano:fullscreen") === "1") {
+                sessionStorage.removeItem("piano:fullscreen");
+                shouldEnter = true;
             }
-        };
+        } catch {}
+
+        if (
+            shouldEnter &&
+            !document.fullscreenElement &&
+            document.documentElement.requestFullscreen
+        ) {
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
     }, []);
 
     return (
@@ -179,10 +177,15 @@ export default function Piano() {
                 transpose={transpose}
                 sustain={sustain}
                 barColor={barColor}
+                keyMode={keyMode}
+                isFullscreen={isFullscreen}
+                lockActive={lockActive}
                 onVolumeChange={onVolumeChange}
                 onTransposeChange={onTransposeChange}
                 onSustainToggle={onSustainToggle}
                 onBarColorChange={onBarColorChange}
+                onKeyModeChange={onKeyModeChange}
+                onToggleFullscreen={toggleFullscreen}
             />
 
             {/* Visualization — React.memo'd, never re-renders after mount */}
@@ -202,30 +205,33 @@ export default function Piano() {
                 >
                     {/* White keys
               pressNote and releaseNote are stable refs from usePianoEngine.
-              noteLabel, keyLabels, noteDisplay are pre-computed constants.
-              React.memo on PianoKey guarantees zero re-renders after mount. */}
-                    {WHITE_KEY_LABELS.map((k, idx) => (
+              The layout is stable per key mode; keys remount only when the
+              user switches between 61 and 88 keys. */}
+                    {layout.whiteKeys.map((k) => (
                         <PianoKey
                             key={k.noteLabel}
                             noteLabel={k.noteLabel}
                             keyLabels={k.keyLabels}
+                            underline={k.underline}
                             noteDisplay={k.noteDisplay}
                             isBlack={false}
-                            isFirst={idx === 0}
+                            isFirst={k.isFirst}
                             pressNote={pressNote}
                             releaseNote={releaseNote}
                         />
                     ))}
 
-                    {/* Black keys — same guarantee */}
-                    {BLACK_KEY_LABELS.map((k) => (
+                    {/* Black keys — positioned via data-w-idx (left white index) */}
+                    {layout.blackKeys.map((k) => (
                         <PianoKey
                             key={k.noteLabel}
                             noteLabel={k.noteLabel}
                             keyLabels={k.keyLabels}
+                            underline={k.underline}
                             noteDisplay={k.noteDisplay}
                             isBlack={true}
                             leftWhite={k.leftWhite}
+                            wIdx={k.wIdx}
                             pressNote={pressNote}
                             releaseNote={releaseNote}
                         />

@@ -9,9 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.97.0",
     "@vercel/analytics": "^2.0.0",
-    "framer-motion": "^12.34.3",
     "lucide-react": "^0.575.0",
     "motion": "^12.35.0",
     "next": "15.3.8",
@@ -31,7 +29,6 @@
     "@types/three": "^0.183.1",
     "eslint": "^9",
     "eslint-config-next": "^15.3.6",
-    "supabase": "^2.76.15",
     "typescript": "^5"
   }
 }

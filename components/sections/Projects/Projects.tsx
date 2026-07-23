@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import SectionWrapper from "@/components/SectionWrapper/SectionWrapper";
 import ProjectCard from "@/components/ProjectCard/ProjectCard";
+import Reveal from "@/components/ui/Reveal/Reveal";
 import { PROJECTS, type Project } from "@/lib/projects";
 import styles from "./Projects.module.scss";
 
@@ -54,15 +55,17 @@ export default function Projects() {
                 title={t("title")}
                 subtitle={t("subtitle")}
             >
-                <div className={styles.grid}>
-                    {sorted.map((project) => (
-                        <ProjectCard
-                            key={project.id}
-                            project={project}
-                            onViewDetails={handleViewDetails}
-                        />
-                    ))}
-                </div>
+                <Reveal>
+                    <div className={styles.grid}>
+                        {sorted.map((project) => (
+                            <ProjectCard
+                                key={project.id}
+                                project={project}
+                                onViewDetails={handleViewDetails}
+                            />
+                        ))}
+                    </div>
+                </Reveal>
             </SectionWrapper>
 
             {/* Modal renders outside SectionWrapper so it escapes any overflow clip */}

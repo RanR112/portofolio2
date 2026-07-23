@@ -9,6 +9,7 @@ import {
 } from "@/lib/locationServices";
 import LocationService from "@/components/sections/LocationService/LocationService";
 import PageShell from "@/components/layout/PageShell/PageShell";
+import { SITE_URL } from "@/lib/site";
 
 type Params = {
     locale: string;
@@ -19,7 +20,7 @@ type Props = {
     params: Promise<Params>;
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+const BASE_URL = SITE_URL;
 
 export function generateStaticParams() {
     const locales = ["en", "id"];

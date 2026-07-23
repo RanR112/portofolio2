@@ -13,7 +13,6 @@ import {
     FolderGit2,
     Layers,
     LayoutDashboard,
-    MessageSquareMore,
     Phone,
     Piano,
     User,
@@ -98,14 +97,6 @@ export function useNavItems(): NavItem[] {
             note: "C5",
             icon: <Phone size={18} />,
             shortcut: t("label.contact"),
-        },
-        {
-            id: t("id.comments"),
-            label: "comments",
-            route: "/comments",
-            note: "D5",
-            icon: <MessageSquareMore size={18} />,
-            shortcut: t("label.comments"),
         },
     ];
 }

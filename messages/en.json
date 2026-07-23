@@ -8,19 +8,17 @@
             "services": "services",
             "timeline": "timeline",
             "music": "music",
-            "contact": "contact",
-            "comments": "comments"
+            "contact": "contact"
         },
         "label": {
             "dashboard": "Dashboard",
             "about": "About",
-            "stack": "Tech Stack",
+            "stack": "Stack",
             "projects": "Projects",
             "services": "Services",
             "timeline": "Timeline",
             "music": "Music",
-            "contact": "Contact",
-            "comments": "Comments"
+            "contact": "Contact"
         }
     },
     "topbar": {
@@ -32,8 +30,7 @@
         "services": "Services",
         "timeline": "Timeline",
         "music": "Music",
-        "contact": "Contact",
-        "comments": "Comments"
+        "contact": "Contact"
     },
     "dashboard": {
         "label": "01 — Home",
@@ -466,64 +463,6 @@
             "errorTitle": "Something went wrong"
         }
     },
-    "comments": {
-        "label": "09 — Comments",
-        "title": "Leave a comment.",
-        "subtitle": "Share your thoughts on the work, projects, or anything else.",
-        "as": "Commenting as",
-        "your": "Your Comment",
-        "placeholder": "Write a comment…",
-        "submit": "Post comment",
-        "posting": "Posting…",
-        "hint": "Comments are visible to everyone.",
-        "loginTitle": "Login to comment",
-        "loginHint": "Sign in with Google or GitHub to join the conversation.",
-        "privacy-guest": "Authentication is handled securely. Read our",
-        "privacy-auth": "By posting, you agree to our",
-        "privacyLink": "Privacy Policy",
-        "count_one": "comment",
-        "count_other": "comments",
-        "noComment": "No comments yet. Be the first to leave one.",
-        "loading": "Loading comments…",
-        "error": "Could not load comments",
-        "deleteLabel": "Delete comment",
-        "commentingAs": "Commenting as"
-    },
-    "auth": {
-        "login": "Login",
-        "signOut": "Sign out",
-        "eyebrow": "Sign in to continue",
-        "title": "Welcome back",
-        "description": "Sign in to leave comments and engage with the portfolio.",
-        "google": "Continue with Google",
-        "github": "Continue with GitHub",
-        "privacy": "Authentication is handled securely. Read our",
-        "privacyLink": "Privacy Policy"
-    },
-    "privacy": {
-        "label": "Legal",
-        "title": "Privacy Policy",
-        "subtitle": "Last updated: March 2026",
-        "intro": "This privacy policy explains how this portfolio website collects, uses, and protects your personal information.",
-        "sections": {
-            "dataCollected": "Data I Collect",
-            "dataCollectedContent": "When you authenticate via Google or GitHub OAuth, i receive your public profile information: display name, email address, and profile avatar URL. This data is provided by the OAuth provider and stored securely in our database. When you post a comment, i store the comment text, your user ID, and a timestamp. I do not collect payment information, location data, or any sensitive personal data.",
-            "oauthUsage": "OAuth Authentication",
-            "oauthContent": "I use Google and GitHub OAuth solely for authentication purposes — to verify your identity and allow you to post comments. I do not access your repositories, contacts, emails beyond what is shown in your public profile, or any other resources beyond basic profile information. You may revoke access at any time through your Google or GitHub account settings.",
-            "supabase": "Database & Storage",
-            "supabaseContent": "User data and comments are stored in Supabase, a secure cloud database platform. Supabase is GDPR-compliant and stores data in secure data centers. Your data is never sold to third parties. For Supabase's own privacy practices, refer to supabase.com/privacy.",
-            "emailUsage": "Email Address Usage",
-            "emailContent": "Your email address is collected as part of the OAuth authentication process. It is used solely to identify your account and is never used for marketing, newsletters, or shared with third parties.",
-            "retention": "Data Retention",
-            "retentionContent": "Your account data and comments are retained for as long as you maintain an active account. You may request deletion of your data at any time by contacting us. Deleted comments are removed immediately. Account data is removed within 30 days of a deletion request.",
-            "rights": "Your Rights",
-            "rightsContent": "You have the right to access the personal data i hold about you, request correction of inaccurate data, request deletion of your data, withdraw consent at any time, and lodge a complaint with a supervisory authority. To exercise any of these rights, contact us using the email address below.",
-            "security": "Security",
-            "securityContent": "I take reasonable technical and organizational measures to protect your personal information. All data is transmitted over HTTPS. OAuth tokens are never stored — only the resulting user profile is persisted. I regularly review our security practices.",
-            "contact": "Contact",
-            "contactContent": "For any privacy-related questions or data requests, contact:"
-        }
-    },
     "engineeringPrinciples": {
         "heading": "Engineering principles",
         "principles": {
@@ -544,5 +483,70 @@
                 "description": "Technology evolves quickly. Continuous experimentation and learning are part of my development process."
             }
         }
+    },
+    "meta": {
+        "about": {
+            "title": "About",
+            "description": "Get to know Randy Rafael — a fullstack developer and system builder. Background, focus areas, and how I approach engineering."
+        },
+        "stack": {
+            "title": "Tech Stack",
+            "description": "The languages, frameworks, and tools Randy Rafael uses to build fullstack web applications — from React and Next.js to Node.js and databases."
+        },
+        "projects": {
+            "title": "Projects",
+            "description": "Selected projects by Randy Rafael — fullstack web apps, tools, and games built with React, Next.js, TypeScript, and Node.js."
+        },
+        "services": {
+            "title": "Services",
+            "description": "Website development services by Randy Rafael — custom, fast, and SEO-ready sites for businesses across Indonesia."
+        },
+        "timeline": {
+            "title": "Timeline",
+            "description": "The career timeline of Randy Rafael — milestones, roles, and projects across the journey as a fullstack developer."
+        },
+        "music": {
+            "title": "Music",
+            "description": "A playful corner of the portfolio — an interactive music console by Randy Rafael."
+        },
+        "piano": {
+            "title": "Piano",
+            "description": "Play a fully interactive web piano built with the Web Audio API — part of Randy Rafael’s portfolio."
+        },
+        "contact": {
+            "title": "Contact",
+            "description": "Get in touch with Randy Rafael for fullstack development work, website projects, or collaboration."
+        }
+    },
+    "piano": {
+        "info": {
+            "title": "How to play",
+            "keysHeading": "Keys",
+            "keysIntro": "The letters and numbers on each key are its keyboard shortcut.",
+            "shift": "<kbd>Shift</kbd> + key → play the black key (sharp).",
+            "ctrl": "<kbd>Ctrl</kbd> + <u>underlined</u> key → the extra low / high notes in 88-key mode.",
+            "ctrlNote": "The 88-key <kbd>Ctrl</kbd> shortcuts only work in fullscreen on Chrome / Edge. Use the fullscreen button, then switch to 88 keys.",
+            "transposeHeading": "Transpose",
+            "transpose": "Shifts every note up or down in semitones (−12 to +12), so you can change key without moving your hands. Use <kbd>↑</kbd> / <kbd>↓</kbd> or the slider.",
+            "sustainHeading": "Sustain",
+            "sustain": "When ON, notes keep ringing after you release the key — like holding a piano’s sustain pedal. Toggle with <kbd>Space</kbd>."
+        },
+        "seo": {
+            "aria": "About this piano",
+            "heading": "Free Online Piano",
+            "p1": "Play piano online with this free virtual piano keyboard. Randy Rafael’s interactive web piano lets you play up to 88 keys right in your browser — no download and no plugins required.",
+            "p2": "Use your mouse, touchscreen, or computer keyboard to play realistic piano samples. Switch between 61 and 88 keys, adjust transpose and sustain, and enjoy a grand piano sound anywhere.",
+            "p3": "Whether you are practicing scales, learning a melody, or just having fun, this online piano keyboard works on both desktop and mobile."
+        }
+    },
+    "contextMenu": {
+        "aria": "Quick actions",
+        "home": "Home",
+        "projects": "Projects",
+        "contact": "Contact",
+        "copyLink": "Copy page link",
+        "copied": "Copied!",
+        "switchLanguage": "Switch to Indonesian",
+        "backToTop": "Back to top"
     }
 }

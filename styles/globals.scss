@@ -23,8 +23,7 @@ html {
 
     // Match body background — eliminates the white flash that appears
     // for ~1 frame before CSS custom properties resolve on first load.
-    // The value here is the dark-theme default; light theme overrides via
-    // data-theme="light" which is set synchronously in ThemeToggle.
+    // The site is dark-only, so this is a constant.
     background-color: #0e0f11;
 
     // Respect reduced-motion preference: disable smooth scroll
@@ -54,12 +53,6 @@ body {
     // Better font rendering
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-}
-
-// Light theme: override html background to match — prevents flash on theme switch
-[data-theme="light"] html,
-[data-theme="light"] {
-    background-color: #f5f5f3;
 }
 
 // --- Reduced motion: kill all transitions and animations ---

@@ -16,6 +16,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { type Locale } from "@/i18n/routing";
 import PianoSidebar from "@/components/PianoSidebar/PianoSidebar";
+import ContextMenu from "@/components/ContextMenu/ContextMenu";
 import { ActiveSectionProvider } from "@/context/ActiveSectionContext";
 
 type Props = {
@@ -36,6 +37,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <NextIntlClientProvider locale={locale as Locale} messages={messages}>
             <ActiveSectionProvider>
                 <PianoSidebar />
+                <ContextMenu />
                 {children}
             </ActiveSectionProvider>
         </NextIntlClientProvider>

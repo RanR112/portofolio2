@@ -1,8 +1,9 @@
 // app/sitemap.ts
 import { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = "https://www.randyrafael.my.id";
+    const baseUrl = SITE_URL;
 
     // Daftar rute beserta nilai prioritasnya
     const routes = [
@@ -26,7 +27,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { path: "/en/timeline", priority: 0.8 },
         { path: "/en/music", priority: 0.8 },
         { path: "/en/contact", priority: 0.8 },
-        { path: "/en/comments", priority: 0.8 },
         { path: "/id", priority: 0.8 },
 
         // Priority 0.64
@@ -37,12 +37,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
         { path: "/id/music", priority: 0.64 },
         { path: "/en/piano", priority: 0.64 },
         { path: "/id/contact", priority: 0.64 },
-        { path: "/id/comments", priority: 0.64 },
-        { path: "/en/privacy-policy", priority: 0.64 },
 
         // Priority 0.51
         { path: "/id/piano", priority: 0.51 },
-        { path: "/id/privacy-policy", priority: 0.51 },
     ];
 
     // Map data di atas menjadi format yang dibaca oleh Next.js

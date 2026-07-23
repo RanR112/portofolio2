@@ -8,7 +8,7 @@
 // headers to re-render even though nothing about them changed.
 //
 // Note: children are included in memo's shallow comparison.
-// Sections with dynamic children (e.g. CommentUI) will still re-render
+// Sections with dynamic children (e.g. Projects) will still re-render
 // when their children change — memo correctly lets that through.
 
 import { memo, type ReactNode } from "react";

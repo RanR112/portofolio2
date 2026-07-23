@@ -1,13 +1,15 @@
-// app/page.tsx — Homepage (/)
-// Dashboard section is the landing page.
+// app/[locale]/music/page.tsx
 
 import PageShell from "@/components/layout/PageShell/PageShell";
 import MusicConsole from "@/components/sections/MusicConsole/MusicConsole";
+import { buildPageMetadata, type MetaProps } from "@/lib/pageMetadata";
 
-export const metadata = { title: "Music" };
+export async function generateMetadata({ params }: MetaProps) {
+    const { locale } = await params;
+    return buildPageMetadata(locale, "music", "/music");
+}
 
-
-export default function HomePage() {
+export default function MusicPage() {
     return (
         <PageShell>
             <MusicConsole />

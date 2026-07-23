@@ -101,11 +101,20 @@ export default function MusicConsole() {
                         ))}
                     </div>
 
-                    {/* Full Mode button */}
+                    {/* Full Mode button — flags the intent to go fullscreen.
+                        The piano page reads this flag on mount and requests
+                        fullscreen there (the click's transient activation is
+                        still valid across the same-document client navigation),
+                        so fullscreen applies to /piano, not /music. */}
                     <Link
                         href={`/${locale}/piano`}
                         className={styles.fullModeButton}
                         aria-label="Open full piano mode"
+                        onClick={() => {
+                            try {
+                                sessionStorage.setItem("piano:fullscreen", "1");
+                            } catch {}
+                        }}
                     >
                         <ExpandIcon />
                         {t("full")}

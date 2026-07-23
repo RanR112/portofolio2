@@ -1,4 +1,4 @@
-// --- Dark theme (default) ---
+// --- Theme tokens (dark-only) ---
 :root {
     // Backgrounds
     --color-bg-primary: #0e0f11;
@@ -91,47 +91,5 @@
     --backdrop-bg: rgba(0, 0, 0, 0.65);
 }
 
-// --- Light theme overrides ---
-[data-theme="light"] {
-    // Backgrounds
-    --color-bg-primary: #f5f5f3;
-    --color-bg-secondary: #ffffff;
-    --color-bg-elevated: #ffffff;
-    --color-bg-overlay: #efefed;
-
-    // Surfaces
-    --color-surface-1: #ffffff;
-    --color-surface-2: #f0f0ee;
-    --color-surface-3: #e8e8e6;
-
-    // Borders
-    --color-border-subtle: rgba(0, 0, 0, 0.05);
-    --color-border-default: rgba(0, 0, 0, 0.09);
-    --color-border-strong: rgba(0, 0, 0, 0.15);
-
-    // Text
-    --color-text-primary: #1a1c20;
-    --color-text-secondary: #4a5060;
-    --color-text-muted: #8a9098;
-    --color-text-inverse: #f5f5f3;
-
-    // Accent — deeper amber for light bg contrast
-    --color-accent: #9a7840;
-    --color-accent-dim: rgba(154, 120, 64, 0.1);
-    --color-accent-hover: #b08840;
-    --color-accent-glow: rgba(154, 120, 64, 0.15);
-
-    // Piano keys (inverted on light)
-    --color-piano-white: #1a1c20;
-    --color-piano-black: #f5f5f3;
-
-    // Shadows
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
-    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.16);
-    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.2);
-    --shadow-accent: 0 0 20px rgba(154, 120, 64, 0.12);
-
-    // Modal backdrop
-    --backdrop-bg: rgba(0, 0, 0, 0.4);
-}
+// The site ships dark-only by design — there is no light-theme toggle.
+// A previous [data-theme="light"] override block was removed as dead code.

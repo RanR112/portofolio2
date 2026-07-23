@@ -25,10 +25,6 @@
         background-color var(--transition-theme),
         border-color var(--transition-theme);
 
-    [data-theme="light"] & {
-        background-color: rgba(245, 245, 243, 0.85);
-    }
-
     @media (max-width: $breakpoint-tablet) {
         padding-inline: var(--space-6);
     }

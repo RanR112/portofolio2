@@ -10,7 +10,7 @@
 // Self-contained: loads samples on first mount if not already loaded.
 // Safe to use on any page — pianoEngine.loadSamples() is idempotent.
 
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { pianoEngine } from "@/lib/pianoEngine";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,10 +39,12 @@ const NOTE_MIDI: Record<string, number> = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function usePianoAudio() {
-    // Load samples on first mount if not already loaded.
-    // pianoEngine.loadSamples() is idempotent — safe to call multiple times
-    // from multiple components; it checks internally if already loaded.
-    useEffect(() => {
+    // Lazily kick off sample loading. Idempotent — pianoEngine.loadSamples()
+    // internally no-ops if already loaded or loading. Intended to be wired to
+    // a first-intent event (pointer enter / focus / tap) so the ~5MB of MP3
+    // samples are NOT fetched on every page mount, only when the user is about
+    // to interact with the piano navigation.
+    const preload = useCallback(() => {
         if (!pianoEngine.samplesReady) {
             pianoEngine.loadSamples();
         }
@@ -54,9 +56,16 @@ export function usePianoAudio() {
             console.warn(`[usePianoAudio] Unknown note: "${note}"`);
             return;
         }
+        // Self-heal: if the user clicks before any preload fired, start loading
+        // now so subsequent presses produce sound. The first press may be silent
+        // until samples finish decoding — an acceptable trade for the bandwidth
+        // saved on visitors who never touch the nav.
+        if (!pianoEngine.samplesReady) {
+            pianoEngine.loadSamples();
+        }
         // Use note name as voice key so rapid retriggers don't stack
         pianoEngine.playNote(note, midi);
     }, []);
 
-    return { playNote };
+    return { playNote, preload };
 }

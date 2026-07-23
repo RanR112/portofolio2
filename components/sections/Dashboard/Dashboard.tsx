@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import SectionWrapper from "@/components/SectionWrapper/SectionWrapper";
 import FeaturedProjects from "@/components/FeaturedProjects/FeaturedProjects";
 import EngineeringPrinciples from "@/components/EngineeringPrinciples/EngineeringPrinciples";
+import Reveal from "@/components/ui/Reveal/Reveal";
 import styles from "./Dashboard.module.scss";
 
 const STATS = [
@@ -27,26 +28,28 @@ export default function Dashboard() {
             subtitle={t("subtitle")}
         >
             {/* Stat cards */}
-            <div className={styles.statsGrid} aria-label="Career statistics">
-                {STATS.map(({ valueKey, labelKey }) => (
-                    <article key={labelKey} className={styles.statCard}>
-                        <span className={styles.statValue}>{valueKey}</span>
-                        <span className={styles.statLabel}>
-                            {t(`stats.${labelKey}`)}
-                        </span>
-                    </article>
-                ))}
-            </div>
+            <Reveal>
+                <div className={styles.statsGrid} aria-label="Career statistics">
+                    {STATS.map(({ valueKey, labelKey }) => (
+                        <article key={labelKey} className={styles.statCard}>
+                            <span className={styles.statValue}>{valueKey}</span>
+                            <span className={styles.statLabel}>
+                                {t(`stats.${labelKey}`)}
+                            </span>
+                        </article>
+                    ))}
+                </div>
+            </Reveal>
 
             {/* Featured Projects */}
-            <div className={styles.block}>
+            <Reveal delay={80} className={styles.block}>
                 <FeaturedProjects />
-            </div>
+            </Reveal>
 
             {/* Engineering Principles */}
-            <div className={styles.block}>
+            <Reveal delay={160} className={styles.block}>
                 <EngineeringPrinciples />
-            </div>
+            </Reveal>
         </SectionWrapper>
     );
 }

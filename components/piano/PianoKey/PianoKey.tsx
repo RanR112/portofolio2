@@ -31,10 +31,14 @@ import styles from "./PianoKey.module.scss";
 interface PianoKeyProps {
     noteLabel: string;
     keyLabels: string;
+    /** true → this key is reachable via Ctrl (render its hint underlined) */
+    underline?: boolean;
     noteDisplay: string;
     isBlack: boolean;
     isFirst?: boolean;
     leftWhite?: string;
+    /** index of the left-adjacent white key — used to position black keys */
+    wIdx?: number;
     // Stable function refs from usePianoEngine — never change identity
     pressNote: (noteLabel: string) => void;
     releaseNote: (noteLabel: string) => void;
@@ -43,10 +47,12 @@ interface PianoKeyProps {
 const PianoKey = React.memo(function PianoKey({
     noteLabel,
     keyLabels,
+    underline = false,
     noteDisplay,
     isBlack,
     isFirst = false,
     leftWhite,
+    wIdx,
     pressNote,
     releaseNote,
 }: PianoKeyProps) {
@@ -96,6 +102,7 @@ const PianoKey = React.memo(function PianoKey({
             data-note={noteLabel}
             data-is-black={isBlack ? "true" : undefined}
             data-left-white={leftWhite}
+            data-w-idx={wIdx}
             onMouseDown={onMouseDown}
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseLeave}
@@ -103,7 +110,11 @@ const PianoKey = React.memo(function PianoKey({
             onTouchEnd={onTouchEnd}
             onTouchCancel={onTouchEnd}
         >
-            <span className={styles.keyLabel}>{keyLabels}</span>
+            <span
+                className={`${styles.keyLabel}${underline ? ` ${styles.underline}` : ""}`}
+            >
+                {keyLabels}
+            </span>
             <span className={styles.noteLabel}>{noteDisplay}</span>
         </div>
     );

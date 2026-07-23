@@ -2,12 +2,22 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ALL_NOTES,
-    WHITE_NOTES,
     ARROW_CODES,
+    LOCK_KEYS,
+    MIDI_BY_LABEL,
     resolveKeyToNote,
+    type KeyMode,
 } from "@/lib/keyMap";
 import { pianoEngine } from "@/lib/pianoEngine";
+
+// Keyboard Lock API — Chromium-only, requires fullscreen + secure context.
+// Not in the TS DOM lib yet, so we describe the slice we use.
+interface KeyboardLockNavigator {
+    keyboard?: {
+        lock: (keyCodes?: string[]) => Promise<void>;
+        unlock: () => void;
+    };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Animation constants
@@ -45,11 +55,16 @@ export interface PianoEngineState {
     transpose: number;
     sustain: boolean;
     barColor: string;
+    keyMode: KeyMode;
+    isFullscreen: boolean;
+    lockActive: boolean;
     samplesReady: boolean;
     setVolume: React.Dispatch<React.SetStateAction<number>>;
     setTranspose: React.Dispatch<React.SetStateAction<number>>;
     setSustain: React.Dispatch<React.SetStateAction<boolean>>;
     setBarColor: React.Dispatch<React.SetStateAction<string>>;
+    setKeyMode: React.Dispatch<React.SetStateAction<KeyMode>>;
+    toggleFullscreen: () => void;
 }
 
 export interface UsePianoEngineOptions {
@@ -71,10 +86,13 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     const { activeClassName } = options;
 
     // ── UI state (only these ever cause React re-renders) ─────────────────────
-    const [volume, setVolume] = useState(75);
+    const [volume, setVolume] = useState(100);
     const [transpose, setTranspose] = useState(0);
     const [sustain, setSustain] = useState(true);
     const [barColor, setBarColor] = useState("#f0a63a");
+    const [keyMode, setKeyMode] = useState<KeyMode>(61);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [lockActive, setLockActive] = useState(false);
 
     // samplesReady drives the loading overlay in Piano.tsx
     const [samplesReady, setSamplesReady] = useState(false);
@@ -82,6 +100,9 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     // ── Shadow refs — stale-closure-safe copies of state ──────────────────────
     const transposeRef = useRef(0);
     const barColorRef = useRef("#f0a63a");
+    // allowCtrl gates the Ctrl→note map inside the keydown closure. It is only
+    // true when Keyboard Lock is active (Chromium + fullscreen + 88-key mode).
+    const allowCtrlRef = useRef(false);
 
     useEffect(() => {
         transposeRef.current = transpose;
@@ -89,6 +110,9 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     useEffect(() => {
         barColorRef.current = barColor;
     }, [barColor]);
+    useEffect(() => {
+        allowCtrlRef.current = lockActive;
+    }, [lockActive]);
 
     // ── Animation refs ─────────────────────────────────────────────────────────
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -135,6 +159,58 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     useEffect(() => {
         pianoEngine.setSustain(sustain);
     }, [sustain]);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Fullscreen + Keyboard Lock
+    //
+    // The Ctrl-based extended keys (88-key mode) collide with reserved browser
+    // shortcuts (Ctrl+W close tab, Ctrl+T new tab, Ctrl+1–9 switch tab). The only
+    // way to route those to the page is the Keyboard Lock API, which requires
+    // fullscreen and is Chromium-only. We therefore lock ONLY while fullscreen +
+    // 88-key mode, and gate the Ctrl map on the lock actually succeeding.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const toggleFullscreen = useCallback(() => {
+        // Must run inside a user gesture (button click) to be allowed.
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+        } else {
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
+    }, []);
+
+    useEffect(() => {
+        const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener("fullscreenchange", onFsChange);
+        onFsChange();
+        return () =>
+            document.removeEventListener("fullscreenchange", onFsChange);
+    }, []);
+
+    useEffect(() => {
+        const kb = (navigator as Navigator & KeyboardLockNavigator).keyboard;
+
+        // Lock only when the feature is actually in use: fullscreen + 88 keys.
+        if (isFullscreen && keyMode === 88 && kb?.lock) {
+            let cancelled = false;
+            kb.lock(LOCK_KEYS)
+                .then(() => {
+                    if (!cancelled) setLockActive(true);
+                })
+                .catch(() => {
+                    if (!cancelled) setLockActive(false);
+                });
+            return () => {
+                cancelled = true;
+                kb.unlock?.();
+                setLockActive(false);
+            };
+        }
+
+        // Not eligible — make sure any prior lock is released.
+        kb?.unlock?.();
+        setLockActive(false);
+    }, [isFullscreen, keyMode]);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Canvas / animation helpers
@@ -290,9 +366,9 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             if (!el || el.classList.contains(activeClassName)) return;
             el.classList.add(activeClassName);
 
-            const nd = ALL_NOTES.find((n) => n.label === noteLabel);
-            if (nd) {
-                const targetMidi = nd.midi + transposeRef.current;
+            const baseMidi = MIDI_BY_LABEL[noteLabel];
+            if (baseMidi !== undefined) {
+                const targetMidi = baseMidi + transposeRef.current;
                 pianoEngine.playNote(noteLabel, targetMidi);
             }
 
@@ -340,8 +416,11 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
 
             if (e.repeat) return;
 
-            const noteLabel = resolveKeyToNote(e);
+            const noteLabel = resolveKeyToNote(e, allowCtrlRef.current);
             if (!noteLabel) return;
+            // Ctrl combos resolved to a note: suppress the browser shortcut.
+            // (Only reached when Keyboard Lock is active, so this is safe.)
+            if (e.ctrlKey) e.preventDefault();
             if (pressedPhysRef.current.has(e.code)) return;
 
             pressedPhysRef.current.add(e.code);
@@ -376,7 +455,12 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
         const pianoEl = pianoRef.current;
         if (!pianoEl) return;
 
-        const wkw = pianoEl.clientWidth / WHITE_NOTES.length;
+        // Count the white keys currently in the DOM so the layout adapts to the
+        // active key mode (36 white in 61-key, 52 white in 88-key).
+        const whiteCount =
+            pianoEl.querySelectorAll("[data-note]:not([data-is-black])")
+                .length || 1;
+        const wkw = pianoEl.clientWidth / whiteCount;
         const wkh = pianoEl.clientHeight - 10;
 
         document.documentElement.style.setProperty("--wkw", `${wkw}px`);
@@ -424,11 +508,16 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             transpose,
             sustain,
             barColor,
+            keyMode,
+            isFullscreen,
+            lockActive,
             samplesReady,
             setVolume,
             setTranspose,
             setSustain,
             setBarColor,
+            setKeyMode,
+            toggleFullscreen,
         },
         refs: {
             canvasRef,

@@ -8,8 +8,7 @@
             "services": "layanan",
             "timeline": "perjalanan",
             "music": "musik",
-            "contact": "kontak",
-            "comments": "komentar"
+            "contact": "kontak"
         },
         "label": {
             "dashboard": "Beranda",
@@ -19,8 +18,7 @@
             "services": "Layanan",
             "timeline": "Perjalanan",
             "music": "Musik",
-            "contact": "Kontak",
-            "comments": "Komentar"
+            "contact": "Kontak"
         }
     },
     "topbar": {
@@ -32,8 +30,7 @@
         "services": "Layanan",
         "timeline": "Perjalanan",
         "music": "Musik",
-        "contact": "Kontak",
-        "comments": "Komentar"
+        "contact": "Kontak"
     },
     "dashboard": {
         "label": "01 — Beranda",
@@ -466,64 +463,6 @@
             "errorTitle": "Terjadi kesalahan"
         }
     },
-    "comments": {
-        "label": "09 — Komentar",
-        "title": "Tinggalkan komentar.",
-        "subtitle": "Bagikan pemikiran Anda tentang pekerjaan, proyek, atau hal lainnya.",
-        "as": "Berkomentar sebagai",
-        "your": "Komentar Anda",
-        "placeholder": "Tulis komentar…",
-        "submit": "Posting komentar",
-        "posting": "Memposting…",
-        "hint": "Komentar terlihat oleh semua orang.",
-        "loginTitle": "Login untuk berkomentar",
-        "loginHint": "Masuk dengan Google atau GitHub untuk bergabung dalam percakapan.",
-        "privacy-guest": "Autentikasi ditangani dengan aman. Baca",
-        "privacy-auth": "Dengan memposting, Anda menyetujui",
-        "privacyLink": "Kebijakan Privasi",
-        "count_one": "komentar",
-        "count_other": "komentar",
-        "noComment": "Belum ada komentar. Jadilah yang pertama meninggalkan komentar.",
-        "loading": "Memuat komentar…",
-        "error": "Tidak dapat memuat komentar",
-        "deleteLabel": "Hapus komentar",
-        "commentingAs": "Berkomentar sebagai"
-    },
-    "auth": {
-        "login": "Masuk",
-        "signOut": "Keluar",
-        "eyebrow": "Masuk untuk melanjutkan",
-        "title": "Selamat datang",
-        "description": "Masuk untuk meninggalkan komentar dan berinteraksi dengan portofolio.",
-        "google": "Lanjutkan dengan Google",
-        "github": "Lanjutkan dengan GitHub",
-        "privacy": "Autentikasi ditangani dengan aman. Baca",
-        "privacyLink": "Kebijakan Privasi"
-    },
-    "privacy": {
-        "label": "Legal",
-        "title": "Kebijakan Privasi",
-        "subtitle": "Terakhir diperbarui: Maret 2026",
-        "intro": "Kebijakan privasi ini menjelaskan bagaimana situs web portofolio ini mengumpulkan, menggunakan, dan melindungi informasi pribadi Anda.",
-        "sections": {
-            "dataCollected": "Data yang Saya Kumpulkan",
-            "dataCollectedContent": "Ketika Anda mengautentikasi melalui Google atau GitHub OAuth, saya menerima informasi profil publik Anda: nama tampilan, alamat email, dan URL avatar profil. Data ini disediakan oleh penyedia OAuth dan disimpan dengan aman di database saya. Ketika Anda memposting komentar, saya menyimpan teks komentar, ID pengguna Anda, dan timestamp. Saya tidak mengumpulkan informasi pembayaran, data lokasi, atau data pribadi sensitif apa pun.",
-            "oauthUsage": "Autentikasi OAuth",
-            "oauthContent": "Saya menggunakan Google dan GitHub OAuth semata-mata untuk tujuan autentikasi — untuk memverifikasi identitas Anda dan memungkinkan Anda memposting komentar. Saya tidak mengakses repositori, kontak, email di luar yang ditampilkan di profil publik Anda, atau sumber daya lain di luar informasi profil dasar. Anda dapat mencabut akses kapan saja melalui pengaturan akun Google atau GitHub Anda.",
-            "supabase": "Database & Penyimpanan",
-            "supabaseContent": "Data pengguna dan komentar disimpan di Supabase, platform database cloud yang aman. Supabase mematuhi GDPR dan menyimpan data di pusat data yang aman. Data Anda tidak pernah dijual kepada pihak ketiga. Untuk praktik privasi Supabase sendiri, lihat supabase.com/privacy.",
-            "emailUsage": "Penggunaan Alamat Email",
-            "emailContent": "Alamat email Anda dikumpulkan sebagai bagian dari proses autentikasi OAuth. Ini digunakan semata-mata untuk mengidentifikasi akun Anda dan tidak pernah digunakan untuk pemasaran, buletin, atau dibagikan kepada pihak ketiga.",
-            "retention": "Retensi Data",
-            "retentionContent": "Data akun dan komentar Anda disimpan selama Anda mempertahankan akun aktif. Anda dapat meminta penghapusan data Anda kapan saja dengan menghubungi saya. Komentar yang dihapus dihapus segera. Data akun dihapus dalam 30 hari setelah permintaan penghapusan.",
-            "rights": "Hak-Hak Anda",
-            "rightsContent": "Anda memiliki hak untuk mengakses data pribadi yang saya pegang tentang Anda, meminta koreksi data yang tidak akurat, meminta penghapusan data Anda, mencabut persetujuan kapan saja, dan mengajukan keluhan kepada otoritas pengawas. Untuk menggunakan salah satu hak ini, hubungi saya menggunakan alamat email di bawah.",
-            "security": "Keamanan",
-            "securityContent": "Saya mengambil langkah-langkah teknis dan organisasi yang wajar untuk melindungi informasi pribadi Anda. Semua data ditransmisikan melalui HTTPS. Token OAuth tidak pernah disimpan — hanya profil pengguna yang dihasilkan yang disimpan. Saya secara berkala meninjau praktik keamanan saya.",
-            "contact": "Kontak",
-            "contactContent": "Untuk pertanyaan terkait privasi atau permintaan data, hubungi:"
-        }
-    },
     "engineeringPrinciples": {
         "heading": "Prinsip rekayasa",
         "principles": {
@@ -544,5 +483,70 @@
                 "description": "Teknologi berkembang pesat. Eksperimentasi dan pembelajaran terus-menerus merupakan bagian dari proses pengembangan saya."
             }
         }
+    },
+    "meta": {
+        "about": {
+            "title": "Tentang",
+            "description": "Kenali Randy Rafael — fullstack developer dan system builder. Latar belakang, fokus, dan cara saya menangani rekayasa perangkat lunak."
+        },
+        "stack": {
+            "title": "Teknologi",
+            "description": "Bahasa, framework, dan tools yang digunakan Randy Rafael untuk membangun aplikasi web fullstack — dari React dan Next.js hingga Node.js dan database."
+        },
+        "projects": {
+            "title": "Proyek",
+            "description": "Proyek pilihan Randy Rafael — aplikasi web fullstack, tools, dan game yang dibangun dengan React, Next.js, TypeScript, dan Node.js."
+        },
+        "services": {
+            "title": "Layanan",
+            "description": "Jasa pembuatan website oleh Randy Rafael — situs custom, cepat, dan siap SEO untuk bisnis di seluruh Indonesia."
+        },
+        "timeline": {
+            "title": "Perjalanan Karier",
+            "description": "Perjalanan karier Randy Rafael — pencapaian, peran, dan proyek sepanjang perjalanan sebagai fullstack developer."
+        },
+        "music": {
+            "title": "Musik",
+            "description": "Sudut menyenangkan dari portofolio — konsol musik interaktif oleh Randy Rafael."
+        },
+        "piano": {
+            "title": "Piano",
+            "description": "Mainkan piano web interaktif yang dibangun dengan Web Audio API — bagian dari portofolio Randy Rafael."
+        },
+        "contact": {
+            "title": "Kontak",
+            "description": "Hubungi Randy Rafael untuk pekerjaan fullstack development, proyek website, atau kolaborasi."
+        }
+    },
+    "piano": {
+        "info": {
+            "title": "Cara bermain",
+            "keysHeading": "Tuts",
+            "keysIntro": "Huruf dan angka pada tiap tuts adalah pintasan keyboard-nya.",
+            "shift": "<kbd>Shift</kbd> + tombol → memainkan tuts hitam (kres).",
+            "ctrl": "<kbd>Ctrl</kbd> + tombol <u>bergaris bawah</u> → nada rendah / tinggi tambahan pada mode 88 tuts.",
+            "ctrlNote": "Pintasan <kbd>Ctrl</kbd> pada 88 tuts hanya bekerja dalam mode layar penuh di Chrome / Edge. Gunakan tombol layar penuh, lalu ganti ke 88 tuts.",
+            "transposeHeading": "Transpose",
+            "transpose": "Menggeser semua nada naik atau turun dalam satuan semitone (−12 hingga +12), sehingga Anda bisa berganti nada dasar tanpa memindahkan tangan. Gunakan <kbd>↑</kbd> / <kbd>↓</kbd> atau slider.",
+            "sustainHeading": "Sustain",
+            "sustain": "Saat AKTIF, nada tetap berbunyi setelah tuts dilepas — seperti menahan pedal sustain piano. Ubah dengan <kbd>Space</kbd>."
+        },
+        "seo": {
+            "aria": "Tentang piano ini",
+            "heading": "Piano Online Gratis",
+            "p1": "Mainkan piano online dengan keyboard piano virtual gratis ini. Piano web interaktif Randy Rafael memungkinkan Anda memainkan hingga 88 tuts langsung di browser — tanpa unduhan dan tanpa plugin.",
+            "p2": "Gunakan mouse, layar sentuh, atau keyboard komputer untuk memainkan sampel piano yang realistis. Ganti antara 61 dan 88 tuts, atur transpose dan sustain, serta nikmati suara grand piano di mana saja.",
+            "p3": "Baik untuk latihan tangga nada, belajar melodi, atau sekadar bersenang-senang, keyboard piano online ini berfungsi di desktop maupun mobile."
+        }
+    },
+    "contextMenu": {
+        "aria": "Aksi cepat",
+        "home": "Beranda",
+        "projects": "Proyek",
+        "contact": "Kontak",
+        "copyLink": "Salin tautan halaman",
+        "copied": "Tersalin!",
+        "switchLanguage": "Ganti ke English",
+        "backToTop": "Kembali ke atas"
     }
 }

@@ -1,21 +1,18 @@
 // app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { ActiveSectionProvider } from "@/context/ActiveSectionContext";
-import { AuthProvider } from "@/context/AuthContext";
 import { Analytics } from "@vercel/analytics/next"
 import "../styles/globals.scss";
 
 // import LightPillar from "@/components/ui/LightPillar/LightPillar";
 import { NextIntlClientProvider } from "next-intl";
 import dynamic from "next/dynamic";
+import { SITE_URL } from "@/lib/site";
 
 const LightPillar = dynamic(
     () => import("@/components/ui/LightPillar/LightPillar"),
 );
 
-// ---- Canonical site URL — update before deploying ----
-const SITE_URL =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://randyrafael.my.id";
+// ---- Canonical site URL — single source of truth in lib/site.ts ----
 const SITE_NAME = "Randy Rafael";
 const SITE_TITLE = "Randy Rafael — Fullstack Developer & System Builder";
 const SITE_DESCRIPTION =
@@ -71,14 +68,7 @@ export const metadata: Metadata = {
         siteName: SITE_NAME,
         title: SITE_TITLE,
         description: SITE_DESCRIPTION,
-        images: [
-            {
-                url: "/og-image.png", // 1200×630 — place in /public
-                width: 1200,
-                height: 630,
-                alt: `${SITE_NAME} — Fullstack Developer`,
-            },
-        ],
+        // og:image is generated dynamically by app/opengraph-image.tsx
     },
 
     // ---- Twitter / X ----
@@ -87,7 +77,7 @@ export const metadata: Metadata = {
         title: SITE_TITLE,
         description: SITE_DESCRIPTION,
         // creator:  '@yourhandle', // uncomment when you have one
-        images: ["/og-image.png"],
+        // twitter:image is generated dynamically by app/twitter-image.tsx
     },
 
     // ---- Favicon / Icons ----
@@ -137,10 +127,8 @@ export const metadata: Metadata = {
 
 // ---- Viewport — exported separately per Next.js 14+ convention ----
 export const viewport: Viewport = {
-    themeColor: [
-        { media: "(prefers-color-scheme: dark)", color: "#0e0f11" },
-        { media: "(prefers-color-scheme: light)", color: "#f5f5f3" },
-    ],
+    // Dark-only site — force the browser UI to match regardless of OS scheme.
+    themeColor: "#0e0f11",
     width: "device-width",
     initialScale: 1,
     // Prevent font bump on iOS orientation change
@@ -153,21 +141,8 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        /*
-         * suppressHydrationWarning: ThemeToggle writes data-theme on the
-         * client after hydration. Without this flag React warns on mismatch
-         * since the server always renders data-theme="dark".
-         */
-        <html lang="en" data-theme="dark" suppressHydrationWarning>
-            <head>
-                {/* Preconnect to Google Fonts domain — eliminates round-trip latency */}
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link
-                    rel="preconnect"
-                    href="https://fonts.gstatic.com"
-                    crossOrigin="anonymous"
-                />
-            </head>
+        // Dark-only site — data-theme is a static marker; nothing mutates it.
+        <html lang="en" data-theme="dark">
             <body>
                 <NextIntlClientProvider>
                     {/*
@@ -205,24 +180,19 @@ export default function RootLayout({
                     <Analytics/>
 
                     {/*
-          Provider order (outermost → innermost):
-          1. AuthProvider          — session state, sign-in/out helpers
-          2. ActiveSectionProvider — pathname-driven active section state
+          ActiveSectionProvider lives in app/[locale]/layout.tsx — every
+          consumer (Topbar, sidebar) renders inside that locale subtree.
         */}
-                    <AuthProvider>
-                        <ActiveSectionProvider>
-                            <div className="app-shell">
-                                {/*
-                PageTransition wraps {children} — fades out the old page,
-                swaps the DOM, then fades in the new page.
-                ThreeBackground is outside this wrapper so it never fades.
-              */}
-                                {/* <RouteTransition> */}
-                                {children}
-                                {/* </RouteTransition> */}
-                            </div>
-                        </ActiveSectionProvider>
-                    </AuthProvider>
+                    <div className="app-shell">
+                        {/*
+              PageTransition wraps {children} — fades out the old page,
+              swaps the DOM, then fades in the new page.
+              ThreeBackground is outside this wrapper so it never fades.
+            */}
+                        {/* <RouteTransition> */}
+                        {children}
+                        {/* </RouteTransition> */}
+                    </div>
                 </NextIntlClientProvider>
             </body>
         </html>

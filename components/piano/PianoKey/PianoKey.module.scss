@@ -162,3 +162,15 @@
         display: none;
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Ctrl-reachable key hint (88-key mode) — underline the single key character.
+// Uses border-bottom rather than text-decoration: the label span has
+// overflow:hidden + line-height:1, which clips a text-underline, but an
+// element's own border is never clipped by its own overflow.
+// ─────────────────────────────────────────────────────────────────────────────
+.underline {
+    border-bottom: 1px solid currentColor;
+    line-height: 1;
+    padding-bottom: 1px;
+}
