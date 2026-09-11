@@ -101,6 +101,7 @@
     padding: var(--space-6);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-xl);
 
@@ -137,6 +138,7 @@
     border-radius: var(--radius-lg);
 
     background-color: var(--color-surface-2);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     color: var(--color-text-secondary);
 
     transition:
@@ -210,6 +212,7 @@
     padding: var(--space-5);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-lg);
 
@@ -360,6 +363,7 @@
     padding: var(--space-4);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-lg);
     text-decoration: none;
@@ -396,6 +400,7 @@
     padding: var(--space-4);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px dashed var(--color-border-subtle);
     border-radius: var(--radius-lg);
 
@@ -415,9 +420,12 @@
     font-size: var(--text-sm);
     font-weight: 600;
     color: var(--color-text-primary);
-    transition:
-        color var(--transition-base),
-        color var(--transition-theme);
+    // [LAMA — pre kinetic-console] `color` dideklarasikan dua kali.
+    // transition:
+    //     color var(--transition-base),
+    //     color var(--transition-theme);
+    // [BARU — kinetic-console, Step 7]
+    transition: color var(--transition-base);
 }
 
 .locationRegion {
@@ -438,6 +446,7 @@
     // margin-inline: var(--space-6);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-xl);
 

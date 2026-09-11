@@ -145,6 +145,12 @@ const ProjectCard = memo(function ProjectCard({
                                 )
                             }
                             aria-label={`${t("viewDetails")} — ${title}`}
+                            // [BARU] Dipakai Projects.tsx untuk menemukan tombol
+                            // ini lewat DOM saat modal dibuka otomatis dari query
+                            // param ?project=<id> (dari FeaturedProjects), supaya
+                            // fokus kembali ke sini yang benar saat modal ditutup —
+                            // sama seperti alur klik manual.
+                            data-project-id={id}
                         >
                             {t("viewDetails")}
                             <ArrowIcon />

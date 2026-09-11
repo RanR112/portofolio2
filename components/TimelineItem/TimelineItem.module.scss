@@ -75,6 +75,17 @@
     border: 1.5px solid var(--color-accent);
     opacity: 0;
     animation: pulse 2.4s ease-in-out infinite;
+
+    // [BARU — kinetic-console, Step 7] Guard eksplisit. Animasi ini berakhir
+    // di opacity:0 (efek "ping" radar) — kill-switch global (globals.scss)
+    // memotong durasinya jadi 0.01ms tapi TIDAK mengubah keyframe, jadi ring
+    // ini bisa terjebak nyaris tak terlihat alih-alih benar-benar mati.
+    // Informasi "fase ini sedang berjalan" tetap tersampaikan lewat
+    // .currentBadge (teks statis, tidak animasi) dan warna/ukuran .marker
+    // itu sendiri, jadi aman disembunyikan total di sini.
+    @media (prefers-reduced-motion: reduce) {
+        display: none;
+    }
 }
 
 @keyframes pulse {
@@ -169,13 +180,20 @@
     padding: var(--space-6);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-lg);
 
+    // [LAMA — pre kinetic-console] `border-color` dideklarasikan dua kali
+    // (base + theme). Dipertahankan sebagai komentar untuk rollback.
+    // transition:
+    //     border-color var(--transition-base),
+    //     background-color var(--transition-theme),
+    //     border-color var(--transition-theme);
+    // [BARU — kinetic-console, Step 7]
     transition:
         border-color var(--transition-base),
-        background-color var(--transition-theme),
-        border-color var(--transition-theme);
+        background-color var(--transition-theme);
 
     &:hover {
         border-color: var(--color-border-default);

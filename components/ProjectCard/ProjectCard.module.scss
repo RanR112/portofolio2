@@ -13,6 +13,7 @@
     flex-direction: column;
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-xl);
 
@@ -69,6 +70,7 @@
     overflow: hidden;
     flex-shrink: 0;
     background-color: var(--color-surface-2);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
 }
 
 .thumbnail {
@@ -132,6 +134,7 @@
 .cardStatus {
     font-family: $font-mono;
     font-size: var(--text-xs);
+    font-weight: 500; // [BARU — kinetic-console, Step 6] konsisten dengan .badge di FeaturedProjects
     letter-spacing: 0.06em;
     padding: 2px var(--space-2);
     border-radius: var(--radius-sm);
@@ -142,10 +145,22 @@
         background-color var(--transition-theme);
 }
 
+// [LAMA — pre kinetic-console] #4caf8a hardcoded — duplikasi ketiga dari bug
+// yang sama (Topbar diperbaiki Step 1, About Step 5). Dipertahankan sebagai
+// komentar untuk rollback.
+// .cardStatus--live {
+//     color: #4caf8a;
+//     border-color: rgba(76, 175, 138, 0.25);
+//     background-color: rgba(76, 175, 138, 0.08);
+// }
+
+// [BARU — kinetic-console, Step 6] --color-success + rgba yang SAMA persis
+// dengan .badge--live di FeaturedProjects — satu badge status, satu tampilan
+// di seluruh situs.
 .cardStatus--live {
-    color: #4caf8a;
-    border-color: rgba(76, 175, 138, 0.25);
-    background-color: rgba(76, 175, 138, 0.08);
+    color: var(--color-success);
+    border-color: rgba(91, 191, 151, 0.28);
+    background-color: rgba(91, 191, 151, 0.08);
 }
 
 .cardStatus--wip {
@@ -250,6 +265,7 @@
     color: var(--color-text-muted);
     padding: 3px var(--space-2);
     background-color: var(--color-surface-2);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-full);
     white-space: nowrap;
@@ -277,10 +293,18 @@
 
     opacity: 0.8;
 
+    // [LAMA — pre kinetic-console] opacity 160ms ease — durasi & easing
+    // hardcode, lepas dari sistem token. Dipertahankan sebagai komentar.
+    // transition:
+    //     color var(--transition-theme),
+    //     border-color var(--transition-theme),
+    //     opacity 160ms ease;
+    // [BARU — kinetic-console, Step 6] --transition-fast otomatis memakai
+    // --ease-strike sejak Step 0.
     transition:
         color var(--transition-theme),
         border-color var(--transition-theme),
-        opacity 160ms ease;
+        opacity var(--transition-fast);
 }
 
 .card:hover .tagMore {

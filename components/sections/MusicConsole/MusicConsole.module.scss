@@ -26,6 +26,7 @@
     padding: var(--space-4) var(--space-6);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-default);
     border-radius: var(--radius-lg);
 
@@ -199,13 +200,20 @@ $wgap: 2px; // gap between white keys
     border-radius: 0 0 4px 4px;
 
     cursor: pointer;
+    // [LAMA — pre kinetic-console] `background-color` dideklarasikan dua
+    // kali (fast + theme). Dipertahankan sebagai komentar untuk rollback.
+    // transition:
+    //     background-color var(--transition-fast),
+    //     transform var(--transition-fast),
+    //     background-color var(--transition-theme);
+    // [BARU — kinetic-console, Step 9]
     transition:
         background-color var(--transition-fast),
-        transform var(--transition-fast),
-        background-color var(--transition-theme);
+        transform var(--transition-fast);
 
     &:hover:not(.keyActive) {
         background-color: var(--color-surface-3);
+        @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     }
 
     &:active {
@@ -229,14 +237,22 @@ $wgap: 2px; // gap between white keys
     background-image: linear-gradient(to bottom, var(--color-surface-2) 0%, var(--color-bg-primary) 100%);
 
     cursor: pointer;
+    // [LAMA — pre kinetic-console] `background-color` dideklarasikan dua
+    // kali (fast + theme). Dipertahankan sebagai komentar untuk rollback.
+    // transition:
+    //     background-color var(--transition-fast),
+    //     background-image var(--transition-fast),
+    //     transform var(--transition-fast),
+    //     background-color var(--transition-theme);
+    // [BARU — kinetic-console, Step 9]
     transition:
         background-color var(--transition-fast),
         background-image var(--transition-fast),
-        transform var(--transition-fast),
-        background-color var(--transition-theme);
+        transform var(--transition-fast);
 
     &:hover:not(.keyActive) {
         background-color: var(--color-surface-2);
+        @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
         background-image: linear-gradient(to bottom, var(--color-surface-3) 0%, var(--color-surface-2) 100%);
     }
 
@@ -316,11 +332,18 @@ $wgap: 2px; // gap between white keys
     border-radius: var(--radius-md);
     color: var(--color-accent);
 
+    // [LAMA — pre kinetic-console] `background-color` dideklarasikan dua
+    // kali (base + theme). Dipertahankan sebagai komentar untuk rollback.
+    // transition:
+    //     background-color var(--transition-base),
+    //     border-color var(--transition-base),
+    //     transform var(--transition-fast),
+    //     background-color var(--transition-theme);
+    // [BARU — kinetic-console, Step 9]
     transition:
         background-color var(--transition-base),
         border-color var(--transition-base),
-        transform var(--transition-fast),
-        background-color var(--transition-theme);
+        transform var(--transition-fast);
 
     &:hover {
         background-color: rgba(201, 168, 108, 0.18);

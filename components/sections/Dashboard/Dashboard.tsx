@@ -26,6 +26,7 @@ export default function Dashboard() {
             label={t("label")}
             title={t("title")}
             subtitle={t("subtitle")}
+            size="hero" // [BARU — kinetic-console, Step 2]
         >
             {/* Stat cards */}
             <Reveal>

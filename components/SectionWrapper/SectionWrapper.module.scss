@@ -47,6 +47,13 @@
 .container {
     max-width: $content-max-wide;
     width: 100%;
+    // [BARU — kinetic-console, Step 2] Bug fix (audit §5.D, ditunda dari
+    // Step 0): tanpa margin-inline:auto, container ini menempel ke tepi kiri
+    // shell di layar >=1600px (max-width membatasi lebar tapi tidak
+    // men-center-kannya). Ini fix universal untuk SEMUA pemakai
+    // SectionWrapper, bukan cuma Dashboard — aman diterapkan sekarang karena
+    // murni bug fix, bukan perubahan gaya yang perlu direview per halaman.
+    margin-inline: auto;
 }
 
 .containerFull {
@@ -108,6 +115,16 @@
         font-size: var(--text-xl);
         letter-spacing: -0.02em;
     }
+}
+
+// [BARU — kinetic-console, Step 2] Dipakai berdampingan dengan .title (lihat
+// SectionWrapper.tsx, size="hero") — hanya oleh Dashboard. clamp() sudah
+// menangani penyusutan di layar sempit sendiri, jadi sengaja tidak diberi
+// override per breakpoint seperti .title di atas.
+.titleHero {
+    font-size: clamp(2.6rem, 7.4vw, var(--text-4xl));
+    line-height: 1.02;
+    letter-spacing: -0.06em;
 }
 
 .subtitle {

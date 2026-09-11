@@ -11,7 +11,10 @@
     min-width: 0; // prevent flex blowout on narrow viewports
     margin-inline-start: $sidebar-width;
     min-height: 100vh;
-    min-width: 95%;
+    // [LAMA — pre kinetic-console, Step 0] Baris ini menimpa `min-width: 0`
+    // di atas dan membatalkan proteksi flex blowout-nya. Dipertahankan
+    // sebagai komentar untuk rollback.
+    // min-width: 95%;
     display: flex;
     flex-direction: column;
     transition:

@@ -54,21 +54,33 @@
     padding: var(--space-4) var(--space-5);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-lg);
 
     text-decoration: none;
     color: inherit;
 
+    // [LAMA — pre kinetic-console] background-color DAN border-color
+    // masing-masing dideklarasikan dua kali (base + theme) — bug yang sama
+    // seperti audit §5.F. Dipertahankan sebagai komentar untuk rollback.
+    // transition:
+    //     border-color var(--transition-base),
+    //     background-color var(--transition-base),
+    //     transform var(--transition-fast),
+    //     background-color var(--transition-theme),
+    //     border-color var(--transition-theme);
+    // [BARU — kinetic-console, Step 8]
     transition:
         border-color var(--transition-base),
         background-color var(--transition-base),
-        transform var(--transition-fast),
-        background-color var(--transition-theme),
-        border-color var(--transition-theme);
+        transform var(--transition-fast);
 
     &:hover {
         border-color: var(--color-border-default);
+        // [LAMA] @include glass-surface DIHAPUS — blur radius identik
+        // dengan base state, redundan (pola yang sama seperti .closeBtn
+        // di ProjectDetailModal, Step 6).
         background-color: var(--color-surface-2);
         transform: translateY(-1px);
 
@@ -95,6 +107,7 @@
     height: 36px;
     border-radius: var(--radius-md);
     background-color: var(--color-bg-elevated);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     color: var(--color-text-secondary);
     flex-shrink: 0;
@@ -131,9 +144,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
 
-    transition:
-        color var(--transition-base),
-        color var(--transition-theme);
+    // [LAMA — pre kinetic-console] `color` dideklarasikan dua kali.
+    // transition:
+    //     color var(--transition-base),
+    //     color var(--transition-theme);
+    // [BARU — kinetic-console, Step 8]
+    transition: color var(--transition-base);
 }
 
 .contactLinkArrow {
@@ -156,16 +172,49 @@
     gap: var(--space-3);
 }
 
+// [LAMA — pre kinetic-console] #4caf8a hardcoded, dot statis tanpa animasi —
+// konsep yang sama persis dengan status dot "available for work" di Topbar
+// (Step 1) dan "Open to work" di About (Step 5), tapi tampil beda sendiri.
+// Dipertahankan sebagai komentar untuk rollback.
+// .availabilityDot {
+//     display: inline-block;
+//     width: 7px;
+//     height: 7px;
+//     border-radius: var(--radius-full);
+//     background-color: #4caf8a;
+//     box-shadow: 0 0 6px rgba(76, 175, 138, 0.55);
+//     flex-shrink: 0;
+//     margin-block-start: 5px;
+// }
+
+// [BARU — kinetic-console, Step 8] Ini status "available"/"open to work"
+// yang KETIGA di situs ini (Topbar, About, sekarang Contact) — disatukan
+// bahasa visualnya: --color-success + pulse box-shadow + --ease-strike +
+// guard reduced-motion eksplisit, identik dengan dua yang lain.
 .availabilityDot {
     display: inline-block;
     width: 7px;
     height: 7px;
     border-radius: var(--radius-full);
-    background-color: #4caf8a;
-    box-shadow: 0 0 6px rgba(76, 175, 138, 0.55);
+    background-color: var(--color-success);
+    box-shadow: 0 0 6px rgba(91, 191, 151, 0.55);
     flex-shrink: 0;
-    // Optical vertical alignment with first line of text
     margin-block-start: 5px;
+    animation: statusPulse 2.8s var(--ease-strike) infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
+}
+
+@keyframes statusPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 6px rgba(91, 191, 151, 0.55);
+    }
+    50% {
+        box-shadow: 0 0 10px rgba(91, 191, 151, 0.25);
+    }
 }
 
 .availabilityText {
@@ -198,6 +247,7 @@
     padding: var(--space-7);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-xl);
 
@@ -293,6 +343,7 @@
     padding: var(--space-3) var(--space-4);
 
     background-color: var(--color-bg-elevated);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-default);
     border-radius: var(--radius-md);
 
@@ -301,10 +352,16 @@
     color: var(--color-text-primary);
     line-height: 1.5;
 
+    // [LAMA — pre kinetic-console] `border-color` dideklarasikan dua kali.
+    // transition:
+    //     border-color var(--transition-base),
+    //     background-color var(--transition-theme),
+    //     border-color var(--transition-theme),
+    //     color var(--transition-theme);
+    // [BARU — kinetic-console, Step 8]
     transition:
         border-color var(--transition-base),
         background-color var(--transition-theme),
-        border-color var(--transition-theme),
         color var(--transition-theme);
 
     &::placeholder {
@@ -379,16 +436,25 @@
 // Loading state — muted while in-flight
 .submitButtonLoading {
     background-color: var(--color-surface-2);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border-color: var(--color-border-default);
     color: var(--color-text-muted);
     opacity: 1;
 }
 
-// Success state — green tint
+// [LAMA — pre kinetic-console] rgba(76,175,138,...) & #4caf8a hardcoded.
+// .submitButtonSuccess {
+//     background-color: rgba(76, 175, 138, 0.15);
+//     border-color: rgba(76, 175, 138, 0.3);
+//     color: #4caf8a;
+//     opacity: 1;
+// }
+
+// Success state — green tint. [BARU — kinetic-console, Step 8] --color-success
 .submitButtonSuccess {
-    background-color: rgba(76, 175, 138, 0.15);
-    border-color: rgba(76, 175, 138, 0.3);
-    color: #4caf8a;
+    background-color: rgba(91, 191, 151, 0.15);
+    border-color: rgba(91, 191, 151, 0.3);
+    color: var(--color-success);
     opacity: 1;
 }
 
@@ -432,16 +498,32 @@
     }
 }
 
+// [LAMA — pre kinetic-console] rgba(76,175,138,...)/#4caf8a & rgba(224,85,85,...)/#e05555
+// hardcoded. Dipertahankan sebagai komentar untuk rollback.
+// .feedbackSuccess {
+//     background-color: rgba(76, 175, 138, 0.08);
+//     border-color: rgba(76, 175, 138, 0.25);
+//     color: #4caf8a;
+// }
+//
+// .feedbackError {
+//     background-color: rgba(224, 85, 85, 0.08);
+//     border-color: rgba(224, 85, 85, 0.2);
+//     color: #e05555;
+// }
+
+// [BARU — kinetic-console, Step 8] --color-success & --color-error (token
+// baru, lihat theme.scss — nilai sama, cuma disentralkan)
 .feedbackSuccess {
-    background-color: rgba(76, 175, 138, 0.08);
-    border-color: rgba(76, 175, 138, 0.25);
-    color: #4caf8a;
+    background-color: rgba(91, 191, 151, 0.08);
+    border-color: rgba(91, 191, 151, 0.25);
+    color: var(--color-success);
 }
 
 .feedbackError {
     background-color: rgba(224, 85, 85, 0.08);
     border-color: rgba(224, 85, 85, 0.2);
-    color: #e05555;
+    color: var(--color-error);
 }
 
 .feedbackText {

@@ -5,7 +5,11 @@
 .shell {
     display: flex;
     min-height: 100vh;
-    background-color: none;
+    // [LAMA — pre kinetic-console] `none` bukan nilai valid untuk
+    // background-color (diabaikan browser, efeknya sama dengan transparent,
+    // tapi CSS-nya salah). background-color: none;
+    // [BARU — kinetic-console, Step 9]
+    background-color: transparent;
 }
 
 // Mirrors sidebar width so content aligns
@@ -13,6 +17,7 @@
     width: $sidebar-width;
     height: 100vh;
     background-color: var(--color-bg-secondary);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border-right: 1px solid var(--color-border-subtle);
     flex-shrink: 0;
 }
@@ -32,7 +37,13 @@
 
 .section {
     padding: calc(#{$topbar-height} + var(--space-12)) var(--space-10) var(--space-16);
-    min-width: 95vw;
+    // [LAMA — pre kinetic-console] `min-width: 95vw` (95% dari LEBAR
+    // VIEWPORT PENUH, bukan dari parent) — bug sejenis dengan
+    // PageShell.module.scss (Step 0): .content sudah flex:1 dan otomatis
+    // mengisi sisa ruang setelah sidebar, memaksa min-width 95vw berisiko
+    // overflow horizontal karena ruang tersedia sebenarnya < 95% viewport.
+    // min-width: 95vw;
+    // [BARU — kinetic-console, Step 9]
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -54,6 +65,7 @@
     display: block;
     border-radius: var(--radius-md);
     background-color: var(--color-surface-2);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     animation: shimmer 1.6s ease-in-out infinite;
 }
 

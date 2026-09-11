@@ -10,12 +10,16 @@
 
     padding: var(--space-2);
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-default);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
 
     transform-origin: top left;
-    animation: ctxIn 120ms ease both;
+    // [LAMA — pre kinetic-console] animation: ctxIn 120ms ease both;
+    // [BARU — kinetic-console, Step 9] Menu muncul dengan snap/settle yang
+    // sama seperti elemen kinetic lain (modal Step 6, dst).
+    animation: ctxIn 120ms var(--ease-strike) both;
 
     @media (prefers-reduced-motion: reduce) {
         animation: none;
@@ -85,6 +89,7 @@
     &:hover,
     &:focus-visible {
         background-color: var(--color-surface-2);
+        @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
         color: var(--color-accent);
         outline: none;
     }

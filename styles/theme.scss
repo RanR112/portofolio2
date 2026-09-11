@@ -1,32 +1,87 @@
 // --- Theme tokens (dark-only) ---
 :root {
+    // [LAMA — pre kinetic-console] Dipertahankan sebagai komentar untuk rollback.
+    // --color-bg-primary: #0e0f11;
+    // --color-bg-secondary: #141518;
+    // --color-bg-elevated: #1a1c20;
+    // --color-bg-overlay: #21242a;
+    // --color-surface-1: #1e2126;
+    // --color-surface-2: #252830;
+    // --color-surface-3: #2c3038;
+    // --color-text-primary: #e8eaf0;
+    // --color-text-secondary: #9da3b0;
+    // --color-text-muted: #5c6270; // GAGAL WCAG AA: 3.14:1 vs bg, 2.64:1 vs surface-1
+    // --color-text-inverse: #0e0f11;
+
+    // [BARU — kinetic-console, Step 0]
     // Backgrounds
-    --color-bg-primary: #0e0f11;
-    --color-bg-secondary: #141518;
-    --color-bg-elevated: #1a1c20;
-    --color-bg-overlay: #21242a;
+    --color-bg-primary: #090a0c;
+    // [LAMA — Step 0, opaque] --color-bg-secondary: #0f1013;
+    // [LAMA — Step 0, opaque] --color-bg-elevated: #15171b;
+    // [EKSPERIMEN — diminta owner setelah Step 4, alpha diturunkan ke .6
+    // setelah preview pertama di .85] Sidebar + hover-elevated dibuat
+    // transparan supaya canvas LightPillar (three.js, .mainBackground) ikut
+    // tembus di baliknya, bukan cuma di area kosong. Dipakai di 19 file
+    // lewat token ini — satu titik ubah. backdrop-filter: blur() ditambah
+    // di elemen aslinya (bukan lewat token — blur tidak bisa ditaruh di
+    // dalam nilai custom property warna) untuk mendifusi warna pillar di
+    // belakang, menjaga kontras teks tetap terbaca meski alpha lebih rendah.
+    --color-bg-secondary: rgba(15, 16, 19, 0.6);
+    --color-bg-elevated: rgba(21, 23, 27, 0.6);
+    --color-bg-overlay: #21242a; // token tidak terpakai di mana pun — dibiarkan
 
     // Surfaces (cards, panels)
-    --color-surface-1: #1e2126;
-    --color-surface-2: #252830;
-    --color-surface-3: #2c3038;
+    // [LAMA — Step 0, opaque]
+    // --color-surface-1: #121418;
+    // --color-surface-2: #191c21;
+    // --color-surface-3: #21252b;
+    // [EKSPERIMEN — diminta owner setelah Step 4, alpha diturunkan ke .6]
+    // Semua card/panel (stat card, tracklist, ProjectCard, tag, dst — 19
+    // file konsumen token ini) dibuat transparan supaya LightPillar tembus
+    // di baliknya. backdrop-filter: blur() ditambah di elemen aslinya untuk
+    // mendifusi warna pillar di belakang.
+    // PERINGATAN AKSESIBILITAS: kontras teks di atas surface ini sekarang
+    // bergantung pada warna pillar yang ada di baliknya saat itu (shader
+    // topColor/bottomColor #c9a86c/#9a7840 — warna hangat, bukan acak), jadi
+    // kontras WCAG AA yang sudah dihitung di design-notes.md tidak lagi
+    // 100% terjamin di semua kondisi — blur mengurangi risiko ini (warna di
+    // belakang jadi rata-rata, bukan patch tajam) tapi tidak menghilangkannya
+    // total. Kalau teks jadi sulit dibaca di area tertentu, naikkan alpha di
+    // sini — satu titik ubah untuk semua, bukan per komponen.
+    --color-surface-1: rgba(18, 20, 24, 0.6);
+    --color-surface-2: rgba(25, 28, 33, 0.6);
+    --color-surface-3: rgba(33, 37, 43, 0.6);
 
     // Borders
     --color-border-subtle: rgba(255, 255, 255, 0.06);
     --color-border-default: rgba(255, 255, 255, 0.1);
-    --color-border-strong: rgba(255, 255, 255, 0.18);
+    --color-border-strong: rgba(255, 255, 255, 0.2);
+    // Garis paranada — motif musik dipakai sebagai grid latar (lihat globals.scss)
+    --color-stave: rgba(255, 255, 255, 0.045);
 
     // Text
-    --color-text-primary: #e8eaf0;
-    --color-text-secondary: #9da3b0;
-    --color-text-muted: #5c6270;
-    --color-text-inverse: #0e0f11;
+    --color-text-primary: #e9ebef;
+    --color-text-secondary: #a1a7b2; // 7.8:1
+    --color-text-muted: #848b97; // 5.1:1 vs bg, 5.4:1 vs surface — lolos AA (dulu gagal)
+    --color-text-faint: #69707b; // 3.7:1 — HANYA ornamen & teks besar non-esensial, jangan pakai untuk konten
+    --color-text-inverse: #090a0c;
 
-    // Accent — warm studio amber (not neon)
+    // Accent — warm studio amber (not neon). Nilai TIDAK diubah — identitas situs.
     --color-accent: #c9a86c;
     --color-accent-dim: rgba(201, 168, 108, 0.12);
+    --color-accent-wash: rgba(201, 168, 108, 0.05);
     --color-accent-hover: #d9bc84;
     --color-accent-glow: rgba(201, 168, 108, 0.2);
+
+    // Status — dulu hardcoded #4caf8a di banyak file (Topbar, About,
+    // ProjectCard, ProjectDetailModal, Contact — dibereskan bertahap
+    // per step saat ditemukan)
+    --color-success: #5bbf97;
+    // [BARU — kinetic-console, Step 8] dulu hardcoded #e05555 di
+    // Contact.module.scss & app/error.module.scss (yang terakhir dibereskan
+    // Step 9). 5.28:1 vs bg, 4.92:1 vs surface-1 — lolos AA, nilai
+    // dipertahankan sama, cuma disentralkan jadi token.
+    --color-error: #e05555;
 
     // Piano keys
     --wkw: 32px;
@@ -56,15 +111,21 @@
     --section-padding-y: var(--space-16);
 
     // Typography scale
+    // [LAMA — pre kinetic-console] Hero H1 di 42px terasa kecil untuk halaman
+    // pembuka portofolio. Dipertahankan sebagai komentar untuk rollback.
+    // --text-xl: 24px;
+    // --text-2xl: 32px;
+    // --text-3xl: 42px;
+    // --text-4xl: 56px;
     --text-xs: 11px;
     --text-sm: 13px;
     --text-base: 15px;
     --text-md: 17px;
     --text-lg: 20px;
-    --text-xl: 24px;
-    --text-2xl: 32px;
-    --text-3xl: 42px;
-    --text-4xl: 56px;
+    --text-xl: 26px; // [BARU — kinetic-console]
+    --text-2xl: 34px; // [BARU — kinetic-console]
+    --text-3xl: 46px; // [BARU — kinetic-console]
+    --text-4xl: 62px; // [BARU — kinetic-console] hero memakai clamp(), ini nilai atasnya
 
     // Border radius
     --radius-sm: 4px;
@@ -81,11 +142,21 @@
     --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.7);
     --shadow-accent: 0 0 20px rgba(201, 168, 108, 0.15);
 
-    // Transitions
-    --transition-fast: 100ms ease;
-    --transition-base: 180ms ease;
-    --transition-slow: 280ms ease;
-    --transition-theme: 300ms ease;
+    // [LAMA — pre kinetic-console] Satu-satunya easing di seluruh situs adalah
+    // `ease` generik. Dipertahankan sebagai komentar untuk rollback.
+    // --transition-fast: 100ms ease;
+    // --transition-base: 180ms ease;
+    // --transition-slow: 280ms ease;
+    // --transition-theme: 300ms ease;
+
+    // [BARU — kinetic-console, Step 0]
+    // Easing berkarakter — "attack" cepat lalu settle, meniru tuts yang
+    // ditekan lalu dilepas. Menggantikan `ease` generik di seluruh situs.
+    --ease-strike: cubic-bezier(0.16, 1.08, 0.3, 1);
+    --transition-fast: 100ms var(--ease-strike);
+    --transition-base: 180ms var(--ease-strike);
+    --transition-slow: 280ms var(--ease-strike);
+    --transition-theme: 300ms var(--ease-strike);
 
     // Modal backdrop
     --backdrop-bg: rgba(0, 0, 0, 0.65);

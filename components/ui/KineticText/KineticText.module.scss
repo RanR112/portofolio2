@@ -1,0 +1,12 @@
+// components/ui/KineticText/KineticText.module.scss
+// [BARU — kinetic-console, Step 2]
+
+@use "../../../styles/variables" as *;
+
+.char {
+    transition: color var(--transition-base);
+
+    &:hover {
+        color: var(--color-accent);
+    }
+}

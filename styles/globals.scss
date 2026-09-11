@@ -24,7 +24,9 @@ html {
     // Match body background — eliminates the white flash that appears
     // for ~1 frame before CSS custom properties resolve on first load.
     // The site is dark-only, so this is a constant.
-    background-color: #0e0f11;
+    // [LAMA — pre kinetic-console] background-color: #0e0f11;
+    // [BARU — kinetic-console, Step 0] mengikuti --color-bg-primary baru
+    background-color: #090a0c;
 
     // Respect reduced-motion preference: disable smooth scroll
     // and all CSS transitions/animations globally
@@ -39,8 +41,28 @@ body {
     font-size: var(--text-base);
     font-weight: 400;
     line-height: 1.6;
+    // [LAMA — pre kinetic-console] Warna ini identik dengan value pre-redesign,
+    // tapi statusnya sekarang beda: dulu ini oversight (tidak sinkron dengan
+    // token --color-bg-primary). Sempat diganti ke warna solid di commit Step 0
+    // untuk menyinkronkan token vs warna nyata, tapi itu menutup total canvas
+    // LightPillar (lihat komentar [KEPUTUSAN] di bawah) — jadi owner
+    // mengembalikannya secara SADAR sebagai overlay dim, bukan lagi oversight.
+    // background: var(--color-bg-primary); // ganti token → coba di commit Step 0, ternyata menutup pillar
+    // [KEPUTUSAN — owner, setelah step 0] Dikembalikan ke overlay translucent
+    // secara sengaja: membiarkan sedikit dari canvas LightPillar tembus di
+    // baliknya dengan cahaya yang tidak terlalu terang. Diverifikasi langsung
+    // di browser oleh owner — pertahankan nilai ini di step-step berikutnya.
     background: rgba(0, 0, 0, 0.5);
     color: var(--color-text-primary);
+
+    // `position: relative` memberi body stacking context sendiri (nol efek
+    // layout — body tetap normal flow, tidak ada offset). Awalnya ditambahkan
+    // saat body sempat memakai warna solid (lihat komentar di atas) supaya
+    // .mainBackground (z-index:-1) tidak tertutup total oleh background body.
+    // Dipertahankan berdampingan dengan overlay translucent di atas — kombinasi
+    // inilah yang sudah diverifikasi owner menghasilkan tampilan pillar yang
+    // diinginkan (tembus, redup, tidak terlalu terang).
+    position: relative;
 
     // Smooth theme transitions — only on intentional properties
     transition:
@@ -56,6 +78,15 @@ body {
 }
 
 // --- Reduced motion: kill all transitions and animations ---
+//
+// [PERINGATAN — kinetic-console, Step 0] Blok ini memotong animation-duration
+// ke 0.01ms tapi TIDAK mengubah keyframe. Komponen apa pun yang animasinya
+// mulai dari `opacity: 0` (mis. reveal/stagger ala `motion`) akan berhenti di
+// frame pertama itu — konten jadi tidak pernah terlihat sama sekali, bukan
+// "langsung muncul". Setiap komponen baru di step berikutnya yang menambah
+// animasi masuk WAJIB punya fallback eksplisit sendiri di dalam media query
+// prefers-reduced-motion (contoh pola: lihat Reveal.tsx yang sudah SSR-visible
+// by default dan hanya menyembunyikan elemen setelah mount).
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -77,6 +108,16 @@ body {
     // right: 11px;
     z-index: -1;
     pointer-events: none;
+
+    // [BARU — kinetic-console, Step 0] Garis paranada — motif musik dipakai
+    // sebagai grid latar di seluruh situs, bukan dekorasi acak. Ditempelkan
+    // ke elemen fixed yang sudah ada supaya nol elemen DOM baru. Sangat halus
+    // (alpha .045) agar tidak bersaing dengan konten.
+    background-image: repeating-linear-gradient(
+        to bottom,
+        var(--color-stave) 0 1px,
+        transparent 1px 88px
+    );
 }
 
 // --- Skip navigation link (accessibility) ---

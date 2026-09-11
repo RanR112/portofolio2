@@ -14,6 +14,7 @@
     padding: 3px;
 
     background-color: var(--color-surface-2);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-lg);
 
@@ -42,11 +43,18 @@
     text-transform: uppercase;
     color: var(--color-text-muted);
 
+    // [LAMA — pre kinetic-console] `color` dideklarasikan dua kali (base +
+    // theme). Dipertahankan sebagai komentar untuk rollback.
+    // transition:
+    //     color var(--transition-base),
+    //     background-color var(--transition-base),
+    //     box-shadow var(--transition-base),
+    //     color var(--transition-theme);
+    // [BARU — kinetic-console, Step 7]
     transition:
         color var(--transition-base),
         background-color var(--transition-base),
-        box-shadow var(--transition-base),
-        color var(--transition-theme);
+        box-shadow var(--transition-base);
 
     &:hover:not(#{&}Active) {
         color: var(--color-text-secondary);
@@ -67,15 +75,24 @@
 .toggleBtnActive {
     color: var(--color-text-primary);
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--color-border-default);
 
+    // [LAMA — pre kinetic-console] `background-color` dideklarasikan dua
+    // kali (base + theme). Dipertahankan sebagai komentar untuk rollback.
+    // transition:
+    //     color var(--transition-base),
+    //     background-color var(--transition-base),
+    //     box-shadow var(--transition-base),
+    //     border-color var(--transition-theme),
+    //     background-color var(--transition-theme);
+    // [BARU — kinetic-console, Step 7]
     transition:
         color var(--transition-base),
         background-color var(--transition-base),
         box-shadow var(--transition-base),
-        border-color var(--transition-theme),
-        background-color var(--transition-theme);
+        border-color var(--transition-theme);
 }
 
 // ============================================================

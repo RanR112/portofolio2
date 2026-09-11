@@ -71,6 +71,7 @@
 .infoCard {
     padding: var(--space-6);
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-lg);
     transition:
@@ -97,16 +98,47 @@
 // Info list — definition list
 // ============================================================
 
+// [LAMA — pre kinetic-console] gap:var(--space-4) sebagai satu-satunya
+// pemisah antar baris — tidak ada divider visual. Dipertahankan sebagai
+// komentar untuk rollback.
+// .infoList {
+//     display: flex;
+//     flex-direction: column;
+//     gap: var(--space-4);
+// }
+//
+// .infoItem {
+//     display: flex;
+//     flex-direction: column;
+//     gap: var(--space-1);
+// }
+
+// [BARU — kinetic-console, Step 5] Divider antar baris — bahasa yang sama
+// dengan EngineeringPrinciples & tracklist FeaturedProjects, supaya
+// "spec sheet" info card ini terasa satu keluarga dengan section lain,
+// bukan pulau sendiri. Baris pertama tidak dapat border-top supaya tidak
+// dobel dengan border-bottom .infoCardTitle di atasnya.
 .infoList {
     display: flex;
     flex-direction: column;
-    gap: var(--space-4);
 }
 
 .infoItem {
     display: flex;
     flex-direction: column;
     gap: var(--space-1);
+    padding-block: var(--space-3);
+    border-top: 1px solid var(--color-border-subtle);
+    transition: border-color var(--transition-theme);
+
+    &:first-child {
+        border-top: none;
+        padding-block-start: 0;
+    }
+
+    &:last-child {
+        padding-block-end: 0;
+    }
 }
 
 .infoKey {
@@ -127,35 +159,68 @@
     transition: color var(--transition-theme);
 }
 
-// Accent variant — used for "Open to work" status
+// [LAMA — pre kinetic-console] #4caf8a hardcoded — duplikasi yang sama
+// persis dengan status dot lama di Topbar (dibereskan Step 1) dan badge
+// status di FeaturedProjects (Step 3). Dipertahankan sebagai komentar
+// untuk rollback.
+// .infoValueAccent {
+//     display: flex;
+//     align-items: center;
+//     gap: var(--space-2);
+//     color: #4caf8a; // green — not themed, intentionally constant
+//     font-weight: 500;
+// }
+//
+// .statusDot {
+//     display: inline-block;
+//     width: 7px;
+//     height: 7px;
+//     border-radius: var(--radius-full);
+//     background-color: #4caf8a;
+//     flex-shrink: 0;
+//     animation: pulse 2.4s ease-in-out infinite;
+// }
+//
+// @keyframes pulse {
+//     0%, 100% { opacity: 1; }
+//     50% { opacity: 0.45; }
+// }
+
+// [BARU — kinetic-console, Step 5] --color-success menggantikan hardcode.
+// Ini konsep yang SAMA dengan status dot "available for work" di Topbar
+// (Step 1) — "Open to work" di sini adalah pernyataan yang sama, jadi
+// diberi bahasa visual yang identik: pulse lewat box-shadow (bukan
+// opacity, supaya dot tidak pernah benar-benar "hilang" secara visual)
+// dengan --ease-strike, plus guard reduced-motion eksplisit yang sama.
 .infoValueAccent {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    color: #4caf8a; // green — not themed, intentionally constant
-
+    color: var(--color-success);
     font-weight: 500;
 }
 
-// Pulsing green dot for "available" status
 .statusDot {
     display: inline-block;
     width: 7px;
     height: 7px;
     border-radius: var(--radius-full);
-    background-color: #4caf8a;
+    background-color: var(--color-success);
+    box-shadow: 0 0 6px rgba(91, 191, 151, 0.55);
     flex-shrink: 0;
+    animation: statusPulse 2.8s var(--ease-strike) infinite;
 
-    // Subtle pulse — draws attention without being distracting
-    animation: pulse 2.4s ease-in-out infinite;
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+    }
 }
 
-@keyframes pulse {
+@keyframes statusPulse {
     0%,
     100% {
-        opacity: 1;
+        box-shadow: 0 0 6px rgba(91, 191, 151, 0.55);
     }
     50% {
-        opacity: 0.45;
+        box-shadow: 0 0 10px rgba(91, 191, 151, 0.25);
     }
 }

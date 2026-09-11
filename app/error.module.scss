@@ -13,7 +13,12 @@
     align-items: center;
     justify-content: center;
     padding: var(--space-8);
-    background-color: none;
+    // [LAMA — pre kinetic-console] `none` bukan nilai valid untuk
+    // background-color (browser mengabaikannya, jatuh ke transparent) —
+    // efek akhirnya sama, tapi CSS-nya tidak benar.
+    // background-color: none;
+    // [BARU — kinetic-console, Step 9]
+    background-color: transparent;
     transition: background-color var(--transition-theme);
 }
 
@@ -27,6 +32,7 @@
     padding: var(--space-10) var(--space-8);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-xl);
     text-align: center;
@@ -44,9 +50,16 @@
     align-items: center;
     justify-content: center;
 
+    // [LAMA — pre kinetic-console] rgba(224,85,85,...)/#e05555 hardcoded —
+    // terduplikasi persis dengan Contact.module.scss (dibereskan Step 8,
+    // token --color-error diperkenalkan saat itu di theme.scss).
+    // background-color: rgba(224, 85, 85, 0.1);
+    // border: 1px solid rgba(224, 85, 85, 0.2);
+    // color: #e05555;
+    // [BARU — kinetic-console, Step 9]
     background-color: rgba(224, 85, 85, 0.1);
     border: 1px solid rgba(224, 85, 85, 0.2);
-    color: #e05555;
+    color: var(--color-error);
     flex-shrink: 0;
 }
 
@@ -77,7 +90,11 @@
 
     font-family: $font-mono;
     font-size: var(--text-xs);
-    color: #e05555;
+    // [LAMA — pre kinetic-console] color: #e05555;
+    // [BARU — kinetic-console, Step 9] Class ini saat ini tidak dirender
+    // (blok debug di error.tsx dikomentari), diperbarui untuk konsistensi
+    // kalau nanti diaktifkan lagi.
+    color: var(--color-error);
     line-height: 1.6;
     text-align: left;
     white-space: pre-wrap;

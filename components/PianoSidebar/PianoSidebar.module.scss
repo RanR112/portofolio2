@@ -20,20 +20,32 @@
     border: 1px solid var(--color-border-default);
 
     background-color: var(--color-bg-secondary);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     color: var(--color-text-secondary);
 
     align-items: center;
     justify-content: center;
 
+    // [LAMA — pre kinetic-console] Dua deklarasi `transition` di sini — yang
+    // kedua (`all 0.2s linear`) menimpa yang pertama secara diam-diam (audit
+    // §5.F). Dipertahankan sebagai komentar untuk rollback.
+    // transition:
+    //     background-color var(--transition-base),
+    //     border-color var(--transition-base),
+    //     color var(--transition-base),
+    //     background-color var(--transition-theme);
+    // transition: all 0.2s linear;
+
+    // [BARU — kinetic-console, Step 1] Satu deklarasi eksplisit, memakai
+    // --ease-strike lewat token --transition-base yang sudah diperbarui.
     transition:
         background-color var(--transition-base),
         border-color var(--transition-base),
-        color var(--transition-base),
-        background-color var(--transition-theme);
-    transition: all 0.2s linear;
+        color var(--transition-base);
 
     &:hover {
         background-color: var(--color-surface-2);
+        @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
         color: var(--color-text-primary);
     }
 
@@ -49,7 +61,9 @@
 
 .open {
     transform: translateX(var(--space-16));
-    transition: all 0.2s linear;
+    // [LAMA — pre kinetic-console] transition: all 0.2s linear;
+    // [BARU — kinetic-console, Step 1]
+    transition: transform var(--transition-base);
 }
 
 // ============================================================
@@ -96,6 +110,7 @@
     width: $sidebar-width;
 
     background-color: var(--color-bg-secondary);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
     border-right: 1px solid var(--color-border-subtle);
 
     transition:
@@ -197,18 +212,35 @@
     gap: var(--space-1);
     height: 56px;
 
+    // [LAMA — pre kinetic-console] background-color: transparent;
+    // [BARU — kinetic-console, Step 1] Badan tuts: sheen halus di atas +
+    // garis gelap di bawah sebagai celah antar tuts, supaya tiap item
+    // benar-benar terbaca sebagai tuts fisik, bukan cuma baris menu.
     background-color: transparent;
+    background-image: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.014),
+        transparent
+    );
+    border-bottom: 1px solid rgba(0, 0, 0, 0.35);
     color: var(--color-text-muted);
 
     transition:
         background-color var(--transition-base),
-        color var(--transition-base);
+        color var(--transition-base),
+        transform var(--transition-base); // [BARU — kinetic-console, Step 1]
 
     overflow: visible;
 
     &:hover {
         background-color: var(--color-bg-elevated);
+        @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
         color: var(--color-text-secondary);
+        // [BARU — kinetic-console, Step 1] Press-down: tuts turun 1px saat
+        // hover, seperti benar-benar ditekan. Ikon (child) tetap terangkat
+        // lewat transform-nya sendiri di bawah — dua gerakan berlawanan
+        // yang memperkuat metafora "tuts ditekan, nada naik".
+        transform: translateY(1px);
 
         .keyShortcut {
             opacity: 1;
@@ -221,7 +253,6 @@
 
         .keyIcon {
             transform: translateY(-5px);
-            transition: all 0.2s linear;
         }
     }
 
@@ -237,11 +268,23 @@
 
 .keyActive {
     color: var(--color-accent);
+    // [BARU — kinetic-console, Step 1] Wash amber halus di seluruh badan
+    // tuts yang aktif, bukan cuma notch di kirinya.
+    background-color: var(--color-accent-wash);
 
     .keyNotch {
-        height: 36px;
+        // [LAMA — pre kinetic-console] height: 36px;
+        // [BARU — kinetic-console, Step 1] Notch dibesarkan mendekati tinggi
+        // penuh tuts (56px desktop − 12px margin atas/bawah), bukan cuma
+        // sepertiganya — supaya key aktif terbaca jelas dari kejauhan.
+        height: 44px;
         background-color: var(--color-accent);
         width: 3px;
+
+        @media (max-width: $breakpoint-tablet) {
+            // Tuts 48px di tablet — margin atas/bawah tetap ~6px per sisi.
+            height: 36px;
+        }
     }
 
     .keyIcon {
@@ -284,12 +327,20 @@
     font-size: 14px;
     line-height: 1;
     opacity: 0.6;
-    transition: opacity var(--transition-base);
+    // [LAMA — pre kinetic-console] Dua deklarasi `transition` — yang kedua
+    // (`all 0.2s linear`) menimpa yang pertama secara diam-diam (audit §5.F,
+    // pola yang sama seperti .hamburger di atas). Dipertahankan sebagai
+    // komentar untuk rollback.
+    // transition: opacity var(--transition-base);
+    // transition: all 0.2s linear;
     position: relative;
     z-index: 1;
     margin-top: auto;
     margin-bottom: 5px;
-    transition: all 0.2s linear;
+    // [BARU — kinetic-console, Step 1] Satu deklarasi eksplisit.
+    transition:
+        opacity var(--transition-base),
+        transform var(--transition-base);
 
     .keyActive & {
         opacity: 1;

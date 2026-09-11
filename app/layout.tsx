@@ -8,6 +8,27 @@ import { NextIntlClientProvider } from "next-intl";
 import dynamic from "next/dynamic";
 import { SITE_URL } from "@/lib/site";
 
+// [BARU — kinetic-console, Step 0]
+// next/font/google self-hosts both families at build time — no runtime
+// request to Google, no new dependency. Mono-forward pairing: JetBrains Mono
+// covers both --font-display and --font-mono (see styles/variables.scss),
+// Inter is body-only. Exposed as CSS custom properties on <html> below.
+import { Inter, JetBrains_Mono } from "next/font/google";
+
+const inter = Inter({
+    subsets: ["latin"],
+    weight: ["300", "400", "500", "600"],
+    variable: "--font-inter",
+    display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+    subsets: ["latin"],
+    weight: ["300", "400", "500", "700"],
+    variable: "--font-jetbrains",
+    display: "swap",
+});
+
 const LightPillar = dynamic(
     () => import("@/components/ui/LightPillar/LightPillar"),
 );
@@ -128,7 +149,9 @@ export const metadata: Metadata = {
 // ---- Viewport — exported separately per Next.js 14+ convention ----
 export const viewport: Viewport = {
     // Dark-only site — force the browser UI to match regardless of OS scheme.
-    themeColor: "#0e0f11",
+    // [LAMA — pre kinetic-console, Step 0] themeColor: "#0e0f11",
+    // [BARU — kinetic-console, Step 0] mengikuti --color-bg-primary baru
+    themeColor: "#090a0c",
     width: "device-width",
     initialScale: 1,
     // Prevent font bump on iOS orientation change
@@ -142,7 +165,15 @@ export default function RootLayout({
 }) {
     return (
         // Dark-only site — data-theme is a static marker; nothing mutates it.
-        <html lang="en" data-theme="dark">
+        // [LAMA — pre kinetic-console, Step 0] <html lang="en" data-theme="dark">
+        // [BARU — kinetic-console, Step 0] className mengekspos --font-inter
+        // dan --font-jetbrains sebagai CSS custom property untuk seluruh situs,
+        // termasuk /piano (lihat catatan scope di styles/variables.scss).
+        <html
+            lang="en"
+            data-theme="dark"
+            className={`${inter.variable} ${jetbrainsMono.variable}`}
+        >
             <body>
                 <NextIntlClientProvider>
                     {/*

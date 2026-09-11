@@ -22,6 +22,41 @@
     }
 }
 
+// [LAMA — pre kinetic-console] Hover translateY(-2px) identik dengan SEMUA
+// card lain di situs (FeaturedProjects, ProjectCard, dst) — audit §5.C:
+// "tidak komunikatif". Dipertahankan sebagai komentar untuk rollback.
+// .statCard {
+//     display: flex;
+//     flex-direction: column;
+//     gap: var(--space-2);
+//     padding: var(--space-6);
+//
+//     background-color: var(--color-surface-1);
+//     border: 1px solid var(--color-border-subtle);
+//     border-radius: var(--radius-lg);
+//
+//     transition:
+//         border-color var(--transition-base),
+//         box-shadow var(--transition-base),
+//         transform var(--transition-base),
+//         background-color var(--transition-theme);
+//
+//     &:hover {
+//         border-color: var(--color-border-default);
+//         box-shadow: var(--shadow-sm);
+//         transform: translateY(-2px);
+//     }
+//
+//     @media (max-width: $breakpoint-mobile) {
+//         padding: var(--space-5) var(--space-4);
+//     }
+// }
+
+// [BARU — kinetic-console, Step 2] Statistik diperlakukan sebagai KEYCAP —
+// bukan progress bar/indikator kuantitas. Bahasa interaksinya sama dengan
+// tuts di PianoSidebar (Step 1): sheen halus + celah bawah + press-down saat
+// hover — supaya "angka ditekan" terasa konsisten dengan metafora piano di
+// seluruh situs, tanpa elemen bar berwarna solid apa pun.
 .statCard {
     display: flex;
     flex-direction: column;
@@ -29,19 +64,36 @@
     padding: var(--space-6);
 
     background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
+    background-image: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.014),
+        transparent
+    );
     border: 1px solid var(--color-border-subtle);
+    // "Lip" tuts — tebal saat diam, menipis & menggelap saat ditekan (hover).
+    border-bottom: 2px solid var(--color-border-default);
     border-radius: var(--radius-lg);
 
     transition:
         border-color var(--transition-base),
-        box-shadow var(--transition-base),
-        transform var(--transition-base),
-        background-color var(--transition-theme);
+        border-bottom-color var(--transition-base),
+        border-bottom-width var(--transition-base),
+        background-color var(--transition-theme),
+        transform var(--transition-base);
 
     &:hover {
         border-color: var(--color-border-default);
-        box-shadow: var(--shadow-sm);
-        transform: translateY(-2px);
+        border-bottom-color: rgba(0, 0, 0, 0.4);
+        border-bottom-width: 1px;
+        // Press-down — sama seperti .key:hover di PianoSidebar, BUKAN lift-up
+        // generik seperti card lain. Angka statistik "ditekan", bukan
+        // "diangkat" — secara sengaja beda dari card yang bisa diklik.
+        transform: translateY(1px);
+
+        .statValue {
+            color: var(--color-accent);
+        }
     }
 
     @media (max-width: $breakpoint-mobile) {
@@ -49,14 +101,29 @@
     }
 }
 
+// [LAMA — pre kinetic-console]
+// .statValue {
+//     font-family: $font-display;
+//     font-size: var(--text-2xl);
+//     font-weight: 700;
+//     letter-spacing: -0.02em;
+//     color: var(--color-text-primary);
+//     line-height: 1;
+//     transition: color var(--transition-theme);
+// }
+
+// [BARU — kinetic-console, Step 2] $font-mono dipakai secara eksplisit di
+// sini (bukan $font-display) untuk menegaskan niat "angka readout", bukan
+// "judul" — walau keduanya kebetulan JetBrains Mono yang sama sejak Step 0.
 .statValue {
-    font-family: $font-display;
+    font-family: $font-mono;
     font-size: var(--text-2xl);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
     color: var(--color-text-primary);
     line-height: 1;
-    transition: color var(--transition-theme);
+    transition: color var(--transition-base);
 }
 
 .statLabel {

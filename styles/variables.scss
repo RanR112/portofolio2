@@ -18,9 +18,30 @@ $topbar-height-mobile: 56px; // shorter topbar on mobile
 $content-max-wide: 1100px;
 $content-max-narrow: 720px;
 
-$font-display: "Arial", sans-serif;
-$font-body: "Arial", sans-serif;
-$font-mono: "Consolas", monospace;
+// [LAMA — pre kinetic-console] Arial untuk semua peran, "Consolas" tidak ada
+// di macOS/Linux. Dipertahankan sebagai komentar untuk rollback.
+// $font-display: "Arial", sans-serif;
+// $font-body: "Arial", sans-serif;
+// $font-mono: "Consolas", monospace;
+
+// [BARU — kinetic-console, Step 0] next/font/google di app/layout.tsx
+// mengekspos --font-inter dan --font-jetbrains sebagai CSS custom property
+// di elemen <html>. Mono-forward: display & mono sama-sama JetBrains Mono.
+$font-display: var(--font-jetbrains), ui-monospace, monospace;
+$font-body: var(--font-inter), system-ui, sans-serif;
+$font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+// [EKSPERIMEN — diminta owner setelah Step 4] Mixin dipakai di setiap tempat
+// yang membaca --color-surface-1/2/3, --color-bg-secondary, atau
+// --color-bg-elevated sebagai background — token-token itu sekarang rgba
+// transparan (lihat styles/theme.scss), dan blur di sini mendifusi warna
+// LightPillar di baliknya supaya kontras teks tetap terjaga. Nilai blur SAMA
+// dengan yang sudah dipakai Topbar (components/layout/Topbar) — satu bahasa
+// visual, satu titik ubah kalau nanti perlu disesuaikan.
+@mixin glass-surface {
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
 
 // Piano
 $bg: #0a0a0f;

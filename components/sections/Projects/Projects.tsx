@@ -2,10 +2,18 @@
 
 // components/sections/Projects/Projects.tsx
 // Step 20: Section header strings resolved via useTranslations('projects').
+//
+// [BARU] Membuka modal detail otomatis lewat query param ?project=<id> —
+// dipakai FeaturedProjects di home supaya klik proyek unggulan langsung ke
+// /projects DAN membuka detailnya, bukan cuma mendarat di listing. Pola
+// query-param dipilih (bukan sessionStorage seperti flag piano:fullscreen
+// di MusicConsole) karena URL-nya jadi valid untuk dibagikan/dibuka
+// langsung juga, bukan cuma untuk transisi client-side.
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import SectionWrapper from "@/components/SectionWrapper/SectionWrapper";
 import ProjectCard from "@/components/ProjectCard/ProjectCard";
 import Reveal from "@/components/ui/Reveal/Reveal";
@@ -16,6 +24,37 @@ const ProjectDetailModal = dynamic(
     () => import("@/components/ProjectDetailModal/ProjectDetailModal"),
     { ssr: false },
 );
+
+// [BARU] useSearchParams() mewajibkan Suspense boundary sendiri di App
+// Router (kalau tidak, seluruh halaman ikut ter-deopt dari static
+// rendering). Diisolasi ke komponen kecil ini — tidak me-render apa pun,
+// cuma efek samping membaca query param sekali lalu memanggil onOpen.
+function OpenProjectFromQuery({
+    onOpen,
+}: {
+    onOpen: (id: string) => void;
+}) {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        const id = searchParams.get("project");
+        if (!id) return;
+
+        onOpen(id);
+        // Bersihkan query param dari URL setelah dipakai — supaya refresh
+        // atau tombol back tidak membuka modal yang sama berulang, dan URL
+        // kembali bersih setelah tujuannya tercapai.
+        router.replace(pathname, { scroll: false });
+        // onOpen sengaja tidak masuk dependency array — identitasnya sudah
+        // stabil (dibungkus useCallback dengan deps kosong di Projects),
+        // dan efek ini memang hanya boleh bereaksi pada perubahan query param.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams, router, pathname]);
+
+    return null;
+}
 
 export default function Projects() {
     const t = useTranslations("projects");
@@ -47,8 +86,31 @@ export default function Projects() {
         setSelectedProject(null);
     }, []);
 
+    // [BARU] Dipanggil oleh OpenProjectFromQuery saat ?project=<id> ada di
+    // URL. ID tidak valid diabaikan diam-diam (tidak melempar error) —
+    // konsisten dengan handleViewDetails yang juga toleran terhadap id
+    // yang tidak ditemukan.
+    const openFromQuery = useCallback((id: string) => {
+        const project = PROJECTS.find((p) => p.id === id) ?? null;
+        if (!project) return;
+
+        // Cari tombol Details proyek ini di DOM supaya fokus kembali ke
+        // sana saat modal ditutup — sama seperti alur klik manual, walau
+        // di sini tidak ada klik nyata yang memicunya.
+        const btn = document.querySelector<HTMLElement>(
+            `[data-project-id="${id}"]`,
+        );
+        (triggerRef as React.MutableRefObject<HTMLElement | null>).current =
+            btn;
+        setSelectedProject(project);
+    }, []);
+
     return (
         <>
+            <Suspense fallback={null}>
+                <OpenProjectFromQuery onOpen={openFromQuery} />
+            </Suspense>
+
             <SectionWrapper
                 id="projects"
                 label={t("label")}
