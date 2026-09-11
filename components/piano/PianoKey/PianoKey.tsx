@@ -10,8 +10,18 @@
  *   • isBlack     — a boolean constant, never changes
  *   • isFirst     — a boolean constant, never changes
  *   • leftWhite   — a string constant or undefined, never changes
- *   • pressNote   — a stable ref from usePianoEngine (useCallback with [] deps)
- *   • releaseNote — a stable ref from usePianoEngine (useCallback with [] deps)
+ *   • onKeyMouseDown / onKeyMouseEnter / onKeyMouseLeave
+ *                 — stable refs from usePianoEngine (useCallback, stable deps)
+ *
+ * Mouse vs touch
+ * ──────────────
+ * Hanya jalur MOUSE yang ditangani di sini. Sentuhan ditangani engine di
+ * level kontainer piano, karena event sentuh terkunci ke elemen pertama yang
+ * disentuh — menggeser jari ke tuts lain tidak pernah memicu event di tuts
+ * itu, sehingga glissando mustahil dideteksi per-tuts.
+ *
+ * onMouseUp juga tidak dipasang di sini: tombol mouse bisa dilepas di mana
+ * saja (termasuk di luar piano), jadi engine mendengarkannya di dokumen.
  *
  * Because ALL props are either primitives that never change or stable function
  * references, React.memo provides a hard guarantee: this component re-renders
@@ -39,9 +49,15 @@ interface PianoKeyProps {
     leftWhite?: string;
     /** index of the left-adjacent white key — used to position black keys */
     wIdx?: number;
-    // Stable function refs from usePianoEngine — never change identity
-    pressNote: (noteLabel: string) => void;
-    releaseNote: (noteLabel: string) => void;
+    // Stable function refs from usePianoEngine — never change identity.
+    // [BARU] Sejak glissando, jalur mouse memakai handler khusus dari engine
+    // (yang melacak status tombol mouse) alih-alih pressNote/releaseNote
+    // langsung. Sentuhan TIDAK lagi ditangani di sini — seluruhnya di level
+    // kontainer piano, karena event sentuh terkunci ke elemen pertama yang
+    // disentuh sehingga menggeser jari tidak pernah memicu event di tuts lain.
+    onKeyMouseDown: (noteLabel: string) => void;
+    onKeyMouseEnter: (noteLabel: string) => void;
+    onKeyMouseLeave: (noteLabel: string) => void;
 }
 
 const PianoKey = React.memo(function PianoKey({
@@ -53,41 +69,29 @@ const PianoKey = React.memo(function PianoKey({
     isFirst = false,
     leftWhite,
     wIdx,
-    pressNote,
-    releaseNote,
+    onKeyMouseDown,
+    onKeyMouseEnter,
+    onKeyMouseLeave,
 }: PianoKeyProps) {
     // ── Handlers created once per mount — deps are all constants or stable refs ──
     const onMouseDown = useCallback(
         (e: React.MouseEvent) => {
             e.preventDefault();
-            pressNote(noteLabel);
+            onKeyMouseDown(noteLabel);
         },
-        [pressNote, noteLabel],
+        [onKeyMouseDown, noteLabel],
     );
 
-    const onMouseUp = useCallback(() => {
-        releaseNote(noteLabel);
-    }, [releaseNote, noteLabel]);
+    // [BARU] Masuk ke tuts ini sambil tombol mouse ditahan = glissando.
+    // Engine yang memutuskan apakah ini benar-benar glissando atau sekadar
+    // kursor lewat; di sini kita cuma melaporkan kejadiannya.
+    const onMouseEnter = useCallback(() => {
+        onKeyMouseEnter(noteLabel);
+    }, [onKeyMouseEnter, noteLabel]);
 
     const onMouseLeave = useCallback(() => {
-        releaseNote(noteLabel);
-    }, [releaseNote, noteLabel]);
-
-    const onTouchStart = useCallback(
-        (e: React.TouchEvent) => {
-            e.preventDefault();
-            pressNote(noteLabel);
-        },
-        [pressNote, noteLabel],
-    );
-
-    const onTouchEnd = useCallback(
-        (e: React.TouchEvent) => {
-            e.preventDefault();
-            releaseNote(noteLabel);
-        },
-        [releaseNote, noteLabel],
-    );
+        onKeyMouseLeave(noteLabel);
+    }, [onKeyMouseLeave, noteLabel]);
 
     // ── Class name computed once — never changes after mount ─────────────────
     const className = isBlack
@@ -104,11 +108,8 @@ const PianoKey = React.memo(function PianoKey({
             data-left-white={leftWhite}
             data-w-idx={wIdx}
             onMouseDown={onMouseDown}
-            onMouseUp={onMouseUp}
+            onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-            onTouchCancel={onTouchEnd}
         >
             <span
                 className={`${styles.keyLabel}${underline ? ` ${styles.underline}` : ""}`}

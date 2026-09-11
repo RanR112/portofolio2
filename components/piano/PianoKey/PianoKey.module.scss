@@ -23,9 +23,65 @@
     box-shadow:
         inset 0 -3px 6px rgba(0, 0, 0, 0.15),
         2px 4px 8px rgba(0, 0, 0, 0.4);
-    transition:
-        background 0.05s,
-        box-shadow 0.05s;
+
+    // ─────────────────────────────────────────────────────────────────────
+    // [BARU — perf] Promosikan tiap tuts ke compositing layer sendiri.
+    //
+    // Masalah yang diselesaikan: semua tuts tadinya berada dalam SATU paint
+    // layer. Saat tuts terkiri dan terkanan berubah hampir bersamaan,
+    // browser menggabungkan region invalidasi jadi satu kotak selebar layar
+    // (~1920x290px) dan harus me-raster ulang SELURUH tuts di pita itu —
+    // lengkap dengan gradient, box-shadow, border, dan label teksnya. Dua
+    // tuts bersebelahan hanya ~106x290px, beda ~18x. Itulah sebabnya HANYA
+    // kombinasi tuts berjauhan yang terasa delay, sementara sisanya mulus.
+    //
+    // Dengan layer sendiri, repaint tiap tuts terisolasi dan penggabungan
+    // region itu tidak pernah terjadi.
+    //
+    // Diverifikasi lewat ablation (?keylayer=1): tanpa ini, stress
+    // ujung-ke-ujung masih terasa delay; dengan ini, hilang sepenuhnya.
+    //
+    // Biaya: ~3MB memori GPU (61 atau 88 layer, masing-masing seukuran
+    // tutsnya). Antialiasing label tuts sudah dicek — tidak ada perubahan
+    // ketajaman yang terlihat.
+    //
+    // will-change (bukan translateZ(0)) dipakai karena itu yang benar-benar
+    // diuji pada mesin owner. Catatan: `transform` di sini bukan berarti
+    // transform-nya dianimasikan — ini cara idiomatik meminta promosi layer,
+    // karena background/box-shadow yang sebenarnya berubah bukan properti
+    // yang bisa di-composite.
+    // ─────────────────────────────────────────────────────────────────────
+    will-change: transform;
+
+    // ─────────────────────────────────────────────────────────────────────
+    // [LAMA — pre perf] Transisi 50ms pada background + box-shadow.
+    //
+    // Ini terbukti (lewat ablation ?nokeyfx=1) jadi penyebab UTAMA lag saat
+    // banyak tuts ditekan cepat: FPS 46,9 -> 59,7 dan jank 210 -> 5 begitu
+    // class .active tidak dipasang. Sebagai pembanding, mematikan SELURUH
+    // lapisan kanvas (?noglow / ?nobars) cuma menaikkan ~4 FPS.
+    //
+    // Dua properti ini sama-sama TIDAK bisa di-composite:
+    //   - `background` di sini beranimasi dari gradient ke gradient, jadi
+    //     browser meregenerasi bitmap gradient tiap frame selama transisi
+    //   - `box-shadow` memaksa repaint, dan glow 15px di state .active
+    //     memperluas area repaint melewati kotak tuts
+    // Tekan-lepas cepat = puluhan transisi berjalan bersamaan, masing-masing
+    // memicu repaint tiap frame.
+    //
+    // Yang dihapus HANYA fade-nya. Tampilan tuts aktif (gradient amber,
+    // glow, inset shadow) tetap identik — sekarang muncul seketika.
+    //
+    // transition:
+    //     background 0.05s,
+    //     box-shadow 0.05s;
+    //
+    // Kalau peluruhan halus saat MELEPAS tuts ingin dikembalikan, jalan
+    // tengahnya: pasang transition di sini lagi, lalu tambahkan
+    // `transition: none;` di dalam blok &.active — instan saat ditekan,
+    // meluruh saat dilepas. Biaya repaint kembali sebagian.
+    // ─────────────────────────────────────────────────────────────────────
+
     z-index: 1;
     touch-action: none;
     box-sizing: border-box;
@@ -67,9 +123,21 @@
     box-shadow:
         inset 0 -2px 4px rgba(255, 255, 255, 0.05),
         3px 6px 12px rgba(0, 0, 0, 0.7);
-    transition:
-        background 0.05s,
-        box-shadow 0.05s;
+
+    // [BARU — perf] Layer sendiri, sama seperti .whiteKey — lihat penjelasan
+    // lengkap di sana. Tuts hitam ikut dipromosikan supaya isolasi repaint-nya
+    // konsisten; kalau hanya tuts putih, tuts hitam tetap berbagi paint layer
+    // dan penggabungan region invalidasi masih bisa terjadi lewat mereka.
+    will-change: transform;
+
+    // [LAMA — pre perf] Sama seperti .whiteKey di atas — lihat penjelasan
+    // lengkap di sana. Tuts hitam juga ikut dihapus transisinya supaya
+    // perilakunya konsisten; kalau hanya salah satu, tuts hitam akan
+    // terlihat "telat" dibanding tuts putih saat dimainkan bersamaan.
+    // transition:
+    //     background 0.05s,
+    //     box-shadow 0.05s;
+
     touch-action: none;
     box-sizing: border-box;
     overflow: hidden;

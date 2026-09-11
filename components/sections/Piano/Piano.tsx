@@ -11,11 +11,11 @@
  *
  * How the render budget is protected:
  *
- * 1. PianoKey receives pressNote + releaseNote directly — two stable function
- *    references that never change identity. PianoKey creates its own per-note
- *    handlers internally via useCallback. Because PianoKey's props are all
- *    stable constants after mount, React.memo gives a hard guarantee of zero
- *    re-renders per note press.
+ * 1. PianoKey receives the three glissando mouse handlers directly — stable
+ *    function references that never change identity. PianoKey creates its own
+ *    per-note handlers internally via useCallback. Because PianoKey's props are
+ *    all stable constants after mount, React.memo gives a hard guarantee of
+ *    zero re-renders per note press.
  *
  *    Before this change Piano passed handleMouseDown(note.label) in JSX —
  *    a factory call that produced a new closure on every render, completely
@@ -45,7 +45,16 @@ import { Smartphone } from "lucide-react";
 export default function Piano() {
     const engine = usePianoEngine({ activeClassName: keyStyles.active });
 
-    const { state, refs, pressNote, releaseNote, repositionBlackKeys } = engine;
+    const {
+        state,
+        refs,
+        repositionBlackKeys,
+        // [BARU] Jalur mouse untuk glissando. Sentuhan ditangani engine di
+        // level kontainer piano, jadi tidak ada prop sentuh di sini.
+        handleKeyMouseDown,
+        handleKeyMouseEnter,
+        handleKeyMouseLeave,
+    } = engine;
 
     const {
         volume,
@@ -216,8 +225,9 @@ export default function Piano() {
                             noteDisplay={k.noteDisplay}
                             isBlack={false}
                             isFirst={k.isFirst}
-                            pressNote={pressNote}
-                            releaseNote={releaseNote}
+                            onKeyMouseDown={handleKeyMouseDown}
+                            onKeyMouseEnter={handleKeyMouseEnter}
+                            onKeyMouseLeave={handleKeyMouseLeave}
                         />
                     ))}
 
@@ -232,8 +242,9 @@ export default function Piano() {
                             isBlack={true}
                             leftWhite={k.leftWhite}
                             wIdx={k.wIdx}
-                            pressNote={pressNote}
-                            releaseNote={releaseNote}
+                            onKeyMouseDown={handleKeyMouseDown}
+                            onKeyMouseEnter={handleKeyMouseEnter}
+                            onKeyMouseLeave={handleKeyMouseLeave}
                         />
                     ))}
                 </div>
