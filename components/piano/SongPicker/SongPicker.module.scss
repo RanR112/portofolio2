@@ -1,0 +1,250 @@
+@use "../../../styles/variables.scss" as v;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Panel daftar lagu.
+//
+// Bahasa visualnya sengaja dibuat sama dengan panel Sheets di PianoControls
+// (surface + border + radius 8 + shadow + animasi masuk 140ms) dan dengan
+// segmented control 61/88 untuk filter-nya — supaya terasa satu keluarga,
+// bukan komponen tempelan. Token yang dipakai semuanya token piano yang sudah
+// ada ($surface, $surface2, $border, $accent, $text, $text-dim).
+// ─────────────────────────────────────────────────────────────────────────────
+.panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    width: 320px;
+    max-width: calc(100vw - 24px);
+    background: v.$surface;
+    border: 1px solid v.$border;
+    border-radius: 8px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    animation: pickerIn 140ms ease both;
+    overflow: hidden;
+
+    // Dekat tepi kanan layar, panel digeser supaya tidak terpotong.
+    @media (max-width: 420px) {
+        left: auto;
+        right: 0;
+    }
+}
+
+@keyframes pickerIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid v.$border;
+}
+
+.title {
+    font-family: v.$font-mono;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: v.$text-dim;
+}
+
+// Segmented control — mengikuti .keyModeToggle / .modeBtn (61 / 88).
+.filters {
+    display: flex;
+    gap: 4px;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.filterBtn {
+    flex: 1 1 0;
+    background: transparent;
+    border: none;
+    color: v.$text-dim;
+    font-family: v.$font-mono;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 4px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+
+    &:hover {
+        color: v.$text;
+    }
+
+    &.filterActive {
+        background: v.$accent;
+        color: #1a1a10;
+        box-shadow: 0 0 10px rgba(201, 168, 108, 0.4);
+    }
+}
+
+.body {
+    max-height: min(52vh, 320px);
+    overflow-y: auto;
+}
+
+.state {
+    margin: 0;
+    padding: 18px 12px;
+    font-family: v.$font-mono;
+    font-size: 0.72rem;
+    color: v.$text-dim;
+    text-align: center;
+}
+
+.stateError {
+    @extend .state;
+    color: v.$accent2;
+}
+
+.list {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.item {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: left;
+    transition:
+        background 0.12s,
+        border-color 0.12s;
+
+    &:hover,
+    &:focus-visible {
+        background: v.$surface2;
+        border-color: v.$border;
+        outline: none;
+    }
+
+    // Ikon play muncul saat hover ATAU saat baris mendapat fokus keyboard —
+    // tanpa :focus-visible, pengguna keyboard tidak akan pernah melihatnya.
+    &:hover .rowPlay,
+    &:focus-visible .rowPlay {
+        opacity: 1;
+        color: v.$accent;
+    }
+}
+
+.rowText {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.rowTitle {
+    font-family: v.$font-body;
+    font-size: 0.8rem;
+    color: v.$text;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rowMeta {
+    font-family: v.$font-mono;
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: v.$text-dim;
+}
+
+.rowPlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: v.$text-dim;
+    opacity: 0;
+    transition:
+        opacity 0.12s,
+        color 0.12s;
+
+    // Perangkat sentuh tidak punya hover — kalau disembunyikan, penanda ini
+    // tidak akan pernah terlihat di HP.
+    @media (hover: none) {
+        opacity: 1;
+    }
+}
+
+.modes {
+    display: flex;
+    gap: 6px;
+    padding: 0 10px 8px 10px;
+}
+
+.modeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 1 1 0;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    color: v.$text-dim;
+    font-family: v.$font-mono;
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+        border-color: v.$accent;
+        color: v.$accent;
+    }
+    &:active {
+        transform: scale(0.97);
+    }
+}
+
+// Autoplay dibedakan hijau, mengikuti .playBtn di toolbar (tombol PLAY) supaya
+// hubungan "ini yang memutar sendiri" langsung terbaca.
+.modeAuto {
+    border-color: v.$success;
+    color: v.$success;
+
+    &:hover {
+        border-color: v.$success;
+        color: v.$success;
+        background: rgba(91, 191, 151, 0.15);
+    }
+}

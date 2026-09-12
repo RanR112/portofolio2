@@ -537,6 +537,24 @@
             "p1": "Play piano online with this free virtual piano keyboard. Randy Rafael’s interactive web piano lets you play up to 88 keys right in your browser — no download and no plugins required.",
             "p2": "Use your mouse, touchscreen, or computer keyboard to play realistic piano samples. Switch between 61 and 88 keys, adjust transpose and sustain, and enjoy a grand piano sound anywhere.",
             "p3": "Whether you are practicing scales, learning a melody, or just having fun, this online piano keyboard works on both desktop and mobile."
+        },
+        "player": {
+            "title": "Songs",
+            "filterAll": "All",
+            "filterEasy": "Easy",
+            "filterMedium": "Medium",
+            "filterHard": "Hard",
+            "learn": "Learn",
+            "autoplay": "Autoplay",
+            "loading": "Loading songs…",
+            "loadError": "Couldn't load the song list.",
+            "empty": "No songs in this category yet.",
+            "openAria": "Choose a song",
+            "chooseMode": "Choose a mode for {title}",
+            "notes": "{count} notes",
+            "pause": "Pause",
+            "resume": "Resume",
+            "stop": "Stop"
         }
     },
     "contextMenu": {

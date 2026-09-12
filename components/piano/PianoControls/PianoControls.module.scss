@@ -4,6 +4,9 @@
 // Header bar
 // ─────────────────────────────────────────────────────────────────────────────
 .header {
+    // [BARU] position: relative — dibutuhkan sebagai containing block untuk
+    // .sheetsPanel (position: absolute, ditempel ke pojok kanan-atas header).
+    position: relative;
     flex: 0 0 auto;
     display: flex;
     align-items: center;
@@ -230,6 +233,297 @@
     transition: all 0.15s;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// [BARU] Transport tools — Play & Sheets
+//
+// Sama persis gaya .ctrlBtn (surface2 + border, hover jadi accent) supaya
+// terasa satu keluarga dengan tombol lain di toolbar. Belum ada state aktif
+// karena belum ada aksi yang dipasang.
+// ─────────────────────────────────────────────────────────────────────────────
+.toolBtn {
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    color: v.$text-dim;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: v.$font-mono;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover {
+        border-color: v.$accent;
+        color: v.$accent;
+    }
+    &:active {
+        transform: scale(0.96);
+    }
+}
+
+// [BARU] Pembungkus tombol PLAY — jadi containing block untuk panel daftar
+// lagu (SongPicker) yang menggantung di bawahnya.
+.playWrap {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+// [BARU] PAUSE + STOP menggantikan PLAY selagi ada lagu berjalan.
+.transport {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+// STOP diberi warna merah ($accent2, warna yang sama dipakai sustain aktif)
+// karena ini satu-satunya aksi yang membuang posisi lagu.
+.stopBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: v.$surface2;
+    border: 1px solid v.$accent2;
+    color: v.$accent2;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: v.$font-mono;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.15s;
+
+    &:hover {
+        background: rgba(255, 61, 107, 0.15);
+    }
+    &:active {
+        transform: scale(0.96);
+    }
+}
+
+// [BARU] Play — sama seperti .toolBtn, tapi outline-nya permanen hijau,
+// meniru gaya .sustainBtn.active (border + background tint + glow) hanya
+// warnanya diganti hijau. Bukan toggle — belum ada state aktif/nonaktif
+// karena tombolnya belum punya aksi.
+.playBtn {
+    background: rgba(91, 191, 151, 0.15);
+    border: 1px solid v.$success;
+    color: v.$success;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: v.$font-mono;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 0 12px rgba(91, 191, 151, 0.3);
+
+    &:hover {
+        opacity: 0.85;
+    }
+    &:active {
+        transform: scale(0.96);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// [BARU] Sheets panel — box di pojok kanan-atas, dibuka lewat tombol Sheets
+// atau shortcut "/". Ditempel ke .header (position: relative di atas),
+// bukan ke tombolnya sendiri — supaya terasa seperti panel utuh, bukan
+// dropdown kecil seperti Bar Color.
+// ─────────────────────────────────────────────────────────────────────────────
+.sheetsPanel {
+    position: absolute;
+    top: 100%;
+    right: 12px;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    width: min(340px, calc(100vw - 24px));
+    background: v.$surface;
+    border: 1px solid v.$border;
+    border-radius: 8px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    animation: sheetsPanelIn 140ms ease both;
+}
+
+@keyframes sheetsPanelIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sheetsPanelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 8px 8px 14px;
+    border-bottom: 1px solid v.$border;
+}
+
+.sheetsPanelTitle {
+    font-family: v.$font-mono;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: v.$text-dim;
+}
+
+// [BARU] Box tetap (tinggi+lebar tidak bisa di-resize user) yang membungkus
+// textarea asli DAN bayangannya (mirror) di atas satu sama lain — keduanya
+// position:absolute inset:0 relatif ke wrapper ini. Lihat efek auto-scroll
+// di komponennya untuk alasan lengkap adanya mirror.
+.sheetsTextareaWrap {
+    position: relative;
+    margin: 12px;
+    height: 200px;
+}
+
+.sheetsTextarea {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    resize: none;
+    overflow-y: auto;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    border-radius: 6px;
+    color: v.$text;
+    font-family: v.$font-mono;
+    font-size: 0.8rem;
+    line-height: 1.5;
+
+    &::placeholder {
+        color: v.$text-dim;
+    }
+
+    &:focus {
+        outline: none;
+        border-color: v.$accent;
+    }
+}
+
+// [BARU] Selagi auto-scroll aktif, textarea asli disembunyikan (BUKAN
+// dilepas dari DOM) — mirror di bawah menumpuk persis di atasnya dengan
+// warna latar sama, jadi tidak ada celah/gap yang terlihat. visibility
+// (bukan display:none) dipilih supaya ukuran/layout box-nya tidak berubah.
+.sheetsTextareaHidden {
+    visibility: hidden;
+}
+
+// [BARU] "Bayangan" (mirror) — klon visual dari textarea, digerakkan lewat
+// CSS transform (bukan native scrollTop) supaya presisi sub-piksel terjaga
+// di kecepatan berapa pun. Lihat penjelasan lengkap di efek auto-scroll.
+.sheetsScrollMirror {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    padding: 10px;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    border-radius: 6px;
+    color: v.$text;
+    font-family: v.$font-mono;
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+// [BARU] Satu simbol berbunyi di sheet. Tanpa sorotan ia tidak berbeda sama
+// sekali dari teks di sekitarnya — jadi tampilan sheet di mode normal tetap
+// persis seperti sebelumnya.
+.sheetToken {
+    border-radius: 2px;
+}
+
+// Simbol yang SEDANG dimainkan. Memakai $accent (#c9a86c), warna identitas yang
+// sama dengan tuts aktif dan warna bar bawaan — bukan warna baru.
+//
+// padding/margin negatif dipakai supaya kotak sorotnya agak lebih lega tanpa
+// menggeser satu pun karakter: teks sheet adalah monospace yang posisinya harus
+// tetap sejajar dengan baris aslinya.
+.sheetTokenActive {
+    background: rgba(201, 168, 108, 0.32);
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(201, 168, 108, 0.55);
+    padding: 1px 1px;
+    margin: -1px -1px;
+}
+
+.sheetsScrollMirrorInner {
+    // Sama seperti textarea: pertahankan newline/spasi apa adanya dan bungkus
+    // baris panjang, supaya baris teks jatuh di posisi yang sama seperti di
+    // textarea aslinya (font/ukuran/lebar box identik).
+    white-space: pre-wrap;
+    word-break: break-word;
+    will-change: transform;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// [BARU] Auto-scroll — Play/Stop + 5 bar tingkat kecepatan, baris bawah panel
+// Sheets. margin-top sengaja 0: .sheetsTextareaWrap di atasnya sudah punya
+// margin-bottom 12px sendiri (flex children TIDAK saling collapse margin),
+// jadi tanpa ini jaraknya akan dobel.
+// ─────────────────────────────────────────────────────────────────────────────
+.sheetsScrollControls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 12px 12px;
+    flex-wrap: wrap;
+}
+
+.sheetsSpeedGroup {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+// [BARU] 5 bar sejajar (tinggi sama) — bar yang <= tingkat terpilih menyala
+// accent, sisanya redup, sama bahasa visual dengan .selected pada swatch
+// Bar Color.
+.speedBars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.speedBar {
+    width: 16px;
+    height: 18px;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    border-radius: 2px;
+    padding: 0;
+    cursor: pointer;
+    transition:
+        background 0.12s,
+        border-color 0.12s;
+
+    &:hover {
+        border-color: v.$accent;
+    }
+
+    &.speedBarActive {
+        background: v.$accent;
+        border-color: v.$accent;
+        box-shadow: 0 0 6px rgba(201, 168, 108, 0.5);
+    }
+}
+
 .keyHint {
     font-family: v.$font-mono;
     font-size: 0.55rem;
@@ -247,6 +541,7 @@
     display: flex;
     gap: 5px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .swatch {
@@ -268,6 +563,105 @@
         border-color: #fff;
         transform: scale(1.15);
         box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// [BARU] Bar color dropdown
+//
+// Membungkus .colorSwatches (di atas, dipakai ulang persis sama di dalam
+// panel) ke belakang sebuah trigger, supaya toolbar utama tidak makin sesak
+// saat fitur baru ditambahkan ke panel ini nanti.
+// ─────────────────────────────────────────────────────────────────────────────
+.colorDropdown {
+    position: relative;
+}
+
+.colorTrigger {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: v.$surface2;
+    border: 1px solid v.$border;
+    padding: 4px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition:
+        border-color 0.15s,
+        background 0.15s;
+
+    &:hover {
+        border-color: v.$accent;
+    }
+
+    &:focus-visible {
+        outline: 2px solid v.$accent;
+        outline-offset: 2px;
+    }
+}
+
+.colorSwatchPreview {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.chevron {
+    color: v.$text-dim;
+    transition: transform 0.15s;
+    flex-shrink: 0;
+}
+
+.chevronOpen {
+    transform: rotate(180deg);
+}
+
+.colorPanel {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: max-content;
+    max-width: 168px;
+    padding: 10px 12px;
+    background: v.$surface;
+    border: 1px solid v.$border;
+    border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    animation: colorPanelIn 120ms ease both;
+}
+
+@keyframes colorPanelIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.colorPanelHeading {
+    font-family: v.$font-mono;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: v.$text-dim;
+}
+
+.colorPanel .colorSwatches {
+    gap: 7px;
+
+    .swatch {
+        width: 22px;
+        height: 22px;
     }
 }
 

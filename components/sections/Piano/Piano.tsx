@@ -31,11 +31,18 @@
  *    React.memo on BarLayer means it never re-renders after mount.
  */
 
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import styles from "./Piano.module.scss";
 import keyStyles from "@/components/piano/PianoKey/PianoKey.module.scss";
 
 import { usePianoEngine } from "@/hooks/usePianoEngine";
+import { usePianoPlayback } from "@/hooks/usePianoPlayback";
 import PianoControls from "@/components/piano/PianoControls/PianoControls";
 import BarLayer from "@/components/piano/BarLayer/BarLayer";
 import PianoKey from "@/components/piano/PianoKey/PianoKey";
@@ -43,7 +50,15 @@ import { buildKeyboard, KEY_GRADIENTS, type KeyMode } from "@/lib/keyMap";
 import { Smartphone } from "lucide-react";
 
 export default function Piano() {
-    const engine = usePianoEngine({ activeClassName: keyStyles.active });
+    // [BARU] Mode learn perlu tahu tuts apa yang ditekan user, tapi engine
+    // dibuat lebih dulu (ia yang menyediakan pressNote untuk scheduler). Ref ini
+    // memutus lingkaran itu: engine memanggil isinya, scheduler mengisinya.
+    const userPressRef = useRef<(noteLabel: string) => void>(() => {});
+
+    const engine = usePianoEngine({
+        activeClassName: keyStyles.active,
+        onNotePressRef: userPressRef,
+    });
 
     const {
         state,
@@ -109,6 +124,39 @@ export default function Piano() {
         (mode: KeyMode) => setKeyMode(mode),
         [setKeyMode],
     );
+
+    // ── [BARU] Panel Sheets + pemutaran lagu ─────────────────────────────────
+    //
+    // Isi panel Sheets dinaikkan ke sini (dulu state lokal di PianoControls)
+    // karena sekarang ada DUA sumber yang mengisinya: user menempel sendiri,
+    // dan lagu yang dipilih dari daftar. Yang memuat lagu adalah
+    // usePianoPlayback, jadi pemiliknya harus satu level di atas keduanya.
+    //
+    // Isi panel Sheets sengaja tetap sekadar buffer tampilan — mengeditnya
+    // TIDAK mengubah lagu yang diputar, karena scheduler memakai hasil parse
+    // miliknya sendiri. Sumber kebenaran pemutaran ada di usePianoPlayback.
+    const [sheetText, setSheetText] = useState("");
+    const [sheetsOpen, setSheetsOpen] = useState(false);
+
+    const onSheetLoaded = useCallback((tab: string) => {
+        setSheetText(tab);
+        setSheetsOpen(true); // syarat: sheet lagu harus tampil saat dipilih
+    }, []);
+
+    const playback = usePianoPlayback({
+        pressNote: engine.pressNote,
+        releaseNote: engine.releaseNote,
+        setTranspose,
+        onSheetLoaded,
+        samplesReady: state.samplesReady,
+        guideRef: refs.guideRef,
+        barsEnabledRef: refs.barsEnabledRef,
+        kickLoop: engine.kickLoop,
+    });
+
+    useEffect(() => {
+        userPressRef.current = playback.handleUserPress;
+    }, [playback.handleUserPress]);
 
     // ── Register key DOM nodes into the engine ref + reposition black keys ───
     // wIdx (left-white index) is rendered directly onto each black key as
@@ -195,6 +243,26 @@ export default function Piano() {
                 onBarColorChange={onBarColorChange}
                 onKeyModeChange={onKeyModeChange}
                 onToggleFullscreen={toggleFullscreen}
+                sheetsOpen={sheetsOpen}
+                onSheetsOpenChange={setSheetsOpen}
+                sheetText={sheetText}
+                onSheetTextChange={setSheetText}
+                playbackStatus={playback.uiStatus}
+                playbackError={
+                    playback.state.status === "error"
+                        ? playback.state.message
+                        : null
+                }
+                playbackTokens={
+                    playback.state.status === "running"
+                        ? playback.state.song.parsed.tokens
+                        : null
+                }
+                activeTokenRef={playback.activeTokenRef}
+                onStartSong={playback.start}
+                onPausePlayback={playback.pause}
+                onResumePlayback={playback.resume}
+                onStopPlayback={playback.stop}
             />
 
             {/* Visualization — React.memo'd, never re-renders after mount */}

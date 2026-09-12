@@ -43,3 +43,6 @@ next-env.d.ts
 # claude
 /.claude
 CLAUDE.md
+# data lagu piano hasil generate (sumbernya app/[locale]/piano/data/songs/)
+# dibuat ulang otomatis oleh predev/prebuild lewat scripts/buildSongs.mjs
+/public/piano/

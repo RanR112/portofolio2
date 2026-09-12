@@ -4,9 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "predev": "npm run songs",
     "build": "next build",
+    "prebuild": "npm run songs",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "songs": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/buildSongs.mjs",
+    "songs:preview": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/previewTab.mjs",
+    "check:learn": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/checkLearn.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.0",

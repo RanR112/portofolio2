@@ -375,3 +375,43 @@ export const KEY_GRADIENTS: Record<string, { white: string; black: string }> = {
         black: "linear-gradient(180deg, #b388ff 0%, #8f6ccc 60%, #6b5199 100%)",
     },
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared DOM guard — dipakai usePianoEngine (keydown/keyup piano) DAN
+// PianoControls (shortcut "/" untuk panel Sheets), supaya keduanya konsisten
+// soal target mana yang dianggap "sedang mengetik teks".
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Apakah event keyboard ini sedang ditujukan ke tempat mengetik?
+ *
+ * Guard naif `tagName === "INPUT"` terlalu luas: slider volume & transpose
+ * adalah <input type="range">, sehingga SELAMA slider masih fokus (yaitu
+ * setelah user menggesernya) seluruh tuts piano ikut mati — user harus
+ * mengklik di luar slider dulu baru bisa main lagi.
+ *
+ * Yang sebenarnya perlu dilindungi hanyalah tempat user mengetik teks.
+ * Range/checkbox/radio/tombol tidak termasuk — dan tabrakan tombol panah
+ * atau spasi dengan perilaku bawaan kontrol itu sudah dicegah oleh
+ * preventDefault() di handler keydown masing-masing pemanggil.
+ */
+export function isTextEntryTarget(target: EventTarget | null): boolean {
+    const el = target as HTMLElement | null;
+    if (!el || !el.tagName) return false;
+    if (el.isContentEditable) return true;
+
+    const tag = el.tagName;
+    if (tag === "TEXTAREA" || tag === "SELECT") return true;
+    if (tag !== "INPUT") return false;
+
+    const type = (el as HTMLInputElement).type;
+    return (
+        type !== "range" &&
+        type !== "checkbox" &&
+        type !== "radio" &&
+        type !== "button" &&
+        type !== "submit" &&
+        type !== "reset" &&
+        type !== "color"
+    );
+}

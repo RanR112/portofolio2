@@ -537,6 +537,24 @@
             "p1": "Mainkan piano online dengan keyboard piano virtual gratis ini. Piano web interaktif Randy Rafael memungkinkan Anda memainkan hingga 88 tuts langsung di browser — tanpa unduhan dan tanpa plugin.",
             "p2": "Gunakan mouse, layar sentuh, atau keyboard komputer untuk memainkan sampel piano yang realistis. Ganti antara 61 dan 88 tuts, atur transpose dan sustain, serta nikmati suara grand piano di mana saja.",
             "p3": "Baik untuk latihan tangga nada, belajar melodi, atau sekadar bersenang-senang, keyboard piano online ini berfungsi di desktop maupun mobile."
+        },
+        "player": {
+            "title": "Daftar Lagu",
+            "filterAll": "Semua",
+            "filterEasy": "Mudah",
+            "filterMedium": "Sedang",
+            "filterHard": "Sulit",
+            "learn": "Belajar",
+            "autoplay": "Putar Otomatis",
+            "loading": "Memuat lagu…",
+            "loadError": "Gagal memuat daftar lagu.",
+            "empty": "Belum ada lagu di kategori ini.",
+            "openAria": "Pilih lagu",
+            "chooseMode": "Pilih mode untuk {title}",
+            "notes": "{count} not",
+            "pause": "Pause",
+            "resume": "Lanjut",
+            "stop": "Stop"
         }
     },
     "contextMenu": {

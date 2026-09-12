@@ -3,12 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
     ARROW_CODES,
+    isTextEntryTarget,
     LOCK_KEYS,
     MIDI_BY_LABEL,
     resolveKeyToNote,
     type KeyMode,
 } from "@/lib/keyMap";
 import { pianoEngine } from "@/lib/pianoEngine";
+import {
+    createGuideState,
+    type GuideState,
+} from "@/lib/piano/playback";
 
 // Keyboard Lock API — Chromium-only, requires fullscreen + secure context.
 // Not in the TS DOM lib yet, so we describe the slice we use.
@@ -27,39 +32,9 @@ const GROW_RATE = 0.18; // px/ms
 const SCROLL_SPEED = 2.5; // px/frame
 const MAX_GROW_FRAC = 0.92;
 
-/**
- * [BARU] Apakah event keyboard ini sedang ditujukan ke tempat mengetik?
- *
- * Guard lama `tagName === "INPUT"` terlalu luas: slider volume & transpose
- * adalah <input type="range">, sehingga SELAMA slider masih fokus (yaitu
- * setelah user menggesernya) seluruh tuts piano ikut mati — user harus
- * mengklik di luar slider dulu baru bisa main lagi.
- *
- * Yang sebenarnya perlu dilindungi hanyalah tempat user mengetik teks.
- * Range/checkbox/radio/tombol tidak termasuk — dan tabrakan tombol panah
- * atau spasi dengan perilaku bawaan kontrol itu sudah dicegah oleh
- * preventDefault() di handler keydown.
- */
-function isTextEntryTarget(target: EventTarget | null): boolean {
-    const el = target as HTMLElement | null;
-    if (!el || !el.tagName) return false;
-    if (el.isContentEditable) return true;
-
-    const tag = el.tagName;
-    if (tag === "TEXTAREA" || tag === "SELECT") return true;
-    if (tag !== "INPUT") return false;
-
-    const type = (el as HTMLInputElement).type;
-    return (
-        type !== "range" &&
-        type !== "checkbox" &&
-        type !== "radio" &&
-        type !== "button" &&
-        type !== "submit" &&
-        type !== "reset" &&
-        type !== "color"
-    );
-}
+// [PINDAH] isTextEntryTarget() sekarang di lib/keyMap.ts (di-import di atas) —
+// PianoControls butuh guard yang sama persis untuk shortcut "/" panel Sheets,
+// jadi dipindah ke satu tempat bersama alih-alih diduplikasi.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -96,6 +71,20 @@ export interface PianoEngineRefs {
     activeBarsRef: React.MutableRefObject<Record<string, Bar>>;
     releasedBarsRef: React.MutableRefObject<Bar[]>;
     barColorRef: React.MutableRefObject<string>;
+    /**
+     * [BARU] Bar panduan mode learn. Diisi usePianoPlayback, dibaca loop gambar
+     * di sini. Lihat GuideState di lib/piano/playback.ts untuk kontraknya.
+     */
+    guideRef: React.MutableRefObject<GuideState>;
+    /**
+     * [BARU] Apakah menekan tuts memunculkan bar yang naik ke atas.
+     *
+     * Dimatikan selagi mode learn berjalan: di sana sudah ada bar panduan yang
+     * TURUN ke tuts, dan bar yang naik dari tuts yang sama secara bersamaan
+     * membuat tampilannya ramai dan membingungkan (permintaan owner). Sorotan
+     * tuts dan suaranya tetap jalan — yang dimatikan hanya barnya.
+     */
+    barsEnabledRef: React.MutableRefObject<boolean>;
 }
 
 export interface PianoEngineState {
@@ -117,6 +106,16 @@ export interface PianoEngineState {
 
 export interface UsePianoEngineOptions {
     activeClassName: string;
+    /**
+     * [BARU] Dipanggil tiap kali sebuah not DITEKAN, dipakai mode learn untuk
+     * menilai tuts yang ditekan user benar atau salah.
+     *
+     * Bentuknya ref supaya identitas callback yang berubah tidak pernah
+     * membongkar-pasang handler input. Aman dipanggil dari pressNote: di mode
+     * learn scheduler tidak pernah menekan tuts sendiri, jadi semua yang sampai
+     * ke sini memang berasal dari user (keyboard, mouse, sentuh, glissando).
+     */
+    onNotePressRef?: React.MutableRefObject<(noteLabel: string) => void>;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,8 +133,10 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     handleKeyMouseLeave: (label: string) => void;
     repositionBlackKeys: () => void;
     resizeCanvas: () => void;
+    /** [BARU] Nyalakan loop gambar dari luar — dipakai bar panduan mode learn. */
+    kickLoop: () => void;
 } {
-    const { activeClassName } = options;
+    const { activeClassName, onNotePressRef } = options;
 
     // ── UI state (only these ever cause React re-renders) ─────────────────────
     const [volume, setVolume] = useState(100);
@@ -171,6 +172,8 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     const vizAreaRef = useRef<HTMLDivElement | null>(null);
     const activeBarsRef = useRef<Record<string, Bar>>({});
     const releasedBarsRef = useRef<Bar[]>([]);
+    const guideRef = useRef<GuideState>(createGuideState());
+    const barsEnabledRef = useRef(true);
     const rafRef = useRef<number>(0);
     const lastTimeRef = useRef(0);
 
@@ -527,6 +530,64 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             ctx2d.fill();
         }
 
+        /**
+         * [BARU] Bar panduan mode learn — arah TERBALIK dari bar biasa: turun
+         * dari atas kanvas menuju garis tuts.
+         *
+         * Posisinya dihitung murni dari songTime (lihat GuideState), jadi tidak
+         * ada state per bar yang perlu dirawat: saat jam beku menunggu tuts yang
+         * benar, seluruh bar otomatis ikut diam.
+         *
+         * progress 1 = baru muncul di atas, 0 = persis di garis tuts.
+         */
+        function drawGuide(ctx2d: CanvasRenderingContext2D, H: number): void {
+            const g = guideRef.current;
+            if (!g.active || g.notes.length === 0) return;
+
+            // clockAt null = jam beku (menunggu user) -> jangan interpolasi maju.
+            const t =
+                g.clockAt === null
+                    ? g.songTime
+                    : g.songTime + (performance.now() - g.clockAt);
+
+            const geom = keyGeomRef.current;
+            const color = barColorRef.current;
+            // Bar panduan tanpa glow: ia latar, bukan sorotan. Glow untuk bar
+            // hasil tekanan user disetel ulang setelah fungsi ini.
+            ctx2d.setTransform(1, 0, 0, 1, 0, 0);
+            ctx2d.shadowBlur = 0;
+
+            for (const n of g.notes) {
+                const gk = geom[n.note];
+                if (!gk) continue;
+
+                const raw = (n.time - t) / g.leadMs;
+                const progress = raw < 0 ? 0 : raw; // overdue -> berhenti di tuts
+                const bottom = H * (1 - progress);
+                const height = Math.max(4, (n.duration / g.leadMs) * H);
+                const top = bottom - height;
+                if (bottom < 0 || top > H) continue;
+
+                // Yang sedang ditunggu digambar tegas, sisanya samar.
+                ctx2d.fillStyle = n.pending ? `${color}cc` : `${color}3d`;
+                ctx2d.beginPath();
+                (
+                    ctx2d as CanvasRenderingContext2D & {
+                        roundRect: (
+                            x: number,
+                            y: number,
+                            w: number,
+                            h: number,
+                            r: number[],
+                        ) => void;
+                    }
+                ).roundRect(gk.x - gk.width / 2, top, gk.width, height, [
+                    3, 3, 3, 3,
+                ]);
+                ctx2d.fill();
+            }
+        }
+
         function draw(now: number): void {
             const canvas = canvasRef.current;
             if (!canvas) {
@@ -559,6 +620,10 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             // [BARU — perf 1.1] syncPositions() dihapus dari sini; posisi bar
             // sudah benar sejak dibuat dan hanya perlu diperbarui saat layout
             // berubah (lihat measureKeyGeometry / repositionBlackKeys).
+
+            // [BARU] Bar panduan digambar lebih dulu supaya bar hasil tekanan
+            // user menimpanya, bukan sebaliknya.
+            drawGuide(ctx2d, H);
 
             // [BARU — perf 1.3] Glow disetel SEKALI per frame, bukan per bar.
             // Nilainya sama untuk semua bar, jadi hasil visualnya identik.
@@ -604,7 +669,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             // naik: hentikan loop. Frame ini sudah menjalankan clearRect, jadi
             // kanvas dipastikan bersih sebelum berhenti. pressNote() akan
             // menyalakannya lagi lewat kickLoopRef.
-            if (!hasActive && rel.length === 0) {
+            if (!hasActive && rel.length === 0 && !guideRef.current.active) {
                 loopRunningRef.current = false;
                 return;
             }
@@ -641,6 +706,20 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     // pressNote / releaseNote — stable callbacks, zero React state on note events
     // ─────────────────────────────────────────────────────────────────────────
 
+    /**
+     * [BARU] Nyalakan loop gambar dari luar.
+     *
+     * Loop sengaja berhenti sendiri saat tidak ada yang digambar (optimasi
+     * 1.4). Mode learn memunculkan bar panduan TANPA ada tuts yang ditekan,
+     * jadi ia butuh cara menyalakan loop itu sendiri — kalau tidak, bar
+     * panduannya tidak akan pernah tergambar sampai user menekan tuts pertama.
+     *
+     * Aman dipanggil berulang: kickLoop() langsung keluar kalau loop sudah jalan.
+     */
+    const kickLoop = useCallback(() => {
+        kickLoopRef.current();
+    }, []);
+
     const pressNote = useCallback(
         (noteLabel: string) => {
             const el = keyElementsRef.current[noteLabel];
@@ -654,11 +733,18 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
                 pianoEngine.playNote(noteLabel, targetMidi);
             }
 
-            animRegisterKey(noteLabel, el);
+            // [BARU] Di mode learn bar naik dimatikan — lihat barsEnabledRef.
+            // releaseNote tetap aman dipanggil nanti: animReleaseKey langsung
+            // keluar kalau tidak ada bar untuk not itu.
+            if (barsEnabledRef.current) animRegisterKey(noteLabel, el);
+
             // [BARU — perf 1.4] Nyalakan loop kalau sedang idle. Aman
             // dipanggil berulang — kickLoop() langsung keluar kalau loop
             // sudah berjalan.
             kickLoopRef.current();
+
+            // [BARU] Beri tahu mode learn bahwa user menekan tuts ini.
+            onNotePressRef?.current(noteLabel);
         },
         [activeClassName, animRegisterKey],
     );
@@ -1005,6 +1091,8 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             activeBarsRef,
             releasedBarsRef,
             barColorRef,
+            guideRef,
+            barsEnabledRef,
         },
         pressNote,
         releaseNote,
@@ -1013,5 +1101,6 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
         handleKeyMouseLeave,
         repositionBlackKeys,
         resizeCanvas,
+        kickLoop,
     };
 }
