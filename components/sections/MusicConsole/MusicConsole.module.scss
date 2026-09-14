@@ -8,10 +8,22 @@
 // ============================================================
 
 .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 680px) minmax(240px, 380px);
+    align-items: start;
+    gap: var(--space-8) var(--space-10);
+    max-width: $content-max-wide;
+
+    @media (max-width: $breakpoint-tablet) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mainColumn {
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
-    max-width: 680px;
+    min-width: 0; // prevents piano keyboard from forcing grid track overflow
 }
 
 // ============================================================
@@ -380,5 +392,100 @@ $wgap: 2px; // gap between white keys
     font-weight: 300;
     color: var(--color-text-secondary);
     line-height: 1.8;
+    transition: color var(--transition-theme);
+}
+
+// ============================================================
+// Video block — personal piano-playing clip, sits to the right
+// of the piano + copy column on desktop, stacks below on mobile.
+// ============================================================
+
+.videoBlock {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+
+    // Pulls the block up so its top edge lines up with the section's
+    // eyebrow/title/subtitle (rendered by SectionWrapper, above .layout)
+    // instead of sitting level with the piano row. SectionWrapper's
+    // header height isn't available to us here, so this is a fixed
+    // estimate — nudge it up/down to match exactly.
+    margin-top: -160px;
+
+    @media (max-width: $breakpoint-tablet) {
+        max-width: 420px;
+        margin-top: 0; // header sits above the stacked column already; no need to pull up
+    }
+}
+
+.videoFrame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+
+    background-color: var(--color-surface-1);
+    @include glass-surface; // [EKSPERIMEN] blur di belakang surface transparan
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-lg);
+
+    transition:
+        background-color var(--transition-theme),
+        border-color var(--transition-theme);
+}
+
+.video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // crops to fill the card neatly in normal inline view
+    background-color: var(--color-bg-primary);
+
+    // In fullscreen, the element is expanded to fill the whole screen but
+    // object-fit still applies — without this override "cover" would keep
+    // cropping the video edges even at fullscreen. "contain" shows the
+    // original frame in full, letterboxed if the aspect ratio doesn't
+    // match the screen.
+    &:fullscreen,
+    &:-webkit-full-screen,
+    &:-moz-full-screen,
+    &:-ms-fullscreen {
+        object-fit: contain;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+    }
+}
+
+.videoCaption {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-inline: var(--space-1);
+}
+
+.videoEyebrow {
+    font-family: $font-mono;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    transition: color var(--transition-theme);
+}
+
+.videoTitle {
+    font-size: var(--text-base);
+    font-weight: 500;
+    color: var(--color-text-primary);
+    transition: color var(--transition-theme);
+}
+
+.videoDescription {
+    font-size: var(--text-sm);
+    font-weight: 300;
+    color: var(--color-text-muted);
+    line-height: 1.6;
     transition: color var(--transition-theme);
 }

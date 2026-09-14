@@ -63,72 +63,96 @@ export default function MusicConsole() {
             subtitle={t("subtitle")}
         >
             <div className={styles.layout}>
-                {/* Piano keyboard — real audio, black + white keys */}
-                <div className={styles.pianoWrap}>
-                    <div
-                        className={styles.piano}
-                        role="group"
-                        aria-label="Interactive piano keyboard, one octave"
-                    >
-                        {PIANO_KEYS.map((key) => (
-                            <button
-                                key={key.note}
-                                className={[
-                                    styles.key,
-                                    key.isBlack
-                                        ? styles.keyBlack
-                                        : styles.keyWhite,
-                                    activeKey === key.note
-                                        ? styles.keyActive
-                                        : "",
-                                ]
-                                    .filter(Boolean)
-                                    .join(" ")}
-                                onClick={() => handleKeyPress(key.note)}
-                                onMouseDown={(e) => e.preventDefault()} // prevent focus outline on click
-                                aria-label={`${key.label} key`}
-                                title={key.label}
-                            >
-                                {!key.isBlack && (
-                                    <span
-                                        className={styles.keyLabel}
-                                        aria-hidden="true"
-                                    >
-                                        {key.label}
-                                    </span>
-                                )}
-                            </button>
-                        ))}
+                <div className={styles.mainColumn}>
+                    {/* Piano keyboard — real audio, black + white keys */}
+                    <div className={styles.pianoWrap}>
+                        <div
+                            className={styles.piano}
+                            role="group"
+                            aria-label="Interactive piano keyboard, one octave"
+                        >
+                            {PIANO_KEYS.map((key) => (
+                                <button
+                                    key={key.note}
+                                    className={[
+                                        styles.key,
+                                        key.isBlack
+                                            ? styles.keyBlack
+                                            : styles.keyWhite,
+                                        activeKey === key.note
+                                            ? styles.keyActive
+                                            : "",
+                                    ]
+                                        .filter(Boolean)
+                                        .join(" ")}
+                                    onClick={() => handleKeyPress(key.note)}
+                                    onMouseDown={(e) => e.preventDefault()} // prevent focus outline on click
+                                    aria-label={`${key.label} key`}
+                                    title={key.label}
+                                >
+                                    {!key.isBlack && (
+                                        <span
+                                            className={styles.keyLabel}
+                                            aria-hidden="true"
+                                        >
+                                            {key.label}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Full Mode button — flags the intent to go fullscreen.
+                            The piano page reads this flag on mount and requests
+                            fullscreen there (the click's transient activation is
+                            still valid across the same-document client navigation),
+                            so fullscreen applies to /piano, not /music. */}
+                        <Link
+                            href={`/${locale}/piano`}
+                            className={styles.fullModeButton}
+                            aria-label="Open full piano mode"
+                            onClick={() => {
+                                try {
+                                    sessionStorage.setItem(
+                                        "piano:fullscreen",
+                                        "1",
+                                    );
+                                } catch {}
+                            }}
+                        >
+                            <ExpandIcon />
+                            {t("full")}
+                        </Link>
                     </div>
 
-                    {/* Full Mode button — flags the intent to go fullscreen.
-                        The piano page reads this flag on mount and requests
-                        fullscreen there (the click's transient activation is
-                        still valid across the same-document client navigation),
-                        so fullscreen applies to /piano, not /music. */}
-                    <Link
-                        href={`/${locale}/piano`}
-                        className={styles.fullModeButton}
-                        aria-label="Open full piano mode"
-                        onClick={() => {
-                            try {
-                                sessionStorage.setItem("piano:fullscreen", "1");
-                            } catch {}
-                        }}
-                    >
-                        <ExpandIcon />
-                        {t("full")}
-                    </Link>
+                    {/* Copy block */}
+                    <div className={styles.copyBlock}>
+                        <p className={styles.copyText}>{t("journey1")}</p>
+                        <p className={styles.copyText}>{t("journey2")}</p>
+                    </div>
                 </div>
 
-                {/* Copy block */}
-                <div className={styles.copyBlock}>
-                    <p className={styles.copyText}>
-                        {t("journey1")}
-                    </p>
-                    <p className={styles.copyText}>
-                        {t("journey2")}
-                    </p>
+                {/* Video — a personal piano-playing clip, sits beside the
+                    piano + copy column on desktop, stacks below on mobile. */}
+                <div className={styles.videoBlock}>
+                    <div className={styles.videoFrame}>
+                        <video
+                            className={styles.video}
+                            src="https://res.cloudinary.com/ollnfb5u/video/upload/v1789390133/Terbuang_dalam_Waktu_tes_i4u3kk.mp4"
+                            controls
+                            playsInline
+                            preload="metadata"
+                        />
+                    </div>
+                    <div className={styles.videoCaption}>
+                        <span className={styles.videoEyebrow}>
+                            {t("videoEyebrow")}
+                        </span>
+                        <p className={styles.videoTitle}>{t("videoTitle")}</p>
+                        <p className={styles.videoDescription}>
+                            {t("videoDescription")}
+                        </p>
+                    </div>
                 </div>
             </div>
         </SectionWrapper>
