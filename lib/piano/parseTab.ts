@@ -44,7 +44,7 @@
 // (N-1) rest, G jadi 3 slot (dotted half) — kepanjangan.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { KEY_MAP, MIDI_BY_LABEL } from "../keyMap";
+import { CTRL_CHAR_BY_LABEL, KEY_MAP, MIDI_BY_LABEL } from "../keyMap";
 
 /** Satu not yang harus berbunyi pada waktu tertentu. */
 export interface NoteEvent {
@@ -156,6 +156,26 @@ export interface ParsedSong {
 const DELIMITERS = new Set([" ", "\t", "\n", "\r", "-", ",", "."]);
 /** Pemisah yang JUGA memakan satu slot rest. */
 const REST_MARKS = new Set(["-", ",", "."]);
+
+/**
+ * Awalan untuk nada "ctrl" — 27 tuts tambahan yang hanya ada di mode 88 tuts
+ * (A0..B1 di bawah, C#7..C8 di atas). Di UI piano tuts itu ditandai GARIS
+ * BAWAH, jadi di teks dipakai karakter garis bawah: yang bergaris bawah di
+ * layar, diawali "_" di tab.
+ *
+ *   _q  = ctrl+q = G1        [_q t] = G1 + C4 (boleh dicampur di satu akor)
+ *
+ * Dipilih "_" karena: (a) mencerminkan tampilan UI, (b) tidak dipakai KEY_MAP
+ * maupun grammar, (c) nol tab lama yang memakainya — jadi menambah arti baru
+ * tidak mengubah satu lagu pun yang sudah ada.
+ */
+const CTRL_PREFIX = "_";
+
+/** Kebalikan CTRL_CHAR_BY_LABEL: karakter → label nada. */
+const CTRL_KEY_MAP: Record<string, string> = {};
+for (const [label, ch] of Object.entries(CTRL_CHAR_BY_LABEL)) {
+    CTRL_KEY_MAP[ch] = label;
+}
 
 const RE_TRANSPOSE = /^\s*transpose\s*by\s*:\s*([+-]?\d+)\s*(?:\(\s*([+-]?\d+)\s*\))?/i;
 const RE_TEMPO = /^\s*tempo\s*:/i;
@@ -352,18 +372,52 @@ export function parseTab(tab: string, opts: ParseTabOptions): ParsedSong {
         tokens.push({ start, end: end + 1, time, notes });
     }
 
-    function pushNote(ch: string, line: number, time: number): boolean {
-        const label = KEY_MAP[ch];
-        if (!label) {
-            warnings.push({ line, kind: "unknown-char", text: ch });
-            return false;
+    /**
+     * Baca SATU simbol nada mulai dari posisi `at` di stream.
+     *
+     * Mengembalikan labelnya dan berapa karakter yang dipakai — 1 untuk not
+     * biasa, 2 untuk not ctrl ("_q"). Pemanggil memakai `consumed` untuk
+     * menentukan rentang token, supaya highlight di panel Sheets menyorot
+     * "_q" utuh, bukan cuma garis bawahnya.
+     */
+    function readSymbol(
+        at: number,
+        line: number,
+    ): { label: string | null; consumed: number } {
+        const ch = stream[at];
+        if (ch !== CTRL_PREFIX) {
+            const label = KEY_MAP[ch];
+            if (!label) warnings.push({ line, kind: "unknown-char", text: ch });
+            return { label: label ?? null, consumed: 1 };
         }
+
+        const next = stream[at + 1];
+        if (next === undefined || DELIMITERS.has(next) || next === CTRL_PREFIX) {
+            warnings.push({
+                line,
+                kind: "unknown-char",
+                text: `"${CTRL_PREFIX}" tidak diikuti karakter nada`,
+            });
+            return { label: null, consumed: 1 };
+        }
+        const label = CTRL_KEY_MAP[next];
+        if (!label) {
+            warnings.push({
+                line,
+                kind: "unknown-char",
+                text: `${CTRL_PREFIX}${next} (bukan tuts ctrl; yang ada: ${Object.keys(CTRL_KEY_MAP).join("")})`,
+            });
+        }
+        return { label: label ?? null, consumed: 2 };
+    }
+
+    function pushNote(label: string, line: number, time: number): boolean {
         const baseMidi = MIDI_BY_LABEL[label];
         if (baseMidi === undefined) {
             warnings.push({
                 line,
                 kind: "unknown-char",
-                text: `${ch} → ${label} (di luar jangkauan 88 tuts)`,
+                text: `${label} (di luar jangkauan 88 tuts)`,
             });
             return false;
         }
@@ -436,9 +490,15 @@ export function parseTab(tab: string, opts: ParseTabOptions): ParsedSong {
 
             const time = step * stepMs;
             const chordNotes: string[] = [];
-            for (const inner of stream.slice(i + 1, end)) {
-                if (DELIMITERS.has(inner)) continue; // toleransi "[a b]"
-                if (pushNote(inner, line, time)) chordNotes.push(KEY_MAP[inner]);
+            let k = i + 1;
+            while (k < end) {
+                if (DELIMITERS.has(stream[k])) {
+                    k++; // toleransi "[a b]"
+                    continue;
+                }
+                const { label, consumed } = readSymbol(k, line);
+                if (label && pushNote(label, line, time)) chordNotes.push(label);
+                k += consumed;
             }
             // SATU token untuk seluruh grup, termasuk kurung buka/tutupnya —
             // itulah yang membuat highlight menyorot akor secara utuh.
@@ -458,13 +518,15 @@ export function parseTab(tab: string, opts: ParseTabOptions): ParsedSong {
             continue;
         }
 
-        // ── Not tunggal ──────────────────────────────────────────────────────
+        // ── Not tunggal (termasuk not ctrl "_x") ────────────────────────────
         const singleTime = step * stepMs;
-        if (pushNote(ch, line, singleTime)) {
-            pushToken(i, i, singleTime, [KEY_MAP[ch]]);
+        const { label, consumed } = readSymbol(i, line);
+        if (label && pushNote(label, line, singleTime)) {
+            // streamEnd inklusif: "_q" -> i..i+1, not biasa -> i..i
+            pushToken(i, i + consumed - 1, singleTime, [label]);
         }
         step += 1;
-        i++;
+        i += consumed;
     }
 
     applyTransposeQueue(stream.length);

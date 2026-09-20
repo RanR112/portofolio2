@@ -1,4 +1,5 @@
 export {default as Logo} from "./images/logo.png"
+export {default as ProfilePhoto} from "./images/profesional-photos.png"
 export {default as Enerkomp} from "./projects/thumbnail/enerkomp.webp"
 export {default as KanbanRequest} from "./projects/thumbnail/kanban-request.webp"
 export {default as TeaterBara} from "./projects/thumbnail/teater-bara.webp"

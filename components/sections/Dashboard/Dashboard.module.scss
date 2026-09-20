@@ -3,6 +3,39 @@
 @use "../../../styles/variables" as *;
 
 // ============================================================
+// Hero photo — di sebelah kanan "Randy Rafael" (lewat titleAside di
+// SectionWrapper). Sumbernya persegi (840x840), jadi object-fit:cover tidak
+// pernah crop aneh pada rasio apa pun. radius-lg dipakai supaya bentuknya
+// sama seperti .statCard di bawah — rounded-square, bukan lingkaran, biar
+// terasa satu keluarga dengan card lain di section ini.
+// ============================================================
+
+.photoWrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 180px;
+    height: 180px;
+    border-radius: var(--radius-lg);
+    overflow: hidden; // wajib: menahan .photo yang di-scale 1.2 di bawah
+    border: 1px solid var(--color-border-default);
+    box-shadow: var(--shadow-md);
+
+    @media (max-width: $breakpoint-tablet) {
+        width: 144px;
+        height: 144px;
+    }
+
+    @media (max-width: $breakpoint-mobile) {
+        width: 112px;
+        height: 112px;
+    }
+}
+
+.photo {
+    object-fit: cover;
+}
+
+// ============================================================
 // Stat cards grid
 // ============================================================
 

@@ -11,7 +11,9 @@
     "lint": "eslint",
     "songs": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/buildSongs.mjs",
     "songs:preview": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/previewTab.mjs",
-    "check:learn": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/checkLearn.mjs"
+    "check:learn": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/checkLearn.mjs",
+    "midi:tab": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/midiToTab.mjs",
+    "midi:inspect": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/inspectMidi.mjs"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.0",

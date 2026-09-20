@@ -31,7 +31,7 @@ import type { PlaybackMode } from "@/lib/piano/playback";
 
 type Filter = "all" | SongDifficulty;
 
-const FILTERS: Filter[] = ["all", "easy", "medium", "hard"];
+const FILTERS: Filter[] = ["all", "easy", "medium", "hard", "insane"];
 
 /** Kunci i18n dipetakan eksplisit, bukan dirangkai dari string. */
 const FILTER_LABEL: Record<Filter, string> = {
@@ -39,11 +39,13 @@ const FILTER_LABEL: Record<Filter, string> = {
     easy: "filterEasy",
     medium: "filterMedium",
     hard: "filterHard",
+    insane: "filterInsane",
 };
 const DIFFICULTY_LABEL: Record<SongDifficulty, string> = {
     easy: "filterEasy",
     medium: "filterMedium",
     hard: "filterHard",
+    insane: "filterInsane",
 };
 
 function formatDuration(ms: number): string {

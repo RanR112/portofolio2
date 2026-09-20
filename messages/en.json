@@ -41,7 +41,8 @@
             "projects": "Projects built",
             "focus": "Fullstack focus",
             "stack": "Technologies used"
-        }
+        },
+        "photoAlt": "Portrait of Randy Rafael"
     },
     "about": {
         "label": "02 — About",
@@ -557,7 +558,9 @@
             "notes": "{count} notes",
             "pause": "Pause",
             "resume": "Resume",
-            "stop": "Stop"
+            "stop": "Stop",
+            "filterInsane": "Insane",
+            "needsKeyboardLock": "Learn mode for 88-key songs needs Keyboard Lock, which only Chromium browsers (Chrome/Edge) provide in fullscreen. Those extra keys cannot be pressed here — try Autoplay instead."
         }
     },
     "contextMenu": {

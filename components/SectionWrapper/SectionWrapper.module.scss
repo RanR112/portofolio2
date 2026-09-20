@@ -127,6 +127,63 @@
     letter-spacing: -0.06em;
 }
 
+// [BARU] Grid area bernama — dipilih dari flex karena butuh urutan VISUAL
+// berbeda antara desktop dan mobile tanpa mengubah DOM (lihat SectionWrapper.
+// tsx untuk kenapa DOM tetap label -> judul -> subtitle -> foto).
+//
+// Desktop: kolom 1 = label+judul+subtitle bertumpuk (setiap area cuma 1
+// baris, spacing antar-elemen datang dari margin masing-masing seperti
+// biasa, BUKAN row-gap grid — supaya tidak dobel dengan margin yang sudah
+// ada). Kolom 2 = foto, grid-area "photo" muncul di ketiga baris sekaligus
+// jadi otomatis membentang setinggi kolom 1, lalu align-self:center
+// menengahkannya secara vertikal.
+//
+// Mobile: 1 kolom, urutan area label -> photo -> title -> subtitle — foto
+// mendarat PERSIS di bawah label, di atas judul, sesuai permintaan owner.
+.heroRow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: var(--space-8);
+    grid-template-areas:
+        "label photo"
+        "title photo"
+        "subtitle photo";
+
+    @media (max-width: $breakpoint-mobile) {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "label"
+            "photo"
+            "title"
+            "subtitle";
+    }
+}
+
+.heroLabelArea {
+    grid-area: label;
+}
+
+.heroTitleArea {
+    grid-area: title;
+}
+
+.heroSubtitleArea {
+    grid-area: subtitle;
+}
+
+.heroPhoto {
+    grid-area: photo;
+    align-self: center;
+
+    @media (max-width: $breakpoint-mobile) {
+        // Di desktop foto di-tengah-kan terhadap tinggi kolom 1 (align-self:
+        // center di atas). Di mobile ia jadi barisnya sendiri, jadi rata atas
+        // + margin ke judul di bawahnya terasa lebih wajar daripada center.
+        align-self: start;
+        margin-block-end: var(--space-5);
+    }
+}
+
 .subtitle {
     margin-block-start: var(--space-4);
     font-size: var(--text-md);

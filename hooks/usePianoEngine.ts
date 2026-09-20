@@ -135,6 +135,8 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     resizeCanvas: () => void;
     /** [BARU] Nyalakan loop gambar dari luar — dipakai bar panduan mode learn. */
     kickLoop: () => void;
+    /** [BARU] Masuk fullscreen kalau belum — wajib dipanggil dari gesture user. */
+    ensureFullscreen: () => void;
 } {
     const { activeClassName, onNotePressRef } = options;
 
@@ -267,6 +269,20 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     // fullscreen and is Chromium-only. We therefore lock ONLY while fullscreen +
     // 88-key mode, and gate the Ctrl map on the lock actually succeeding.
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * [BARU] Masuk fullscreen KALAU belum — beda dari toggleFullscreen yang
+     * juga bisa keluar. Dipakai mode learn pada lagu 88 tuts: Keyboard Lock
+     * (satu-satunya cara tuts ctrl bisa ditekan) hanya aktif saat fullscreen.
+     *
+     * Sama seperti toggleFullscreen, HARUS dipanggil di dalam gesture user —
+     * jadi pemanggilnya wajib melakukannya sebelum await apa pun, kalau tidak
+     * izin gesture-nya sudah kedaluwarsa dan browser menolak.
+     */
+    const ensureFullscreen = useCallback(() => {
+        if (document.fullscreenElement) return;
+        document.documentElement.requestFullscreen().catch(() => {});
+    }, []);
 
     const toggleFullscreen = useCallback(() => {
         // Must run inside a user gesture (button click) to be allowed.
@@ -1102,5 +1118,6 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
         repositionBlackKeys,
         resizeCanvas,
         kickLoop,
+        ensureFullscreen,
     };
 }

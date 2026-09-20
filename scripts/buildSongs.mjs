@@ -35,7 +35,8 @@ const { parseTab } = await import("../lib/piano/parseTab.ts");
 const SONGS_ROOT = "app/[locale]/piano/data/songs";
 const OUT_DIR = "public/piano";
 const OUT_TABS = path.join(OUT_DIR, "songs");
-const DIFFICULTIES = ["easy", "medium", "hard"];
+// Urutannya dipakai juga untuk mengurutkan daftar lagu — dari termudah.
+const DIFFICULTIES = ["easy", "medium", "hard", "insane"];
 
 const errors = [];
 const notes = [];
@@ -126,6 +127,14 @@ for (const difficulty of fs.readdirSync(SONGS_ROOT).sort()) {
         // Disimpan untuk fitur yang berhitung dalam bar nanti (count-in sebelum
         // mode learn, garis bar di bar panduan, metronom) dan untuk perkiraan
         // jumlah bar di laporan bawah.
+        // keyMode: lagu yang memakai simbol "_x" (27 tuts ekstra A0..B1 &
+        // C#7..C8) WAJIB diputar di mode 88 tuts — tuts itu tidak ada di mode
+        // 61. Dihasilkan otomatis oleh midiToTab dari isi tabnya.
+        const keyMode = meta.keyMode ?? 61;
+        if (keyMode !== 61 && keyMode !== 88) {
+            fail(where, `keyMode tidak valid: ${JSON.stringify(meta.keyMode)} (harus 61 atau 88)`);
+        }
+
         const timeSignature = meta.timeSignature ?? "4/4";
         const mTs = /^(\d+)\s*\/\s*(\d+)$/.exec(String(timeSignature));
         if (!mTs || Number(mTs[1]) <= 0 || Number(mTs[2]) <= 0) {
@@ -159,6 +168,7 @@ for (const difficulty of fs.readdirSync(SONGS_ROOT).sort()) {
             difficulty,
             bpm: meta.bpm,
             timeSignature,
+            keyMode,
             transpose: meta.transpose,
             stepsPerBeat,
             tabUrl: `/piano/songs/${id}.txt`,

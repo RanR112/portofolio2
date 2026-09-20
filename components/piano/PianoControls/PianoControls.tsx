@@ -95,6 +95,11 @@ interface PianoControlsProps {
     playbackStatus: PlaybackUiStatus;
     playbackError: string | null;
     /**
+     * Sebab error yang punya terjemahan sendiri. Kalau terisi, pesan
+     * terjemahannya yang dipakai — bukan `playbackError` yang teks mentah.
+     */
+    playbackErrorCode: "needs-keyboard-lock" | null;
+    /**
      * Token berbunyi lagu yang sedang dimuat, beserta posisinya di tab mentah.
      * null = tidak ada lagu (panel Sheets kembali jadi textarea biasa).
      */
@@ -127,6 +132,7 @@ const PianoControls = React.memo(function PianoControls({
     onSheetTextChange: setSheetsText,
     playbackStatus,
     playbackError,
+    playbackErrorCode,
     playbackTokens,
     activeTokenRef,
     onStartSong,
@@ -693,7 +699,12 @@ const PianoControls = React.memo(function PianoControls({
                     <SongPicker
                         songs={songs}
                         loading={songsLoading || playbackStatus === "loading"}
-                        error={songsError ?? playbackError}
+                        error={
+                            songsError ??
+                            (playbackErrorCode === "needs-keyboard-lock"
+                                ? t("player.needsKeyboardLock")
+                                : playbackError)
+                        }
                         onChoose={onStartSong}
                     />
                 )}

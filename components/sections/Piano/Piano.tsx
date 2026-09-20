@@ -152,6 +152,8 @@ export default function Piano() {
         guideRef: refs.guideRef,
         barsEnabledRef: refs.barsEnabledRef,
         kickLoop: engine.kickLoop,
+        setKeyMode,
+        ensureFullscreen: engine.ensureFullscreen,
     });
 
     useEffect(() => {
@@ -251,6 +253,11 @@ export default function Piano() {
                 playbackError={
                     playback.state.status === "error"
                         ? playback.state.message
+                        : null
+                }
+                playbackErrorCode={
+                    playback.state.status === "error"
+                        ? (playback.state.code ?? null)
                         : null
                 }
                 playbackTokens={

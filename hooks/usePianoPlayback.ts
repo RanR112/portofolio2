@@ -66,7 +66,17 @@ export type PlaybackState =
     | { status: "idle" }
     | { status: "loading"; entry: SongIndexEntry; mode: PlaybackMode }
     | { status: "running"; song: LoadedSong; paused: boolean }
-    | { status: "error"; entry: SongIndexEntry; message: string };
+    | {
+          status: "error";
+          entry: SongIndexEntry;
+          message: string;
+          /**
+           * Kode sebab yang bisa diterjemahkan UI. `message` tetap diisi teks
+           * mentah untuk kasus lain (mis. gagal unduh), tapi kalau `code` ada,
+           * UI sebaiknya memakai terjemahannya sendiri.
+           */
+          code?: "needs-keyboard-lock";
+      };
 
 /** Status yang diratakan untuk UI, supaya tombol tidak perlu membongkar union. */
 export type PlaybackUiStatus =
@@ -98,6 +108,10 @@ interface UsePianoPlaybackOptions {
     barsEnabledRef: React.MutableRefObject<boolean>;
     /** Loop gambar engine bisa idle; mode learn harus menyalakannya sendiri. */
     kickLoop: () => void;
+    /** Lagu 88 tuts butuh piano dipindah ke mode 88 sebelum diputar. */
+    setKeyMode: (mode: 61 | 88) => void;
+    /** Mode learn di lagu 88 tuts butuh fullscreen supaya Keyboard Lock aktif. */
+    ensureFullscreen: () => void;
 }
 
 export interface PianoPlayback {
@@ -132,6 +146,21 @@ interface HeldNote {
 }
 
 /**
+ * Keyboard Lock API — satu-satunya cara kombinasi Ctrl bisa sampai ke halaman
+ * alih-alih memicu shortcut browser (Ctrl+W menutup tab, Ctrl+T buka tab baru).
+ * Chromium-only. Tanpa ini, 27 tuts ekstra di lagu 88 tuts MUSTAHIL ditekan
+ * user — jadi mode learn akan membeku selamanya menunggu not yang tidak bisa
+ * dimainkan. Autoplay tidak terpengaruh: scheduler memanggil pressNote
+ * langsung, keyboard tidak terlibat.
+ */
+function keyboardLockSupported(): boolean {
+    if (typeof navigator === "undefined") return false;
+    const kb = (navigator as Navigator & { keyboard?: { lock?: unknown } })
+        .keyboard;
+    return typeof kb?.lock === "function";
+}
+
+/**
  * Override stepsPerBeat dari URL — dipakai untuk mengalibrasi lagu baru sambil
  * mendengarkan: /piano?spb=3, pilih lagunya, ganti angka, reload. Tanpa ini,
  * mencari angka yang pas berarti mengedit meta.json + menjalankan ulang
@@ -156,6 +185,8 @@ export function usePianoPlayback({
     guideRef,
     barsEnabledRef,
     kickLoop,
+    setKeyMode,
+    ensureFullscreen,
 }: UsePianoPlaybackOptions): PianoPlayback {
     const [state, setState] = useState<PlaybackState>({ status: "idle" });
 
@@ -235,6 +266,28 @@ export function usePianoPlayback({
 
     const start = useCallback(
         (entry: SongIndexEntry, mode: PlaybackMode) => {
+            // Mode learn di lagu 88 tuts mustahil dimainkan tanpa Keyboard
+            // Lock: tuts ctrl-nya tidak akan pernah sampai ke halaman, dan bar
+            // panduan akan membeku selamanya menunggu not yang tidak bisa
+            // ditekan. Lebih baik ditolak dengan alasan jelas daripada
+            // membiarkan user tersangkut.
+            if (mode === "learn" && entry.keyMode === 88 && !keyboardLockSupported()) {
+                setState({
+                    status: "error",
+                    entry,
+                    code: "needs-keyboard-lock",
+                    message: "Keyboard Lock tidak tersedia di browser ini.",
+                });
+                return;
+            }
+
+            // Keduanya WAJIB dijalankan sebelum await apa pun di bawah:
+            // requestFullscreen hanya diizinkan selama gesture user (klik
+            // tombol) masih berlaku, dan itu kedaluwarsa begitu kita menunggu
+            // unduhan tab.
+            setKeyMode(entry.keyMode);
+            if (mode === "learn" && entry.keyMode === 88) ensureFullscreen();
+
             const token = ++loadTokenRef.current;
             releaseAllHeld();
             resetCursor();
@@ -308,7 +361,15 @@ export function usePianoPlayback({
                 }
             })();
         },
-        [onSheetLoaded, releaseAllHeld, resetCursor, setTranspose, barsEnabledRef],
+        [
+            onSheetLoaded,
+            releaseAllHeld,
+            resetCursor,
+            setTranspose,
+            barsEnabledRef,
+            setKeyMode,
+            ensureFullscreen,
+        ],
     );
 
     const pause = useCallback(() => {

@@ -41,7 +41,8 @@
             "projects": "Proyek dibangun",
             "focus": "Fokus fullstack",
             "stack": "Teknologi digunakan"
-        }
+        },
+        "photoAlt": "Foto Randy Rafael"
     },
     "about": {
         "label": "02 — Tentang",
@@ -557,7 +558,9 @@
             "notes": "{count} not",
             "pause": "Pause",
             "resume": "Lanjut",
-            "stop": "Stop"
+            "stop": "Stop",
+            "filterInsane": "Ekstrem",
+            "needsKeyboardLock": "Mode Belajar untuk lagu 88 tuts butuh Keyboard Lock, yang hanya ada di browser Chromium (Chrome/Edge) saat layar penuh. Tuts ekstra itu tidak bisa ditekan di sini — coba Putar Otomatis saja."
         }
     },
     "contextMenu": {

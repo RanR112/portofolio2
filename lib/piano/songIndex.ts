@@ -14,7 +14,7 @@
 // benar-benar dibuka.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type SongDifficulty = "easy" | "medium" | "hard";
+export type SongDifficulty = "easy" | "medium" | "hard" | "insane";
 
 /** Satu entri di songs-index.json. Bentuknya ditentukan scripts/buildSongs.mjs. */
 export interface SongIndexEntry {
@@ -33,6 +33,12 @@ export interface SongIndexEntry {
      * mempengaruhi waktu.
      */
     timeSignature: string;
+    /**
+     * 61 atau 88. Lagu 88 memakai simbol "_x" untuk 27 tuts ekstra (A0..B1,
+     * C#7..C8) yang TIDAK ADA di mode 61 — jadi piano harus dipindah ke mode
+     * 88 sebelum lagunya diputar, kalau tidak not-not itu tidak punya tuts.
+     */
+    keyMode: 61 | 88;
     /** transpose AWAL lagu; bisa berubah di tengah (lihat parseTab) */
     transpose: number;
     stepsPerBeat: number;

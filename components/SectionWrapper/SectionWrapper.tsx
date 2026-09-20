@@ -41,6 +41,11 @@ type SectionWrapperProps = {
     // supaya perubahan hero tidak "bocor" ke section header halaman lain
     // sebelum step-nya masing-masing.
     size?: "default" | "hero";
+    // [BARU] Elemen opsional di sebelah kanan judul — dipakai Dashboard untuk
+    // menaruh foto profil di samping "Randy Rafael". Hanya berlaku kalau
+    // size="hero" (satu-satunya pemakai kombinasi ini); di luar itu diabaikan
+    // supaya 7 halaman lain tidak berubah sama sekali.
+    titleAside?: ReactNode;
 };
 
 const SectionWrapper = memo(function SectionWrapper({
@@ -51,6 +56,7 @@ const SectionWrapper = memo(function SectionWrapper({
     children,
     fullWidth = false,
     size = "default",
+    titleAside,
 }: SectionWrapperProps) {
     return (
         <section
@@ -62,33 +68,77 @@ const SectionWrapper = memo(function SectionWrapper({
                 className={fullWidth ? styles.containerFull : styles.container}
             >
                 <header className={styles.header}>
-                    <span className={styles.label} aria-hidden="true">
-                        {label}
-                    </span>
+                    {size === "hero" && titleAside ? (
+                        // [BARU] Grid area bernama, BUKAN flex, supaya urutan
+                        // VISUAL foto bisa beda antara desktop dan mobile
+                        // tanpa mengubah urutan DOM (screen reader tetap baca
+                        // label -> judul -> subtitle -> foto, urutan alami).
+                        // Desktop: foto satu kolom di kanan, membentang di
+                        // belakang label+judul+subtitle lalu di-tengah-kan
+                        // vertikal (align-self:center). Mobile: foto pindah
+                        // jadi barisnya sendiri PERSIS di bawah label, di
+                        // atas judul — lihat grid-template-areas di CSS.
+                        // HANYA berlaku saat ada titleAside (Dashboard);
+                        // cabang lain di bawah (semua page lain + hero tanpa
+                        // foto) tetap struktur asli yang tidak berubah sama
+                        // sekali.
+                        <div className={styles.heroRow}>
+                            <span
+                                className={`${styles.label} ${styles.heroLabelArea}`}
+                                aria-hidden="true"
+                            >
+                                {label}
+                            </span>
+                            <h2
+                                id={`heading-${id}`}
+                                className={`${styles.title} ${styles.titleHero} ${styles.heroTitleArea}`}
+                            >
+                                <KineticText text={title} />
+                            </h2>
+                            {subtitle && (
+                                <p
+                                    className={`${styles.subtitle} ${styles.heroSubtitleArea}`}
+                                >
+                                    {subtitle}
+                                </p>
+                            )}
+                            <div className={styles.heroPhoto}>
+                                {titleAside}
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            <span className={styles.label} aria-hidden="true">
+                                {label}
+                            </span>
 
-                    {/* [LAMA — pre kinetic-console]
-                    <h2 id={`heading-${id}`} className={styles.title}>
-                        {title}
-                    </h2>
-                    */}
-                    {/* [BARU — kinetic-console, Step 2] */}
-                    <h2
-                        id={`heading-${id}`}
-                        className={[
-                            styles.title,
-                            size === "hero" ? styles.titleHero : "",
-                        ]
-                            .filter(Boolean)
-                            .join(" ")}
-                    >
-                        {size === "hero" ? (
-                            <KineticText text={title} />
-                        ) : (
-                            title
-                        )}
-                    </h2>
+                            {/* [LAMA — pre kinetic-console]
+                            <h2 id={`heading-${id}`} className={styles.title}>
+                                {title}
+                            </h2>
+                            */}
+                            {/* [BARU — kinetic-console, Step 2] */}
+                            <h2
+                                id={`heading-${id}`}
+                                className={[
+                                    styles.title,
+                                    size === "hero" ? styles.titleHero : "",
+                                ]
+                                    .filter(Boolean)
+                                    .join(" ")}
+                            >
+                                {size === "hero" ? (
+                                    <KineticText text={title} />
+                                ) : (
+                                    title
+                                )}
+                            </h2>
 
-                    {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
+                            {subtitle && (
+                                <p className={styles.subtitle}>{subtitle}</p>
+                            )}
+                        </>
+                    )}
 
                     <hr className={styles.divider} aria-hidden="true" />
                 </header>

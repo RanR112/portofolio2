@@ -1,0 +1,74 @@
+[a(] S G a S G [aY] S G a S G [a0] S G a S G [ua] S G a S G [aQ] S G a S G [aI] S G a S G [aI] S G a S G [aI] S G a S G [a(] S G a S G [aY] S G a S G [a0] S G a S G [ua] S G a S G [aQ] S G a S G [aI] S G a S G [aI] S G a S G [aI] S G a S G [a@(] S G a S G [aY] S G a S G [a30] S G a S G [ua] S G a S G [aQ$] S G a S G [aI] S G a S G [aW%] S G a S G [aO] S G [aQ$] S G [a@(] S G a S G [aY] S G a S G [a30] S G a S G [ua] S G a S G [aQ$] S G a S G [aI] S G a S G a S G [a7] S G [aQ] S G [ra] S G [a@] 7 Q S G [aY] [YS] [YG] [aY] S [TG] [aT] S [rG] [ra0] S G a S G [a3] S G a S G [a$] Q S G [aY] [YS] [YG] [aY] S [TG] [aT] S [rG] [raYW] S G [aY] S [IG] [aT] S G [ra] S G [a@] 7 Q S G [aY] [YS] [YG] [aY] S [TG] [aT] S [rG] [ra0] S G a S G [a3] S G a S G [a$] Q S G 
+
+[aT] [TS] [TG] [aT] S [YG] [aT] S [rG] [raQ7] S G a S G
+[a7] S G [raQ] S G [a@] 7 Q S G [aY] S G [aY] S [uG]
+[aY] S [TG] [ra0] S G a S G [a3] S G a S G [a$] Q S G
+[aY] [YS] [YG] [aY] S [TG] [aT] S [rG] [raYW] S G [aY] S
+[IG] [aT] S G [ra] S G [a@] 7 Q S G [aY] [YS] [YG] [aY]
+S [TG] [aT] S [rG] [ra0] S G [ra] S G [ra] S G [a3] S G
+[a$] Q S G [aT] [TS] [TG] [aT] S [YG] [aT] S [rG] [raQ7]
+S G a S G [a7] S G [raQ] S G [r@] [T7] [I(] [a(] [rS] [YG]
+L k Y-G [f730] - [r3] [T7] [I0] [a0] [rS] [uG] a S G
+[aQ$] S G a S G [aQ] r T I S G a S H [QG$] S a I T r Q
+- $ - [r@] T [I(] [a(] [rS] [YG] L k Y-G [f30] - [r3] [T7]
+[I0] [a0] [rS] [uG] a S G [aQ$] S G a S G [aQ] r T I S G
+a S G [aTSQIG] Q T I a S G k L C n L C -
+
+[r@] [T7] [I(] [rD] [TD] [ID] [rD] T [SI] [rS] T [aI] [a3]
+7 0 r T I r T I [r0] T I [r$] [T] [QI] [rD] [TD] [ID] [rD]
+T [SI] [rS] T [aI] [aD%] ( W [rD] T [IG] [rS] T I [ra] T I
+[r@] [T7] [I(] [rD] [TD] [ID] [rD] T [SI] [rS] T [aI] [a3]
+7 0 r T I r T I [r0] T I [r$] [T] [QI] [rS] [TS] [SI] [rS]
+T [ID] [rS] T [aI] [a7] Q r r T I r T I [r7] T I [r@] [T7]
+[I(] [rD] [TD] [ID] [rD] T [fI] [rD] T [SI] [a3] 7 0 r T I
+r T I [r3] T I [r$] T I [rD] [TD] [ID] [rD] T [SI] [rS] T
+[aI] [aD%] ( W [rD] T [IG] [rS] T I [ra] T I [r@] [T7] [I(]
+[rD] [TD] [ID] [rD] T [SI] [rS] T [aI] [a3] 7 0 r T I r T I
+[r3] T I [r$] T I r [TS] [SI] [rS] T [ID] [rS] T [aI] [a7]
+Q r r T I r T I [r7] T I
+
+[r@] [T7] [I(] [a(] [rS] [YG] L Y [nk] r [GC] [xf730] - [r3]
+[T7] [I0] [a0] [rS] [uG] a S G [aQ$] S G a S G [aQ] r T I
+S G a S H [QG$] S a I T r Q - $ - [r@] T [I(] [a(] [rS] [YG]
+L [nk] Y [GC] [xf30] - [r3] [T7] [I0] [a0] [rS] [uG] a S G
+[aQ$] S G a S G [aQ] r T I S G a S G [aTSQIG] Q T I a S G
+k L C n L C -
+
+[I(] [ra] Y - D D D [ID] S S a [raI0] - [urO] - [TQPIE] -
+D D D [TPD] S S a [YWOD] - D G S - [aO] - [raI(] - D D D
+[ID] S S a [raI0] - [uO] - r - [TQPIE] - S - [TSP] D S a
+[ra7] - Q - T - [rY] - [rY(] - D - [ID] f D S [a3] 7 W -
+[urI0] - [WO] - [TQE$] - D D D [QD] T I P S S a [aD%] ( r -
+D G [YWSI] - a - [rYQ@7] - D D D [D(] r I S S a [aW73] -
+[aW] - [30] a [Q$] - S S S [SE] D [TSIE] a [aQ$] -
+
+[r$] T [QI] a [SQ] G k L C n L [TQIEC] - [aQG@7] [aG] [aG]
+[aG(] r I [aG] [aG30] [f0] [urWD] S [aQ$] a [raQI] S [QD$]
+S [TSQI] - [SPG$] [SQPG] [SPGE] T [PG] [SPG%] ( [rf] [WD] Y
+r [D3] 0 0 W [rS] [ua] [S@] ( ( E Y E [kaGD%] W [WSL] [ZYD]
+O [xkfYH] 3-0 [ZD0] [rka] u [rka] 7 r [rZD] [kaY] I [YSLG] $
+Q Q [TSP] I T [kaGD%] W [WSL] [ZYD] O [xkfYH] 3-0 [ZD0]
+[xrkfH] u [rGC] 7 r [xrf] [ZYD] I [YSL] [SL$] Q [ZQD] [TSL]
+I [ka] [kfeaS6] - [xj] n [xnL] [pjfS] k [xnL] [upe] a [kfS]
+[e6] - [upe] a [kfS] [e6] r [uaT] % 7 [r0] $ -
+
+[Q$] [TE] I [TSQP] I S G L C [IC] - [TSQPIG] - [Q$] D f [GD7]
+- [rYQI7] - [Q@7] H [G730] - f D [urWS] - [30] a S [QD$] -
+[TQI] - [SP5] ( E [wYE] - [aYWI%] - [r(] - [YQI$] - [r(] -
+[uaI30] - [uI0] W r [uI] - [I0] a [YSQI@7] - [I(] r Y I -
+[ra] Y S [iOD!] - [WT] - [iSO4] W - [qiWT] - [aSQIG$] - [aQ]
+T I P - [OH$] E - [aIGD7] - 7 ( Q [rYI] - [rQOH] - [aIGD3]
+7 W - [r0] f D [uWS] - r a S [QD$] - [TQI] -
+
+[hPJED5(] - [woYE] - [kaWGD(%] - [YW] - [SQL$] - [ka] [QI]
+[IG] - [kfaH0%!] - [uaO] W T [uaO] - [WTIG] - [ka] [SQL@7]
+- [aI(] r Y [aI] - [rkaY] - [SL] [ZD30] - [uaI0] W r [SL] -
+[urI] - [rkfaH0] - [uI30] - [urI0] - [uaWI] - [kaQ$] - [aQ]
+[TS] [IG] a S G a S G [SPJ$] Q - [QP] S G [TPI] S G [TP] S
+[G7] Q [kaYD] - a S G a S G a S G a S G a S G a S G a S G
+[a0] W r S Y G a S G a S G a S G a S G a S G [a(] S G [aI]
+S [G] W r [ua] S G a S G a S G a S G a S G a S G [aY] S G
+[ra] S G [raQ] S G a S G a S G a S G a S G Q - [TSPI] - - -
+
+
+[raYI] S D f - D S a - [IE] - P - [aYWI] S D f - D S a D - [YQI] - P - [ura0] S D f - D S a - [ur] - 0 I [aQ] T I S D f - D S a - I - T - Q - [a(] r I S D f - D S a - [PI] - E - [aW] Y I S D f - D S a D - [QI] - Y 0 r [aO] S D f - D S a - [ua] O [ra] S a - [TQIG] - a a - O a S I - T Q - T I H [TQIG] - a a - a f - D a S I - [r$] T I [rQ] T I [rQ] T I [rQ$] T I [r] T I [rQ] T I [r] T I [r$] T I [r] T I [rQ] T I [r] T I [r$] T I [r$] T I [r7] T I [r!] T I [r$] T I r T I r T I r T I [r$] T I [r$] T I [r7] T I [r!] T I [rTI$] - [I$] T E Q E T [O$] [^T] [E] [WQ] [E] [^T] [P$] [^I] [T] [QE] [T] [^I] [a$] [^I] [T] [rQ] [T] [^I] [S$] [^P] [I] [TQ] [I] [^P] [D$] [^P] [I] [YQ] [I] [^P] [f$] [^P] [I] [uQ] [SIG$] - [^Q$] E T I P S [QG] S P I P S [TQG] J L C B L [TIEC] - [TSQPIG] - [TQIE$] - [ka$] [PJ] [kaGD7] - r T I r T I r T I r T I r T I r T I r [T3] [I7] [WIG] - r T I r T I r T I r T I r T I [r@7(] T I [OH] - [aIG!] % 0 - r T I r T I r T I r T I r T I r T [I$] [YD$] - r T I [rQ] T I r T [I$] [TSI$] - r T I [rQ*] T I r [T7] [I$] [raY(] - r T I r T I r T I r T I r T I r T I [r$] T I [r7] T I r T I r T I r T I r T I r T I r T I r T I [rQ] T I [aY7] - - - [nZC] L C

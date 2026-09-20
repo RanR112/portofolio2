@@ -21,7 +21,12 @@ import "./_tsHook.mjs";
 const { parseTab } = await import("../lib/piano/parseTab.ts");
 const { groupChords, learnStep, learnPressResult, LEARN_LEAD_MS } =
     await import("../lib/piano/playback.ts");
-const { KEY_MAP } = await import("../lib/keyMap.ts");
+const { KEY_MAP, CTRL_CHAR_BY_LABEL } = await import("../lib/keyMap.ts");
+
+// Kebalikan CTRL_CHAR_BY_LABEL, untuk membaca simbol "_x" (nada 88-tuts).
+const CTRL_KEY_MAP = Object.fromEntries(
+    Object.entries(CTRL_CHAR_BY_LABEL).map(([label, ch]) => [ch, label]),
+);
 
 const SONGS_ROOT = "app/[locale]/piano/data/songs";
 const TICK_MS = 25;
@@ -159,20 +164,50 @@ for (const song of songs) {
     );
 
     // ── 4. bar pertama punya waktu jatuh, tidak langsung nongkrong ───────────
-    const firstStep = learnStep({
+    //
+    // Saat masuk, bar not pertama harus berada persis di ATAS kanvas
+    // (progress 1), bukan sudah nangkring di garis tuts.
+    //
+    // Waktu pengambilan sampelnya DITURUNKAN dari lagu, bukan di-hardcode
+    // -LEARN_LEAD_MS: lagu berbirama gantung (mis. kokoronashi & interstellar
+    // yang diawali jeda) akor pertamanya tidak jatuh di 0, jadi pada -lead
+    // barnya memang belum waktunya muncul. Untuk lagu yang mulai di 0, rumus
+    // ini menghasilkan angka yang sama persis dengan sebelumnya.
+    // Diambil sampelnya 1ms DI DALAM dan 1ms DI LUAR ambang, bukan tepat di
+    // ambangnya. Alasannya presisi float: (t0 - lead) + lead tidak selalu
+    // kembali persis ke t0, jadi menguji tepat di titik ambang bisa gagal
+    // hanya karena setengah ULP — bukan karena perilakunya salah. Geser 1ms
+    // jauh lebih kecil dari satu tick (25ms), jadi ketegasan ujinya utuh.
+    const firstEntry = song.chords[0].time - LEARN_LEAD_MS;
+
+    const atEntry = learnStep({
         chords: song.chords,
         idx: 0,
-        songTime: -LEARN_LEAD_MS,
+        songTime: firstEntry + 1,
         leadMs: LEARN_LEAD_MS,
     });
-    const firstNote = firstStep.notes.find((n) => n.pending);
+    const firstNote = atEntry.notes.find((n) => n.pending);
     const progress = firstNote
-        ? (firstNote.time - firstStep.songTime) / LEARN_LEAD_MS
+        ? (firstNote.time - atEntry.songTime) / LEARN_LEAD_MS
         : NaN;
     check(
         "bar not pertama mulai dari atas kanvas (progress ~1)",
-        !firstStep.frozen && Math.abs(progress - 1) < 1e-9,
-        `frozen=${firstStep.frozen} progress=${progress}`,
+        !atEntry.frozen && progress > 0.99,
+        `frozen=${atEntry.frozen} progress=${progress}`,
+    );
+
+    // Sisi sebaliknya: sebelum waktunya, belum boleh ada bar yang terlihat —
+    // menjaga agar bar tidak muncul lebih awal dari semestinya.
+    const beforeEntry = learnStep({
+        chords: song.chords,
+        idx: 0,
+        songTime: firstEntry - 1,
+        leadMs: LEARN_LEAD_MS,
+    });
+    check(
+        "sebelum waktunya, belum ada bar yang muncul",
+        beforeEntry.notes.length === 0,
+        `${beforeEntry.notes.length} bar sudah terlihat`,
     );
 
     // ── 5. akor yang sudah dilewati tidak digambar lagi ──────────────────────
@@ -233,17 +268,35 @@ for (const song of songs) {
     let firstBad = null;
     for (const t of tokens) {
         const text = song.raw.slice(t.start, t.end);
-        // Hanya karakter not yang dihitung; kurung & tanda jeda dilewati.
-        const chars = [...text].filter((c) =>
-            /[0-9A-Za-z!@#$%^&*()]/.test(c),
-        );
-        const mapped = chars.map((c) => KEY_MAP[c]);
+        // Dibaca sama seperti parser: "_x" = satu nada ctrl (2 karakter),
+        // selain itu 1 karakter = 1 nada. Kurung & tanda jeda dilewati.
+        const mapped = [];
+        for (let k = 0; k < text.length; k++) {
+            const c = text[k];
+            if (c === "_") {
+                mapped.push(CTRL_KEY_MAP[text[k + 1]]);
+                k++;
+                continue;
+            }
+            if (/[0-9A-Za-z!@#$%^&*()]/.test(c)) mapped.push(KEY_MAP[c]);
+        }
+        const chars = mapped;
+        // Bentuk penulisannya harus konsisten: yang berkurung wajib tertutup
+        // benar, yang polos wajib cuma satu not.
+        //
+        // Grup berisi SATU not (mis. "[T]") sengaja DIIZINKAN — grammar tidak
+        // pernah mensyaratkan minimal dua not di dalam kurung, dan hasil
+        // parse-nya identik dengan menulisnya polos. Versi sebelumnya
+        // melarang ini karena 4 lagu pertama kebetulan tidak punya contohnya;
+        // sparkle punya, dan itu data yang sah.
+        const isGroup = text.startsWith("[") || text.startsWith("{");
+        const shapeOk = isGroup
+            ? text.endsWith(text.startsWith("[") ? "]" : "}")
+            : t.notes.length === 1;
         const ok =
             chars.length === t.notes.length &&
             mapped.every((m) => m !== undefined && t.notes.includes(m)) &&
-            (t.notes.length === 1
-                ? !text.includes("[") && !text.includes("{")
-                : text.startsWith("[") || text.startsWith("{"));
+            shapeOk;
         if (!ok) {
             sliceBad++;
             if (!firstBad) firstBad = { text, notes: t.notes, at: t.start };
