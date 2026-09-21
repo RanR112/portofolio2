@@ -29,7 +29,12 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { parseMidi, bpmFromMicros, findGrid } from "./lib/midi.mjs";
+import {
+    parseMidi,
+    bpmFromMicros,
+    findGrid,
+    warpTickToReferenceTempo,
+} from "./lib/midi.mjs";
 import "./_tsHook.mjs";
 
 const { KEY_MAP, MIDI_BY_LABEL, CTRL_CHAR_BY_LABEL } = await import("../lib/keyMap.ts");
@@ -59,7 +64,16 @@ const dryRun = has("dry");
 // 88 = boleh memakai simbol ctrl "_x" untuk 27 tuts ekstra (A0..B1, C#7..C8).
 // 61 = paksa semua nada masuk C2..C7 dengan melipat oktaf.
 const keysOpt = flag("keys", "88");
-const STEPS_PER_BEAT = 4; // 1 slot = not 1/16
+// Kalau diisi, HANYA tab.txt yang ditulis ke path ini apa adanya — tidak ada
+// meta.json, tidak masuk library lagu di app/.../data/songs/. Dipakai untuk
+// permintaan "kasih tab-nya saja" yang tidak perlu tampil di /piano.
+const sheetPath = flag("sheet");
+// Default 4 (1 slot = not 1/16) cocok untuk kebanyakan file. Override manual
+// disediakan untuk file yang grid aslinya BUKAN 1/16 — mis. hasil transkripsi
+// (bukan notasi bersih) yang butuh resolusi lebih halus supaya round-trip
+// tetap presisi. Lihat laporan "grid dari segmen utama" di console kalau
+// perlu memutuskan angka ini.
+const STEPS_PER_BEAT = Number(flag("spb", "4"));
 
 // ── Peta balik: nada MIDI → karakter QWERTY ──────────────────────────────────
 //
@@ -123,15 +137,109 @@ if (midi.notes.length === 0) {
     process.exit(1);
 }
 
-const grid = findGrid(midi.notes.map((n) => n.start));
+// grid ditentukan di sini (bukan langsung `const grid = findGrid(...)` di
+// bawah) supaya kasus multi-tempo bisa mengisinya dari segmen acuan saja —
+// lihat blok if di bawah.
+let grid;
+
+// [BARU] File dengan intro rubato/ritardando (tempo berubah di tengah lagu)
+// akan salah total kalau dikonversi apa adanya: lib/piano/parseTab.ts cuma
+// mendukung SATU tempo per lagu (beda dari transpose yang boleh berubah).
+//
+// Solusinya bukan sekadar "time-warp semua tick" — itu justru MERUSAK segmen
+// yang temponya SUDAH SAMA dengan acuan: warpTickToReferenceTempo menggeser
+// semuanya dengan sebuah KONSTANTA PECAHAN (durasi nyata intro, dikonversi ke
+// tick acuan, jarang berupa kelipatan bulat unit grid), sehingga not-not yang
+// tadinya pas di grid (offset 0) jadi bergeser fase — bisa mendarat di slot
+// yang salah walau timing relatifnya tetap benar. Diverifikasi persis
+// kejadian ini di file ini sebelum kode di bawah ditulis.
+//
+// Perbaikannya: JANGKAR ULANG supaya segmen acuan (tempo terakhir) balik ke
+// tick ASLINYA yang sudah tepat di grid, dan hanya intro yang benar-benar
+// diregangkan relatif terhadap jangkar itu. Konstanta shift terakhir dipilih
+// KELIPATAN BULAT dari unit grid, supaya fase segmen acuan tidak ikut
+// bergeser saat semuanya digeser lagi ke tick non-negatif.
+if (midi.tempoMap.length > 1) {
+    console.log(
+        `\n⚠ terdeteksi ${midi.tempoMap.length} tempo berbeda di file ini (bukan cuma satu):`,
+    );
+    for (const ev of midi.tempoMap) {
+        console.log(`    tick ${ev.tick}: ${bpmFromMicros(ev.microsPerBeat).toFixed(1)} bpm`);
+    }
+
+    const boundaryTick = midi.tempoMap[midi.tempoMap.length - 1].tick;
+    const referenceMicrosPerBeat = midi.microsPerBeat; // tempo segmen terakhir
+
+    // Grid dicari HANYA dari segmen acuan (tick asli, belum di-warp) — bukan
+    // dari seluruh not. Kalau ikut menyertakan intro yang di-warp, pencarian
+    // grid akan ternodai oleh fase yang belum dikoreksi (lihat komentar di
+    // atas), dan bisa menemukan "unit" yang tidak berarti apa-apa secara
+    // musikal.
+    const refNotes = midi.notes.filter((n) => n.start >= boundaryTick);
+    console.log(
+        `  ${refNotes.length}/${midi.notes.length} not ada di segmen acuan (tempo terakhir, ` +
+            `${bpmFromMicros(referenceMicrosPerBeat).toFixed(1)} bpm) — grid dicari dari situ saja.`,
+    );
+
+    grid = findGrid(refNotes.map((n) => n.start));
+    console.log(
+        `  grid segmen acuan: ${grid.unit.toFixed(2)} tick/slot (galat rata2 ${((100 * grid.mean) / grid.unit).toFixed(2)}%)`,
+    );
+
+    // shiftAmount = seberapa jauh warpTickToReferenceTempo menggeser tick di
+    // BATAS segmen acuan. Menguranginya dari SEMUA hasil warp membuat batas
+    // itu (dan seluruh segmen acuan sesudahnya, karena warp linear di sana)
+    // balik ke tick ASLI — fase grid-nya utuh, tidak tersentuh.
+    const shiftAmount =
+        warpTickToReferenceTempo(boundaryTick, midi.tempoMap, midi.division, referenceMicrosPerBeat) -
+        boundaryTick;
+
+    const warped = midi.notes.map((n) => ({
+        n,
+        start: warpTickToReferenceTempo(n.start, midi.tempoMap, midi.division, referenceMicrosPerBeat) - shiftAmount,
+        end: warpTickToReferenceTempo(n.end, midi.tempoMap, midi.division, referenceMicrosPerBeat) - shiftAmount,
+    }));
+
+    // Intro yang diregangkan bisa jatuh ke tick NEGATIF (durasi nyatanya
+    // lebih panjang daripada representasi tick aslinya di tempo lambat).
+    // Digeser lagi supaya semua >= 0 — tapi geserannya WAJIB kelipatan bulat
+    // unit grid, kalau tidak fase segmen acuan yang baru saja diperbaiki
+    // akan rusak lagi oleh geseran kedua ini.
+    const minStart = Math.min(...warped.map((w) => w.start));
+    const finalShift =
+        minStart < 0 ? Math.ceil(-minStart / grid.unit) * grid.unit : 0;
+
+    for (const w of warped) {
+        w.n.start = w.start + finalShift;
+        w.n.end = w.end + finalShift;
+    }
+
+    console.log(
+        `  tab.txt cuma mendukung SATU tempo — timeline diregangkan supaya durasi\n` +
+            `  NYATA tiap bagian dipertahankan persis, bukan cuma jumlah tick-nya.\n` +
+            `  Segmen acuan sendiri TIDAK berubah relatif satu sama lain (cuma tergeser\n` +
+            `  ${finalShift.toFixed(0)} tick, kelipatan bulat unit grid — fasenya utuh).`,
+    );
+}
+
+// File tempo tunggal: grid belum diisi sama sekali di atas, cari sekarang
+// dari SEMUA not seperti sebelumnya — jalur ini yang dipakai 3 lagu pertama
+// (Kokoronashi, Kaikai Kitan, dan semua lagu single-tempo lain), tidak
+// berubah perilakunya sama sekali.
+if (!grid) grid = findGrid(midi.notes.map((n) => n.start));
+
 const ticksPerSec = midi.division / (midi.microsPerBeat / 1e6);
 const slotSec = grid.unit / ticksPerSec;
-// 1 slot = 1/16, jadi 1 ketuk = 4 slot.
 const bpm = 60 / (slotSec * STEPS_PER_BEAT);
 
 console.log(`sumber        : ${file}`);
 console.log(`grid          : ${grid.unit.toFixed(2)} tick/slot (galat rata2 ${((100 * grid.mean) / grid.unit).toFixed(1)}% slot)`);
-console.log(`tempo         : ${bpm.toFixed(1)} bpm  (header MIDI bilang ${bpmFromMicros(midi.microsPerBeat).toFixed(0)} — header diabaikan, lihat findGrid)`);
+console.log(
+    `tempo         : ${bpm.toFixed(1)} bpm  (header MIDI bilang ${bpmFromMicros(midi.microsPerBeat).toFixed(0)}` +
+        (midi.tempoMap.length > 1
+            ? ` — tempo segmen acuan, sudah dipakai apa adanya)`
+            : ` — header diabaikan, lihat findGrid)`),
+);
 console.log(`birama        : ${midi.timeSignature[0]}/${midi.timeSignature[1]}`);
 
 // ── 2. Quantize + lipat oktaf + gabung jadi akor per slot ────────────────────
@@ -264,16 +372,32 @@ if (mismatch > 0 || parsed.warnings.length > 0) {
 console.log(`  ✓ setiap slot cocok persis dengan sumber MIDI-nya`);
 
 // ── 5. Tulis ─────────────────────────────────────────────────────────────────
-const outDir = path.join("app/[locale]/piano/data/songs", difficulty, songId);
-if (dryRun) {
-    console.log(`\n[--dry] tidak menulis apa pun. Akan ditulis ke: ${outDir}/`);
-    console.log(`\n8 baris pertama tab:`);
-    lines.slice(0, 8).forEach((l) => console.log(`  ${l}`));
+if (sheetPath) {
+    // Mode "sheet saja": bukan bagian dari library lagu situs, tidak ada
+    // meta.json, tidak perlu --difficulty. Cuma tab.txt-nya ditulis apa
+    // adanya ke path yang diminta.
+    if (dryRun) {
+        console.log(`\n[--dry] tidak menulis apa pun. Akan ditulis ke: ${sheetPath}`);
+        console.log(`\n8 baris pertama tab:`);
+        lines.slice(0, 8).forEach((l) => console.log(`  ${l}`));
+    } else {
+        fs.mkdirSync(path.dirname(sheetPath), { recursive: true });
+        fs.writeFileSync(sheetPath, tabText);
+        console.log(`\n✓ ditulis ke ${sheetPath}`);
+        console.log(`  (referensi saja, tidak disimpan: bpm ${meta.bpm}, transpose ${meta.transpose}, stepsPerBeat ${meta.stepsPerBeat}, keyMode ${meta.keyMode})`);
+    }
 } else {
-    fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, "tab.txt"), tabText);
-    fs.writeFileSync(path.join(outDir, "meta.json"), `${JSON.stringify(meta, null, 4)}\n`);
-    console.log(`\n✓ ditulis ke ${outDir}/`);
-    console.log(`  meta: ${JSON.stringify(meta)}`);
-    console.log(`\nJalankan "npm run songs" supaya lagunya muncul di /piano.`);
+    const outDir = path.join("app/[locale]/piano/data/songs", difficulty, songId);
+    if (dryRun) {
+        console.log(`\n[--dry] tidak menulis apa pun. Akan ditulis ke: ${outDir}/`);
+        console.log(`\n8 baris pertama tab:`);
+        lines.slice(0, 8).forEach((l) => console.log(`  ${l}`));
+    } else {
+        fs.mkdirSync(outDir, { recursive: true });
+        fs.writeFileSync(path.join(outDir, "tab.txt"), tabText);
+        fs.writeFileSync(path.join(outDir, "meta.json"), `${JSON.stringify(meta, null, 4)}\n`);
+        console.log(`\n✓ ditulis ke ${outDir}/`);
+        console.log(`  meta: ${JSON.stringify(meta)}`);
+        console.log(`\nJalankan "npm run songs" supaya lagunya muncul di /piano.`);
+    }
 }

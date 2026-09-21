@@ -24,11 +24,31 @@
  */
 
 /**
+ * Satu event "Set Tempo" beserta posisi tick-nya. Kebanyakan file cuma punya
+ * satu (di tick 0) — tapi file dengan intro rubato/ritardando/accelerando
+ * (tempo berubah di tengah lagu) bisa punya beberapa. lib/piano/parseTab.ts
+ * TIDAK mendukung tempo berubah di tengah lagu (beda dari transpose yang
+ * didukung), jadi pemanggil yang perlu menanganinya sendiri lewat
+ * ticksToMs() di bawah — lihat komentarnya.
+ *
+ * @typedef {Object} TempoEvent
+ * @property {number} tick
+ * @property {number} microsPerBeat
+ */
+
+/**
  * @typedef {Object} MidiFile
  * @property {number} format
  * @property {number} division        tick per not seperempat
  * @property {MidiNote[]} notes       urut berdasarkan start, lalu midi
- * @property {number} microsPerBeat   dari meta Set Tempo (default 500000 = 120bpm)
+ * @property {number} microsPerBeat   tempo TERAKHIR (dari meta Set Tempo,
+ *                                    default 500000 = 120bpm) — untuk file
+ *                                    dengan >1 tempo, ini tempo yang berlaku
+ *                                    di BAGIAN UTAMA lagu (segmen terpanjang
+ *                                    ada di akhir untuk file yang pernah
+ *                                    ditemui sejauh ini), bukan rata-rata.
+ * @property {TempoEvent[]} tempoMap  SELURUH perubahan tempo, urut tick naik,
+ *                                    minimal 1 entri (selalu ada tick 0).
  * @property {[number,number]} timeSignature  mis. [4,4]
  * @property {string[]} trackNames
  * @property {number} endTick
@@ -94,6 +114,8 @@ export function parseMidi(buf) {
     const notes = [];
     const trackNames = [];
     let microsPerBeat = 500000;
+    /** @type {TempoEvent[]} */
+    const tempoMap = [];
     let timeSignature = [4, 4];
     let endTick = 0;
 
@@ -125,6 +147,7 @@ export function parseMidi(buf) {
                 const data = r.bytes(dataLen);
                 if (type === 0x51 && dataLen === 3) {
                     microsPerBeat = (data[0] << 16) | (data[1] << 8) | data[2];
+                    tempoMap.push({ tick, microsPerBeat });
                 } else if (type === 0x58 && dataLen >= 2) {
                     timeSignature = [data[0], 2 ** data[1]];
                 } else if (type === 0x03) {
@@ -180,7 +203,88 @@ export function parseMidi(buf) {
     }
 
     notes.sort((a, b) => a.start - b.start || a.midi - b.midi);
-    return { format, division, notes, microsPerBeat, timeSignature, trackNames, endTick };
+
+    // Urutkan + buang duplikat tick (event tempo yang sama persis dari
+    // beberapa track, kadang muncul kembar). Kalau tidak ada satu pun (file
+    // tanpa meta Set Tempo sama sekali), pakai default 120bpm di tick 0 —
+    // supaya ticksToMs() di bawah selalu punya minimal satu segmen.
+    tempoMap.sort((a, b) => a.tick - b.tick);
+    const dedupedTempoMap = [];
+    for (const ev of tempoMap) {
+        const last = dedupedTempoMap[dedupedTempoMap.length - 1];
+        if (last && last.tick === ev.tick) last.microsPerBeat = ev.microsPerBeat;
+        else dedupedTempoMap.push({ ...ev });
+    }
+    if (dedupedTempoMap.length === 0 || dedupedTempoMap[0].tick > 0) {
+        dedupedTempoMap.unshift({ tick: 0, microsPerBeat: 500000 });
+    }
+
+    return {
+        format,
+        division,
+        notes,
+        microsPerBeat,
+        tempoMap: dedupedTempoMap,
+        timeSignature,
+        trackNames,
+        endTick,
+    };
+}
+
+/**
+ * Tick ABSOLUT -> milidetik nyata sejak awal lagu, menghormati SELURUH peta
+ * tempo — bukan cuma tempo pertama/terakhir seperti perhitungan naif
+ * `tick / division * (microsPerBeat/1000)`.
+ *
+ * Kenapa ini penting: dalam satu file bisa ada intro rubato/ritardando
+ * (tempo lambat & berubah-ubah) sebelum masuk tempo utama yang tetap. Dalam
+ * SATU segmen tempo, hubungan tick->ms linear (tempo-nya konstan), jadi
+ * cukup akumulasi durasi tiap segmen yang DILEWATI PENUH, lalu tambahkan
+ * sisa tick di segmen tempat tick target berada.
+ *
+ * @param {number} tick
+ * @param {TempoEvent[]} tempoMap urut naik berdasarkan tick, dari parseMidi()
+ * @param {number} division
+ * @returns {number} milidetik
+ */
+export function ticksToMs(tick, tempoMap, division) {
+    let ms = 0;
+    for (let i = 0; i < tempoMap.length; i++) {
+        const segStart = tempoMap[i].tick;
+        if (tick <= segStart) break;
+        const segEnd = i + 1 < tempoMap.length ? tempoMap[i + 1].tick : Infinity;
+        const segTicks = Math.min(tick, segEnd) - segStart;
+        ms += (segTicks / division) * (tempoMap[i].microsPerBeat / 1000);
+        if (tick <= segEnd) break;
+    }
+    return ms;
+}
+
+/**
+ * Kebalikan konsep ticksToMs, dipakai untuk MENGOREKSI file yang punya >1
+ * tempo: ubah setiap tick MENTAH (dari file, campur beberapa tempo) jadi
+ * "tick setara" seandainya SELURUH lagu dari awal dimainkan pada satu tempo
+ * acuan (biasanya tempo utama/terpanjang). Hasilnya bisa langsung dipakai
+ * findGrid()/quantisasi yang sudah ada TANPA perubahan apa pun di sana —
+ * segmen yang temponya SUDAH SAMA dengan acuan menghasilkan tick identik
+ * (cuma tergeser konstan kalau ada segmen lain sebelumnya), sementara segmen
+ * yang temponya beda otomatis meregang/memampat proporsional supaya durasi
+ * NYATA-nya (detik) tetap sama persis seperti file aslinya.
+ *
+ * @param {number} tick
+ * @param {TempoEvent[]} tempoMap
+ * @param {number} division
+ * @param {number} referenceMicrosPerBeat tempo acuan
+ * @returns {number} tick setara pada tempo acuan (boleh pecahan)
+ */
+export function warpTickToReferenceTempo(
+    tick,
+    tempoMap,
+    division,
+    referenceMicrosPerBeat,
+) {
+    const ms = ticksToMs(tick, tempoMap, division);
+    return (ms / (referenceMicrosPerBeat / 1000)) * division;
 }
 
 /** Tempo MIDI (mikrodetik per ketuk) → BPM. */
