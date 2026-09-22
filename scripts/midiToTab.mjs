@@ -74,6 +74,10 @@ const sheetPath = flag("sheet");
 // tetap presisi. Lihat laporan "grid dari segmen utama" di console kalau
 // perlu memutuskan angka ini.
 const STEPS_PER_BEAT = Number(flag("spb", "4"));
+// Paksa ukuran slot (tick) alih-alih memakai hasil findGrid. Dipakai kalau
+// grid temuan terlalu halus sampai tab-nya jadi tidak terbaca — lihat tabel
+// "ongkos kalau grid dikasarkan" yang dicetak script ini.
+const gridOverride = flag("grid") ? Number(flag("grid")) : null;
 
 // ── Peta balik: nada MIDI → karakter QWERTY ──────────────────────────────────
 //
@@ -142,6 +146,12 @@ if (midi.notes.length === 0) {
 // lihat blok if di bawah.
 let grid;
 
+// Tempo yang dipakai untuk menerjemahkan tick -> detik. Untuk file tempo
+// tunggal ini satu-satunya tempo yang ada. Untuk file multi-tempo ini tempo
+// SEGMEN ACUAN — BUKAN midi.microsPerBeat, yang isinya tempo TERAKHIR dan bisa
+// jadi cuma penanda ritardando di ujung lagu tanpa not sama sekali.
+let referenceMicrosPerBeat = midi.microsPerBeat;
+
 // [BARU] File dengan intro rubato/ritardando (tempo berubah di tengah lagu)
 // akan salah total kalau dikonversi apa adanya: lib/piano/parseTab.ts cuma
 // mendukung SATU tempo per lagu (beda dari transpose yang boleh berubah).
@@ -154,31 +164,54 @@ let grid;
 // yang salah walau timing relatifnya tetap benar. Diverifikasi persis
 // kejadian ini di file ini sebelum kode di bawah ditulis.
 //
-// Perbaikannya: JANGKAR ULANG supaya segmen acuan (tempo terakhir) balik ke
-// tick ASLINYA yang sudah tepat di grid, dan hanya intro yang benar-benar
-// diregangkan relatif terhadap jangkar itu. Konstanta shift terakhir dipilih
-// KELIPATAN BULAT dari unit grid, supaya fase segmen acuan tidak ikut
-// bergeser saat semuanya digeser lagi ke tick non-negatif.
+// Perbaikannya: JANGKAR ULANG supaya segmen acuan balik ke tick ASLINYA yang
+// sudah tepat di grid, dan hanya segmen lain yang benar-benar diregangkan
+// relatif terhadap jangkar itu. Konstanta shift terakhir dipilih KELIPATAN
+// BULAT dari unit grid, supaya fase segmen acuan tidak ikut bergeser saat
+// semuanya digeser lagi ke tick non-negatif.
+//
+// Segmen acuan = yang PALING BANYAK NOT-nya, bukan yang terakhir. Awalnya
+// dipakai "yang terakhir" dan itu salah: di Zankoku na Tenshi no Thesis,
+// event tempo terakhir adalah penanda ritardando di ujung lagu (tick 48000
+// dari endTick 48001) yang TIDAK memuat satu not pun — findGrid menerima
+// array kosong dan mengembalikan NaN, yang akan merusak seluruh konversi.
+// "Paling banyak not" memberi jawaban sama untuk file yang tempo utamanya
+// memang di akhir, tapi tidak bisa ketipu segmen kosong seperti itu.
 if (midi.tempoMap.length > 1) {
     console.log(
         `\n⚠ terdeteksi ${midi.tempoMap.length} tempo berbeda di file ini (bukan cuma satu):`,
     );
-    for (const ev of midi.tempoMap) {
-        console.log(`    tick ${ev.tick}: ${bpmFromMicros(ev.microsPerBeat).toFixed(1)} bpm`);
+
+    const segments = midi.tempoMap.map((ev, i) => {
+        const end =
+            i + 1 < midi.tempoMap.length ? midi.tempoMap[i + 1].tick : Infinity;
+        return {
+            ...ev,
+            end,
+            notes: midi.notes.filter((n) => n.start >= ev.tick && n.start < end),
+        };
+    });
+    for (const s of segments) {
+        console.log(
+            `    tick ${String(s.tick).padStart(6)}: ${bpmFromMicros(s.microsPerBeat).toFixed(1).padStart(5)} bpm  ${String(s.notes.length).padStart(4)} not`,
+        );
     }
 
-    const boundaryTick = midi.tempoMap[midi.tempoMap.length - 1].tick;
-    const referenceMicrosPerBeat = midi.microsPerBeat; // tempo segmen terakhir
+    const reference = segments.reduce((a, b) =>
+        b.notes.length > a.notes.length ? b : a,
+    );
+    const boundaryTick = reference.tick;
+    referenceMicrosPerBeat = reference.microsPerBeat;
 
     // Grid dicari HANYA dari segmen acuan (tick asli, belum di-warp) — bukan
-    // dari seluruh not. Kalau ikut menyertakan intro yang di-warp, pencarian
-    // grid akan ternodai oleh fase yang belum dikoreksi (lihat komentar di
-    // atas), dan bisa menemukan "unit" yang tidak berarti apa-apa secara
-    // musikal.
-    const refNotes = midi.notes.filter((n) => n.start >= boundaryTick);
+    // dari seluruh not. Kalau ikut menyertakan segmen lain yang di-warp,
+    // pencarian grid akan ternodai oleh fase yang belum dikoreksi (lihat
+    // komentar di atas), dan bisa menemukan "unit" yang tidak berarti apa-apa
+    // secara musikal.
+    const refNotes = reference.notes;
     console.log(
-        `  ${refNotes.length}/${midi.notes.length} not ada di segmen acuan (tempo terakhir, ` +
-            `${bpmFromMicros(referenceMicrosPerBeat).toFixed(1)} bpm) — grid dicari dari situ saja.`,
+        `  segmen acuan: tick ${boundaryTick} @ ${bpmFromMicros(referenceMicrosPerBeat).toFixed(1)} bpm ` +
+            `(${refNotes.length}/${midi.notes.length} not, terbanyak) — grid dicari dari situ saja.`,
     );
 
     grid = findGrid(refNotes.map((n) => n.start));
@@ -228,7 +261,25 @@ if (midi.tempoMap.length > 1) {
 // berubah perilakunya sama sekali.
 if (!grid) grid = findGrid(midi.notes.map((n) => n.start));
 
-const ticksPerSec = midi.division / (midi.microsPerBeat / 1e6);
+// --grid menang atas hasil findGrid. Galatnya dihitung ulang terhadap unit
+// yang dipaksa itu, supaya angka yang dilaporkan tetap menggambarkan hasil
+// yang SEBENARNYA ditulis — bukan galat grid yang tidak jadi dipakai.
+if (gridOverride) {
+    const starts = [...new Set(midi.notes.map((n) => n.start))];
+    let sum = 0;
+    let worst = 0;
+    for (const s of starts) {
+        const e = Math.abs(s - Math.round(s / gridOverride) * gridOverride);
+        sum += e;
+        if (e > worst) worst = e;
+    }
+    console.log(
+        `\ngrid dipaksa ke ${gridOverride} tick (--grid), bukan ${grid.unit.toFixed(2)} hasil findGrid.`,
+    );
+    grid = { unit: gridOverride, mean: sum / starts.length, worst };
+}
+
+const ticksPerSec = midi.division / (referenceMicrosPerBeat / 1e6);
 const slotSec = grid.unit / ticksPerSec;
 const bpm = 60 / (slotSec * STEPS_PER_BEAT);
 
@@ -241,6 +292,45 @@ console.log(
             : ` — header diabaikan, lihat findGrid)`),
 );
 console.log(`birama        : ${midi.timeSignature[0]}/${midi.timeSignature[1]}`);
+
+// ── Ongkos kalau grid dikasarkan ────────────────────────────────────────────
+//
+// PENTING, supaya tidak salah paham seperti sebelumnya: --spb TIDAK mengubah
+// timing maupun isi tab sama sekali. parseTab memakai
+// stepMs = 60000/bpm/stepsPerBeat, sementara bpm di sini justru diturunkan
+// dari stepsPerBeat — keduanya saling meniadakan, stepMs selalu = slotSec.
+// Kuantisasi pun memakai grid.unit, bukan spb. Jadi --spb murni pilihan
+// LABEL: pasangan (bpm, stepsPerBeat) mana yang enak dibaca manusia untuk
+// durasi slot yang sama persis.
+//
+// Yang BENAR-BENAR mengubah hasil adalah ukuran grid-nya (--grid). Grid hasil
+// findGrid paling presisi, tapi belum tentu paling masuk akal: slot terlalu
+// halus bikin tab.txt jadi lautan "-" yang tidak terbaca dan filenya
+// membengkak. Tabel ini memberi dasar angka untuk memutuskan — ukurannya
+// GALAT WAKTU DALAM MILIDETIK, bukan cantik tidaknya angka pembagi.
+{
+    const starts = [...new Set(midi.notes.map((n) => n.start))];
+    const msPerTick = referenceMicrosPerBeat / 1000 / midi.division;
+    const span = Math.max(...starts) - Math.min(...starts);
+    console.log(`\nongkos kalau grid dikasarkan (--grid <tick>):`);
+    for (const mult of [1, 2, 3, 4, 6, 8]) {
+        const unit = grid.unit * mult;
+        let sum = 0;
+        let worst = 0;
+        for (const s of starts) {
+            const e = Math.abs(s - Math.round(s / unit) * unit) * msPerTick;
+            sum += e;
+            if (e > worst) worst = e;
+        }
+        const mean = sum / starts.length;
+        const mark = mult === 1 ? "  <-- hasil findGrid" : "";
+        console.log(
+            `  ${String(unit.toFixed(2)).padStart(7)} tick  slot ${(unit * msPerTick).toFixed(1).padStart(6)}ms  ` +
+                `≈${String(Math.round(span / unit)).padStart(6)} slot  ` +
+                `galat rata2 ${mean.toFixed(1).padStart(5)}ms  max ${worst.toFixed(1).padStart(6)}ms${mark}`,
+        );
+    }
+}
 
 // ── 2. Quantize + lipat oktaf + gabung jadi akor per slot ────────────────────
 /** @type {Map<number, Set<number>>} slot -> himpunan nada (sudah digeser+dilipat) */
