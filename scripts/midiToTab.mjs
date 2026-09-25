@@ -78,6 +78,13 @@ const STEPS_PER_BEAT = Number(flag("spb", "4"));
 // grid temuan terlalu halus sampai tab-nya jadi tidak terbaca — lihat tabel
 // "ongkos kalau grid dikasarkan" yang dicetak script ini.
 const gridOverride = flag("grid") ? Number(flag("grid")) : null;
+// Satukan onset yang berjarak <= N tick jadi satu waktu sebelum dikuantisasi.
+// Perlu untuk file REKAMAN PERMAINAN (bukan notasi): jari manusia tidak menekan
+// akor persis serempak, sebarannya beberapa tick. Tanpa ini, batas slot bisa
+// jatuh di tengah sebaran itu dan satu akor terbelah ke dua slot — jadi
+// terdengar (dan harus ditekan di mode learn) sebagai dua kejadian terpisah.
+// Default 0 = mati, supaya file yang sudah terkuantisasi rapi tidak tersentuh.
+const chordWindow = Number(flag("chord-window", "0"));
 
 // ── Peta balik: nada MIDI → karakter QWERTY ──────────────────────────────────
 //
@@ -139,6 +146,47 @@ const midi = parseMidi(fs.readFileSync(file));
 if (midi.notes.length === 0) {
     console.error("MIDI tidak berisi satu not pun.");
     process.exit(1);
+}
+
+// ── 0. Satukan sebaran akor (hanya kalau --chord-window diisi) ──────────────
+//
+// Dijalankan di ruang tick MENTAH, sebelum time-warp maupun pencarian grid:
+// sebaran ini artefak PERMAINAN, jadi harus dibersihkan sebelum apa pun
+// menafsirkan posisinya. Setiap gugus onset yang beruntun dengan jarak
+// <= chordWindow ditarik ke onset PALING AWAL di gugus itu — bukan ke rata-
+// ratanya, karena itulah saat akornya mulai terdengar.
+if (chordWindow > 0) {
+    const uniq = [...new Set(midi.notes.map((n) => n.start))].sort((a, b) => a - b);
+    /** onset asli -> onset wakil gugusnya */
+    const snapTo = new Map();
+    // Syaratnya diukur dari JANGKAR, bukan dari onset sebelumnya. Kalau diukur
+    // dari onset sebelumnya, deretan onset yang masing-masing berjarak tepat
+    // sebatas jendela akan berantai jadi satu gugus yang jauh lebih lebar dari
+    // jendelanya (onset 0,8,16,24 dengan jendela 8 semuanya tertarik ke 0 —
+    // geseran 24 tick). Dengan diukur dari jangkar, geseran dijamin tidak
+    // pernah melebihi chordWindow.
+    let anchor = uniq[0];
+    for (const s of uniq) {
+        if (s - anchor > chordWindow) anchor = s; // gugus baru
+        snapTo.set(s, anchor);
+    }
+
+    let moved = 0;
+    let worst = 0;
+    for (const n of midi.notes) {
+        const to = snapTo.get(n.start);
+        if (to !== n.start) {
+            worst = Math.max(worst, n.start - to);
+            moved++;
+            n.start = to;
+        }
+    }
+    const groups = new Set(snapTo.values()).size;
+    console.log(
+        `\nsebaran akor disatukan (--chord-window ${chordWindow} tick): ` +
+            `${uniq.length} onset -> ${groups} waktu, ${moved} not digeser, geseran terbesar ${worst} tick ` +
+            `(${(worst * (midi.microsPerBeat / 1000 / midi.division)).toFixed(1)}ms).`,
+    );
 }
 
 // grid ditentukan di sini (bukan langsung `const grid = findGrid(...)` di
