@@ -49,6 +49,24 @@ const NOTE_GAP = 3;
 
 const MAX_GROW_FRAC = 0.92;
 
+// Bar di tuts hitam memakai versi warna yang lebih gelap. Tujuannya supaya
+// bar yang berada di antara dua tuts putih tidak terlihat "mengambang" dan
+// tetap terbaca sebagai bagian dari tuts hitam. Bar tuts putih tidak berubah.
+const BLACK_BAR_DARKEN = 0.72;
+
+/**
+ * Perkecil komponen RGB dari warna hex 6 digit. Dipakai sekali setiap kali
+ * barColor berubah, bukan per frame. Warna non-hex dikembalikan apa adanya.
+ */
+function darkenHex(hex: string, factor: number): string {
+    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
+    const n = Number.parseInt(hex.slice(1), 16);
+    const r = Math.round(((n >> 16) & 0xff) * factor);
+    const g = Math.round(((n >> 8) & 0xff) * factor);
+    const b = Math.round((n & 0xff) * factor);
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+}
+
 // [PINDAH] isTextEntryTarget() sekarang di lib/keyMap.ts (di-import di atas) —
 // PianoControls butuh guard yang sama persis untuk shortcut "/" panel Sheets,
 // jadi dipindah ke satu tempat bersama alih-alih diduplikasi.
@@ -84,6 +102,15 @@ export interface Bar {
     yOffset: number;
     isReleased: boolean;
     keyEl: HTMLElement | null;
+    /** Tuts fisik tempat bar ini berada — menentukan varian warna bar. */
+    isBlackKey: boolean;
+}
+
+/** Tiga stop gradient untuk satu warna bar. */
+interface BarStops {
+    c0: string;
+    c25: string;
+    c1: string;
 }
 
 export interface PianoEngineRefs {
@@ -178,6 +205,9 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     // ── Shadow refs — stale-closure-safe copies of state ──────────────────────
     const transposeRef = useRef(0);
     const barColorRef = useRef("#f0a63a");
+    const blackBarColorRef = useRef(
+        darkenHex("#f0a63a", BLACK_BAR_DARKEN),
+    );
     // allowCtrl gates the Ctrl→note map inside the keydown closure. It is only
     // true when Keyboard Lock is active (Chromium + fullscreen + 88-key mode).
     const allowCtrlRef = useRef(false);
@@ -187,6 +217,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     }, [transpose]);
     useEffect(() => {
         barColorRef.current = barColor;
+        blackBarColorRef.current = darkenHex(barColor, BLACK_BAR_DARKEN);
     }, [barColor]);
     useEffect(() => {
         allowCtrlRef.current = lockActive;
@@ -220,12 +251,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     // pada 8 nada/detik itu ~2.300 objek + ~7.000 string PER DETIK, murni jadi
     // beban garbage collector. Isinya hanya berubah saat --bar-color diganti.
     const gradCacheRef = useRef<Map<string, CanvasGradient>>(new Map());
-    const stopsCacheRef = useRef<{
-        key: string;
-        c0: string;
-        c25: string;
-        c1: string;
-    } | null>(null);
+    const stopsCacheRef = useRef<Map<string, BarStops>>(new Map());
 
     // ── Piano DOM refs ─────────────────────────────────────────────────────────
     const pianoRef = useRef<HTMLDivElement | null>(null);
@@ -442,6 +468,9 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
                 yOffset: 0,
                 isReleased: false,
                 keyEl,
+                // Warna bar mengikuti tuts fisik, bukan pitch yang berbunyi:
+                // transposisi tidak memindahkan bar ke tuts lain.
+                isBlackKey: g.isBlack,
             };
         },
         [],
@@ -485,11 +514,12 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
 
         // [BARU — perf 1.2] Tiga string warna dihitung sekali per warna, bukan
         // 3x per bar per frame.
-        function getStops(color: string) {
-            const cur = stopsCacheRef.current;
-            if (cur && cur.key === color) return cur;
-            const next = {
-                key: color,
+        function getStops(color: string): BarStops {
+            const cache = stopsCacheRef.current;
+            const hit = cache.get(color);
+            if (hit) return hit;
+
+            const next: BarStops = {
                 // Dulu c0 = "00" (transparan total). Saat bar bertumpuk, ujung
                 // atas yang bening itu memperlihatkan bar di belakangnya dan
                 // muncullah pita fade yang membuat not tampak menyatu. Dengan
@@ -499,7 +529,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
                 c25: color + "cc",
                 c1: color + "ff",
             };
-            stopsCacheRef.current = next;
+            cache.set(color, next);
             return next;
         }
 
@@ -564,13 +594,17 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             // ctx2d.save(); ctx2d.shadowColor = color; ctx2d.shadowBlur = 14; ...; ctx2d.restore();
 
             // [BARU — perf 1.2/1.3] Gradient dari cache, digeser ke posisi bar
-            // lewat setTransform. shadowColor/shadowBlur TIDAK disetel di sini
-            // — sudah di-hoist ke luar loop (nilainya sama untuk semua bar),
-            // jadi glow-nya identik tapi propertinya tidak ditulis ulang 39x
-            // per frame. setTransform dipakai menggantikan save/restore supaya
+            // lewat setTransform. shadowBlur tetap di-hoist ke luar loop (3
+            // untuk released, 10 untuk active), tetapi shadowColor sekarang
+            // per bar: bar di tuts hitam memakai varian warna yang lebih
+            // gelap. setTransform dipakai menggantikan save/restore supaya
             // tidak ada drift matriks dan tanpa operasi stack per bar.
+            const color = bar.isBlackKey
+                ? blackBarColorRef.current
+                : barColorRef.current;
+            ctx2d.shadowColor = color;
             ctx2d.setTransform(1, 0, 0, 1, 0, gTop);
-            ctx2d.fillStyle = getGradient(ctx2d, barColorRef.current, gLen);
+            ctx2d.fillStyle = getGradient(ctx2d, color, gLen);
             ctx2d.beginPath();
             (
                 ctx2d as CanvasRenderingContext2D & {
@@ -633,7 +667,20 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
                 if (bottom < 0 || top > H) continue;
 
                 // Yang sedang ditunggu digambar tegas, sisanya samar.
-                ctx2d.fillStyle = n.pending ? `${color}cc` : `${color}3d`;
+                // Tuts hitam memakai varian gelap; alpha dinaikkan satu
+                // tingkat supaya bar panduan tetap terlihat di atas kanvas
+                // yang juga gelap.
+                const guideColor = gk.isBlack
+                    ? blackBarColorRef.current
+                    : color;
+                const alpha = gk.isBlack
+                    ? n.pending
+                        ? "dd"
+                        : "55"
+                    : n.pending
+                      ? "cc"
+                      : "3d";
+                ctx2d.fillStyle = guideColor + alpha;
                 ctx2d.beginPath();
                 (
                     ctx2d as CanvasRenderingContext2D & {
@@ -727,7 +774,6 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             // laju naik, not berurutan tidak mungkin saling menyusul. Urutan
             // gambar tetap released paling lama → terbaru, lalu bar aktif,
             // supaya bar terbaru selalu di atas.
-            ctx2d.shadowColor = barColorRef.current;
             // Glow kecil untuk bar released: blur besar (dulu 8) mengisi celah
             // 3px dan membuat bar berbeda tuts terlihat menyambung lagi.
             ctx2d.shadowBlur = 3;
