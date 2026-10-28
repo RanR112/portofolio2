@@ -223,6 +223,19 @@
             box-shadow: 0 0 6px v.$accent2;
         }
     }
+
+    // Sustain sedang dipegang lagu (timing MIDI). Tombol sengaja tidak bisa
+    // diklik; badge AUTO di ujung kanan menggantikan hint SPACE.
+    &.auto {
+        cursor: not-allowed;
+        border-style: dashed;
+        opacity: 0.8;
+
+        &:hover {
+            border-color: v.$border;
+            color: v.$text-dim;
+        }
+    }
 }
 
 .led {

@@ -111,6 +111,17 @@ class PianoEngine {
 
     private _samplesReady = false;
     private _sustain = true;
+    /**
+     * Nilai sustain dari toggle UI. Dipisah dari _sustain karena selama lagu
+     * ber-timing dimainkan, pedal dikendalikan lagu (lihat _sustainOverride).
+     */
+    private _sustainInput = true;
+    /**
+     * null  = tidak ada yang menimpa → pakai _sustainInput (perilaku biasa)
+     * true  = pedal diinjak paksa (lagu MIDI tanpa CC64)
+     * false = pedal dilepas paksa (lagu MIDI dengan CC64, sebelum event pertama)
+     */
+    private _sustainOverride: boolean | null = null;
     private _volume = 0.75; // 0–1
 
     private _loading: Promise<void> | null = null;
@@ -118,6 +129,15 @@ class PianoEngine {
     /** True once all 30 samples have finished decoding. */
     get samplesReady(): boolean {
         return this._samplesReady;
+    }
+
+    /**
+     * True saat pedal sedang dikendalikan lagu. UI memakainya untuk menandai
+     * tombol sustain "auto" dan mengabaikan Space, supaya user tidak mengubah
+     * toggle yang memang tidak berpengaruh selama lagu berjalan.
+     */
+    get sustainLocked(): boolean {
+        return this._sustainOverride !== null;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -203,11 +223,40 @@ class PianoEngine {
     // ─────────────────────────────────────────────────────────────────────────
 
     setSustain(on: boolean): void {
-        this._sustain = on;
-        if (!on) {
+        this._sustainInput = on;
+        this._applySustain();
+    }
+
+    /**
+     * Pedal yang dikendalikan lagu (autoplay timing). Tidak mengubah toggle UI:
+     * setelah lagu berhenti, pemanggil mengembalikan null dan pedal kembali
+     * mengikuti toggle user.
+     */
+    setSustainOverride(on: boolean | null): void {
+        this._sustainOverride = on;
+        this._applySustain();
+    }
+
+    private _applySustain(): void {
+        const effective = this._sustainOverride ?? this._sustainInput;
+        const wasOn = this._sustain;
+        this._sustain = effective;
+        if (!effective && wasOn) {
             this.sustainedKeys.forEach((label) => this._quickRelease(label));
             this.sustainedKeys.clear();
         }
+    }
+
+    /**
+     * Hentikan SEMUA suara, tanpa peduli sustain. Dipakai saat lagu di-pause,
+     * di-stop, atau selesai: kalau hanya stopNote(), pedal yang sedang diinjak
+     * akan menahan not terakhir tetap berbunyi setelah lagunya berhenti.
+     */
+    allNotesOff(): void {
+        for (const label of [...this.activeVoices.keys()]) {
+            this._quickRelease(label);
+        }
+        this.sustainedKeys.clear();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -324,6 +373,9 @@ class PianoEngine {
         this.activeVoices.forEach((_, label) => this._hardStop(label));
         this.activeVoices.clear();
         this.sustainedKeys.clear();
+        this._sustainOverride = null;
+        this._sustainInput = true;
+        this._sustain = true;
         this.ctx?.close();
         this.ctx = null;
         this.masterGain = null;

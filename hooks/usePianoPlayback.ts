@@ -25,6 +25,11 @@
 //            bunyi, animasi tuts, dan bar naik semuanya lewat jalur engine yang
 //            sudah ada. User tidak perlu menekan apa pun.
 //
+//            Panjang not dan pedal diambil dari timing.json kalau lagunya punya
+//            sumber MIDI: tab hanya menyimpan ONSET, jadi tanpa timing setiap
+//            not akan berbunyi 1 slot dan pedal mengikuti toggle user. Lagu
+//            tanpa MIDI tetap memakai perilaku itu (durasi 1 slot).
+//
 // learn    : scheduler TIDAK membunyikan apa pun. Ia hanya menurunkan bar
 //            panduan dari atas kanvas ke tuts yang harus ditekan, dan MENAHAN
 //            jam di not yang belum ditekan. Karena posisi semua bar diturunkan
@@ -38,7 +43,9 @@ import { parseTab, type ParsedSong } from "@/lib/piano/parseTab";
 import {
     loadSongIndex,
     loadSongTab,
+    loadSongTiming,
     type SongIndexEntry,
+    type SongTiming,
 } from "@/lib/piano/songIndex";
 import {
     groupChords,
@@ -58,6 +65,12 @@ export interface LoadedSong {
     /** tab mentah — yang ditampilkan di panel Sheets */
     tab: string;
     parsed: ParsedSong;
+    /**
+     * durasi not + pedal dari MIDI, dalam satuan slot. null = lagu ini tidak
+     * punya sumber MIDI (atau timing-nya gagal dimuat) → autoplay memakai
+     * perilaku lama: tiap not 1 slot, sustain mengikuti toggle user.
+     */
+    timing: SongTiming | null;
     /** hanya dipakai mode learn */
     chords: Chord[];
 }
@@ -117,6 +130,12 @@ interface UsePianoPlaybackOptions {
 export interface PianoPlayback {
     state: PlaybackState;
     uiStatus: PlaybackUiStatus;
+    /**
+     * True saat sustain sedang dikendalikan lagu (timing MIDI). UI memakai ini
+     * untuk menandai tombol sustain sebagai "auto": nilai toggle user tetap
+     * tersimpan, tapi tidak berpengaruh sampai lagunya berhenti.
+     */
+    sustainAuto: boolean;
     /** Posisi lagu dalam ms. Ref, bukan state — lihat catatan di atas. */
     elapsedRef: React.MutableRefObject<number>;
     /** Indeks token sheet yang sedang disorot (-1 = tidak ada). */
@@ -202,6 +221,10 @@ export function usePianoPlayback({
     const activeTokenRef = useRef(-1);
     /** Token berikutnya yang akan jadi aktif (khusus autoplay, berbasis waktu). */
     const tokenCursorRef = useRef(0);
+    /** Event pedal berikutnya di song.timing.pedal (khusus autoplay). */
+    const pedalIdxRef = useRef(0);
+    /** Kondisi pedal terakhir (true = diinjak). Dipakai untuk memulihkan saat resume. */
+    const pedalOnRef = useRef(false);
     const heldRef = useRef<HeldNote[]>([]);
     /**
      * Membatalkan pemuatan yang sudah tidak relevan — user menekan Stop atau
@@ -242,6 +265,19 @@ export function usePianoPlayback({
         heldRef.current = [];
     }, []);
 
+    /**
+     * Hentikan semua bunyi dan kembalikan pedal ke kendali toggle user. Dipakai
+     * saat stop, selesai, ganti lagu, dan unmount: tanpa ini not terakhir bisa
+     * terus berbunyi mengikuti pedal lagu, dan toggle sustain milik user tetap
+     * "terkunci" oleh lagu yang sudah tidak ada. Saat pause TIDAK dipakai —
+     * pause hanya mematikan suara (pedal tetap milik lagu sampai Stop).
+     */
+    const silenceAndReleasePedal = useCallback(() => {
+        pianoEngine.allNotesOff();
+        pianoEngine.setSustainOverride(null);
+        pedalOnRef.current = false;
+    }, []);
+
     const clearGuide = useCallback(() => {
         const g = guideRef.current;
         g.active = false;
@@ -259,6 +295,8 @@ export function usePianoPlayback({
         eventIdxRef.current = 0;
         activeTokenRef.current = -1;
         tokenCursorRef.current = 0;
+        pedalIdxRef.current = 0;
+        pedalOnRef.current = false;
         learnRef.current.active = false;
         learnRef.current.idx = 0;
         learnRef.current.pressed.clear();
@@ -290,12 +328,16 @@ export function usePianoPlayback({
 
             const token = ++loadTokenRef.current;
             releaseAllHeld();
+            silenceAndReleasePedal();
             resetCursor();
             setState({ status: "loading", entry, mode });
 
             void (async () => {
                 try {
-                    const tab = await loadSongTab(entry);
+                    const [tab, timing] = await Promise.all([
+                        loadSongTab(entry),
+                        loadSongTiming(entry),
+                    ]);
                     if (loadTokenRef.current !== token) return;
 
                     const spbOverride = readSpbOverride();
@@ -346,9 +388,23 @@ export function usePianoPlayback({
                     learnRef.current.idx = 0;
                     learnRef.current.pressed.clear();
 
+                    // Sustain yang dikendalikan lagu hanya untuk autoplay.
+                    // Mode learn tidak membunyikan apa pun, jadi pedal user
+                    // tidak boleh ikut berubah.
+                    if (mode === "autoplay" && timing) {
+                        // Lagu dengan CC64 mulai dengan pedal LEPAS, lalu event
+                        // pertama yang menginjak. Lagu tanpa CC64 ditahan ON
+                        // sepanjang lagu (keputusan owner: lebih baik bergema
+                        // daripada semua not terpotong).
+                        const startsOn = timing.pedal.length === 0;
+                        pedalOnRef.current = startsOn;
+                        pedalIdxRef.current = 0;
+                        pianoEngine.setSustainOverride(startsOn);
+                    }
+
                     setState({
                         status: "running",
-                        song: { entry, mode, tab, parsed, chords },
+                        song: { entry, mode, tab, parsed, timing, chords },
                         paused: false,
                     });
                 } catch (e) {
@@ -364,6 +420,7 @@ export function usePianoPlayback({
         [
             onSheetLoaded,
             releaseAllHeld,
+            silenceAndReleasePedal,
             resetCursor,
             setTranspose,
             barsEnabledRef,
@@ -376,6 +433,11 @@ export function usePianoPlayback({
         // Not yang sedang ditahan dilepas, kalau tidak sorotan tutsnya akan
         // membeku menyala selama jeda.
         releaseAllHeld();
+        // Semua suara dimatikan tanpa melepas pedal lagu: kondisi pedal
+        // dipertahankan supaya resume tidak perlu menghitung ulang, dan toggle
+        // sustain tetap "auto" selama lagunya belum berhenti. allNotesOff()
+        // tetap senyap walau pedal sedang diinjak.
+        pianoEngine.allNotesOff();
         // Bar panduan dibiarkan TERLIHAT tapi dibekukan. clockAt wajib di-null
         // di sini: selagi dijeda, ticker berhenti, jadi kalau clockAt masih
         // berisi angka, engine akan terus menginterpolasi maju dan barnya jalan
@@ -403,10 +465,11 @@ export function usePianoPlayback({
         // Memilih lagu lain setelah ini = start bersih, tanpa sisa state.
         loadTokenRef.current++;
         releaseAllHeld();
+        silenceAndReleasePedal();
         clearGuide();
         resetCursor();
         setState({ status: "idle" });
-    }, [releaseAllHeld, clearGuide, resetCursor]);
+    }, [releaseAllHeld, silenceAndReleasePedal, clearGuide, resetCursor]);
 
     /**
      * User menekan sebuah tuts (keyboard / mouse / sentuh / glissando).
@@ -443,6 +506,16 @@ export function usePianoPlayback({
 
         const { events, tokens, transposeChanges, durationMs } = song.parsed;
         const isAutoplay = song.mode === "autoplay";
+        const timing = song.timing;
+        const stepMs = song.parsed.stepMs;
+
+        // Resume: pedal lagu dipasang lagi pada kondisi terakhirnya. pause()
+        // hanya mematikan suara (allNotesOff), tidak melepas pedal, jadi ini
+        // terutama pengaman kalau efek sempat dibongkar-pasang; pada start awal
+        // nilainya sama dengan yang sudah dipasang start().
+        if (isAutoplay && timing) {
+            pianoEngine.setSustainOverride(pedalOnRef.current);
+        }
 
         /** Satu langkah mode learn — aturannya ada di learnStep (lib, murni). */
         function advanceLearn(now: number): void {
@@ -522,6 +595,22 @@ export function usePianoPlayback({
             if (isAutoplay) {
                 const held = heldRef.current;
 
+                // Pedal diterapkan SEBELUM pelepesan not: event pedal dan
+                // release yang jatuh di slot yang sama harus menghasilkan
+                // perilaku "pedal sudah diangkat" untuk not yang dilepas itu.
+                if (timing) {
+                    const pedal = timing.pedal;
+                    while (
+                        pedalIdxRef.current < pedal.length &&
+                        pedal[pedalIdxRef.current][0] * stepMs <= elapsed
+                    ) {
+                        const on = pedal[pedalIdxRef.current][1] === 1;
+                        pianoEngine.setSustainOverride(on);
+                        pedalOnRef.current = on;
+                        pedalIdxRef.current++;
+                    }
+                }
+
                 // Lepas dulu, baru tekan. Urutan ini penting: not yang sama di
                 // dua slot berurutan (mis. "1 1") punya waktu lepas dan waktu
                 // tekan yang persis sama, dan pressNote mengabaikan tuts yang
@@ -539,6 +628,15 @@ export function usePianoPlayback({
                     events[eventIdxRef.current].time <= elapsed
                 ) {
                     const e = events[eventIdxRef.current++];
+                    // Durasi dari MIDI dalam SLOT (bukan ms) supaya tetap
+                    // menempel walau stepsPerBeat ditimpa lewat URL. Tanpa
+                    // timing, perilaku lama: satu not = satu slot.
+                    const durationSlots = timing
+                        ? (timing.durations[Math.round(e.time / stepMs)]?.[
+                              e.note
+                          ] ?? 1)
+                        : 1;
+                    const releaseAt = e.time + durationSlots * stepMs;
                     if (document.hidden) {
                         // Audio saja: jangan sentuh DOM/bar selagi tab
                         // tersembunyi. Loop gambar engine juga ikut berhenti di
@@ -550,14 +648,14 @@ export function usePianoPlayback({
                         pianoEngine.playNote(e.note, e.midi);
                         held.push({
                             note: e.note,
-                            releaseAt: e.time + e.duration,
+                            releaseAt,
                             visual: false,
                         });
                     } else {
                         pressRef.current(e.note);
                         held.push({
                             note: e.note,
-                            releaseAt: e.time + e.duration,
+                            releaseAt,
                             visual: true,
                         });
                     }
@@ -567,6 +665,7 @@ export function usePianoPlayback({
             if (elapsedRef.current >= durationMs) {
                 // Selesai natural → balik ke idle, tombol PLAY muncul lagi.
                 releaseAllHeld();
+                silenceAndReleasePedal();
                 clearGuide();
                 resetCursor();
                 setState({ status: "idle" });
@@ -578,6 +677,7 @@ export function usePianoPlayback({
         setTranspose,
         resetCursor,
         releaseAllHeld,
+        silenceAndReleasePedal,
         clearGuide,
         guideRef,
         kickLoop,
@@ -585,6 +685,9 @@ export function usePianoPlayback({
 
     // Jangan tinggalkan not menggantung kalau halaman ditutup/berpindah.
     useEffect(() => releaseAllHeld, [releaseAllHeld]);
+    // Pedal lagu juga harus dilepas saat unmount, kalau tidak toggle sustain
+    // user tetap "ditimpa" sampai engine di-destroy.
+    useEffect(() => silenceAndReleasePedal, [silenceAndReleasePedal]);
 
     // ── Auto-start lewat ?tab=<song-id> ──────────────────────────────────────
     //
@@ -630,9 +733,17 @@ export function usePianoPlayback({
                 : "playing"
             : state.status;
 
+    // Sustain "auto" hanya saat lagu ber-timing benar-benar sedang diputar
+    // (termasuk saat dijeda — pemilik pedal tetap lagu, bukan toggle user).
+    const sustainAuto =
+        state.status === "running" &&
+        state.song.mode === "autoplay" &&
+        state.song.timing !== null;
+
     return {
         state,
         uiStatus,
+        sustainAuto,
         elapsedRef,
         activeTokenRef,
         start,

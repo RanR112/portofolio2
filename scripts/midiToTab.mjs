@@ -5,7 +5,10 @@
 //        [--difficulty easy|medium|hard] [--shift <semitone>] [--dry]
 //
 // Mengubah file MIDI (hasil export dari aplikasi notasi) menjadi tab.txt +
-// meta.json di app/[locale]/piano/data/songs/<difficulty>/<id>/.
+// meta.json + timing.json di app/[locale]/piano/data/songs/<difficulty>/<id>/.
+// timing.json menyimpan panjang not dan pedal (CC64) dalam satuan slot — tab
+// hanya menyimpan onset, jadi tanpa file itu autoplay tidak tahu kapan not
+// harus dilepas.
 //
 // Kenapa lewat MIDI, bukan membaca PDF/gambar: MIDI menyimpan tinggi nada,
 // waktu mulai, dan durasi secara EKSAK. Membaca notasi dari gambar berarti
@@ -35,6 +38,7 @@ import {
     findGrid,
     warpTickToReferenceTempo,
 } from "./lib/midi.mjs";
+import { computeTiming, formatTiming, validateTiming } from "./lib/songTiming.mjs";
 import "./_tsHook.mjs";
 
 const { KEY_MAP, MIDI_BY_LABEL, CTRL_CHAR_BY_LABEL } = await import("../lib/keyMap.ts");
@@ -194,6 +198,10 @@ if (chordWindow > 0) {
 // lihat blok if di bawah.
 let grid;
 
+// Waktu hasil warp untuk file multi-tempo; null berarti tick mentah dipakai
+// apa adanya. Lihat komentar di blok multi-tempo bawah.
+let warpedTimes = null;
+
 // Tempo yang dipakai untuk menerjemahkan tick -> detik. Untuk file tempo
 // tunggal ini satu-satunya tempo yang ada. Untuk file multi-tempo ini tempo
 // SEGMEN ACUAN — BUKAN midi.microsPerBeat, yang isinya tempo TERAKHIR dan bisa
@@ -290,9 +298,16 @@ if (midi.tempoMap.length > 1) {
     const finalShift =
         minStart < 0 ? Math.ceil(-minStart / grid.unit) * grid.unit : 0;
 
+    // PENTING: note-nya TIDAK diubah di tempat. Kalau n.start/n.end ditimpa
+    // nilai hasil warp, computeTiming() di bawah akan mem-warp-nya SEKALI LAGI
+    // dan menghasilkan timing yang tidak cocok dengan tab. Waktu hasil warp
+    // disimpan terpisah, dan startOf() yang dipakai saat menyusun slot.
+    warpedTimes = new Map();
     for (const w of warped) {
-        w.n.start = w.start + finalShift;
-        w.n.end = w.end + finalShift;
+        warpedTimes.set(w.n, {
+            start: w.start + finalShift,
+            end: w.end + finalShift,
+        });
     }
 
     console.log(
@@ -309,11 +324,15 @@ if (midi.tempoMap.length > 1) {
 // berubah perilakunya sama sekali.
 if (!grid) grid = findGrid(midi.notes.map((n) => n.start));
 
+// Tick yang berlaku di timeline tab: hasil warp kalau ada, tick mentah kalau
+// tidak. Dipakai oleh semua perhitungan slot di bawah.
+const startOf = (n) => (warpedTimes ? warpedTimes.get(n).start : n.start);
+
 // --grid menang atas hasil findGrid. Galatnya dihitung ulang terhadap unit
 // yang dipaksa itu, supaya angka yang dilaporkan tetap menggambarkan hasil
 // yang SEBENARNYA ditulis — bukan galat grid yang tidak jadi dipakai.
 if (gridOverride) {
-    const starts = [...new Set(midi.notes.map((n) => n.start))];
+    const starts = [...new Set(midi.notes.map((n) => startOf(n)))];
     let sum = 0;
     let worst = 0;
     for (const s of starts) {
@@ -357,7 +376,7 @@ console.log(`birama        : ${midi.timeSignature[0]}/${midi.timeSignature[1]}`)
 // membengkak. Tabel ini memberi dasar angka untuk memutuskan — ukurannya
 // GALAT WAKTU DALAM MILIDETIK, bukan cantik tidaknya angka pembagi.
 {
-    const starts = [...new Set(midi.notes.map((n) => n.start))];
+    const starts = [...new Set(midi.notes.map((n) => startOf(n)))];
     const msPerTick = referenceMicrosPerBeat / 1000 / midi.division;
     const span = Math.max(...starts) - Math.min(...starts);
     console.log(`\nongkos kalau grid dikasarkan (--grid <tick>):`);
@@ -386,7 +405,7 @@ const bySlot = new Map();
 const foldLog = new Map();
 
 for (const n of midi.notes) {
-    const slot = Math.round(n.start / grid.unit);
+    const slot = Math.round(startOf(n) / grid.unit);
     const shifted = n.midi + shift;
     const { midi: fitted, folds } = foldIntoRange(shifted);
     if (folds > 0) {
@@ -509,6 +528,40 @@ if (mismatch > 0 || parsed.warnings.length > 0) {
 }
 console.log(`  ✓ setiap slot cocok persis dengan sumber MIDI-nya`);
 
+// ── 4b. Timing (durasi not + pedal) ──────────────────────────────────────────
+//
+// Tab hanya menyimpan ONSET: satu karakter = satu slot. Panjang not dan pedal
+// hilang saat MIDI diubah jadi tab. timing.json menyimpannya dalam satuan slot,
+// lalu dibaca autoplay (lihat hooks/usePianoPlayback.ts). Divalidasi terhadap
+// hasil parse di atas, jadi tidak mungkin menunjuk slot/not yang tidak ada.
+const { timing, stats: timingStats } = computeTiming({
+    midi,
+    unit: grid.unit,
+    bpm: meta.bpm,
+    spb: meta.stepsPerBeat,
+    shift,
+    chordWindow,
+    maxSlot,
+});
+
+if (timing) {
+    const timingIssues = validateTiming(timing, parsed);
+    if (timingIssues.length) {
+        console.error(
+            `\n✗ timing.json tidak konsisten dengan tab (${timingIssues.length} masalah):`,
+        );
+        timingIssues.slice(0, 10).forEach((i) => console.error(`   ${i}`));
+        process.exit(1);
+    }
+    console.log(
+        `\n── timing (durasi + pedal) ──\n` +
+            `  slot berdurasi : ${timingStats.durationSlots}\n` +
+            `  event pedal    : ${timingStats.pedalEvents} → ${timingStats.pedalChanges} perubahan\n` +
+            `  ✓ cocok dengan tab`,
+    );
+}
+
+
 // ── 5. Tulis ─────────────────────────────────────────────────────────────────
 if (sheetPath) {
     // Mode "sheet saja": bukan bagian dari library lagu situs, tidak ada
@@ -534,6 +587,10 @@ if (sheetPath) {
         fs.mkdirSync(outDir, { recursive: true });
         fs.writeFileSync(path.join(outDir, "tab.txt"), tabText);
         fs.writeFileSync(path.join(outDir, "meta.json"), `${JSON.stringify(meta, null, 4)}\n`);
+        fs.writeFileSync(
+            path.join(outDir, "timing.json"),
+            formatTiming(timing),
+        );
         console.log(`\n✓ ditulis ke ${outDir}/`);
         console.log(`  meta: ${JSON.stringify(meta)}`);
         console.log(`\nJalankan "npm run songs" supaya lagunya muncul di /piano.`);

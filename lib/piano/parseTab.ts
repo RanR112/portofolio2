@@ -67,7 +67,11 @@ export interface NoteEvent {
     midi: number;
     /** ms dari awal lagu */
     time: number;
-    /** ms — selalu 1 slot, karena rest tidak memperpanjang not */
+    /**
+     * ms — selalu 1 slot dari parser, karena tab tidak menyimpan panjang not.
+     * Autoplay bisa menimpanya dengan durasi asli dari timing.json (MIDI);
+     * lihat hooks/usePianoPlayback.ts.
+     */
     duration: number;
 }
 

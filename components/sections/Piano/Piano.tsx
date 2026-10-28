@@ -235,6 +235,7 @@ export default function Piano() {
                 volume={volume}
                 transpose={transpose}
                 sustain={sustain}
+                sustainAuto={playback.sustainAuto}
                 barColor={barColor}
                 keyMode={keyMode}
                 isFullscreen={isFullscreen}

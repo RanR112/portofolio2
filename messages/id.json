@@ -559,6 +559,8 @@
             "pause": "Pause",
             "resume": "Lanjut",
             "stop": "Stop",
+            "sustainAuto": "AUTO",
+            "sustainAutoHint": "Sustain dikendalikan lagu selama diputar (pedal dari MIDI-nya). Toggle milikmu berlaku lagi setelah lagu berhenti.",
             "filterInsane": "Ekstrem",
             "needsKeyboardLock": "Mode Belajar untuk lagu 88 tuts butuh Keyboard Lock, yang hanya ada di browser Chromium (Chrome/Edge) saat layar penuh. Tuts ekstra itu tidak bisa ditekan di sini — coba Putar Otomatis saja."
         }

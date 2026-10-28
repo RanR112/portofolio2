@@ -12,6 +12,8 @@
 //   2. MENERBITKAN data ke public/ supaya bisa diambil browser:
 //        public/piano/songs-index.json   <- daftar ringkas untuk UI pemilih lagu
 //        public/piano/songs/<id>.txt     <- tab mentah, di-fetch saat dipilih
+//        public/piano/songs/<id>.json    <- timing (durasi + pedal), opsional:
+//                                           hanya lagu yang punya sumber MIDI
 //
 // Kenapa perlu diterbitkan: folder penulisan lagu ada di dalam app/, dan
 // Next.js tidak menyajikan file non-route dari sana — tidak di-bundle, tidak
@@ -31,6 +33,7 @@ import path from "node:path";
 import "./_tsHook.mjs";
 
 const { parseTab } = await import("../lib/piano/parseTab.ts");
+const { validateTiming } = await import("./lib/songTiming.mjs");
 
 const SONGS_ROOT = "app/[locale]/piano/data/songs";
 const OUT_DIR = "public/piano";
@@ -162,6 +165,37 @@ for (const difficulty of fs.readdirSync(SONGS_ROOT).sort()) {
             else notes.push(line);
         }
 
+        // timing.json OPSIONAL: hanya lagu yang punya sumber MIDI. Isinya
+        // durasi not + pedal dalam satuan slot, dipakai autoplay. Kalau ada,
+        // ia harus cocok PERSIS dengan tab — timing yang basi menghasilkan
+        // not yang dilepas di slot yang salah, dan itu tidak kelihatan sampai
+        // didengar. Lebih baik build gagal.
+        const timingPath = path.join(dir, "timing.json");
+        let timing = null;
+        let timingNoteCount = 0;
+        let timingPedalCount = 0;
+        if (fs.existsSync(timingPath)) {
+            try {
+                timing = JSON.parse(fs.readFileSync(timingPath, "utf8"));
+            } catch (e) {
+                fail(where, `timing.json bukan JSON valid — ${e.message}`);
+            }
+            if (timing) {
+                const issues = validateTiming(timing, parsed);
+                for (const issue of issues) {
+                    fail(
+                        where,
+                        `timing.json: ${issue} — jalankan "node scripts/midiTiming.mjs --id ${id}"`,
+                    );
+                }
+                timingNoteCount = Object.values(timing.durations ?? {}).reduce(
+                    (a, labels) => a + Object.keys(labels).length,
+                    0,
+                );
+                timingPedalCount = timing.pedal?.length ?? 0;
+            }
+        }
+
         songs.push({
             id,
             title: meta.title,
@@ -172,9 +206,13 @@ for (const difficulty of fs.readdirSync(SONGS_ROOT).sort()) {
             transpose: meta.transpose,
             stepsPerBeat,
             tabUrl: `/piano/songs/${id}.txt`,
+            timingUrl: timing ? `/piano/songs/${id}.json` : undefined,
             noteCount: parsed.events.length,
             durationMs: Math.round(parsed.durationMs),
             _tab: tab,
+            _timing: timing,
+            _timingNoteCount: timingNoteCount,
+            _timingPedalCount: timingPedalCount,
             _stepMs: parsed.stepMs,
             _stepCount: parsed.stepCount,
             _bars: parsed.stepCount / (stepsPerBeat * beatsPerBar),
@@ -196,6 +234,12 @@ fs.mkdirSync(OUT_TABS, { recursive: true });
 
 for (const s of songs) {
     fs.writeFileSync(path.join(OUT_TABS, `${s.id}.txt`), s._tab);
+    if (s._timing) {
+        fs.writeFileSync(
+            path.join(OUT_TABS, `${s.id}.json`),
+            JSON.stringify(s._timing),
+        );
+    }
 }
 
 const sorted = songs
@@ -208,7 +252,7 @@ const sorted = songs
 
 // Field berawalan "_" hanya untuk laporan di bawah, tidak diterbitkan.
 const index = sorted.map(
-    ({ _tab, _stepMs, _stepCount, _bars, ...rest }) => rest,
+    ({ _tab, _timing, _timingNoteCount, _timingPedalCount, _stepMs, _stepCount, _bars, ...rest }) => rest,
 );
 
 fs.writeFileSync(
@@ -223,7 +267,10 @@ for (const s of sorted) {
     console.log(
         `  ${s.difficulty.padEnd(6)} ${s.id.padEnd(32)} ${String(s.noteCount).padStart(4)} not  ${dur.padStart(5)}  ` +
             `${s.timeSignature}  bpm ${String(s.bpm).padStart(3)} x ${s.stepsPerBeat}  ` +
-            `slot ${`${Math.round(s._stepMs)}ms`.padStart(6)}  ≈${s._bars.toFixed(1)} bar`,
+            `slot ${`${Math.round(s._stepMs)}ms`.padStart(6)}  ≈${s._bars.toFixed(1)} bar` +
+            (s.timingUrl
+                ? `  +timing ${s._timingNoteCount} not / ${s._timingPedalCount} pedal`
+                : ""),
     );
 }
 if (notes.length) {

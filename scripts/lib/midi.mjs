@@ -9,7 +9,9 @@
 // sederhana dan sudah beku sejak 1996, jadi tidak ada yang perlu di-maintain.
 //
 // Yang SENGAJA tidak didukung karena tidak dipakai: sysex, pitch bend,
-// control change, aftertouch, program change. Semua itu dilewati saja.
+// aftertouch, program change. Semua itu dilewati saja. Control change dibaca
+// SECARA SELEKTIF: hanya CC64 (damper/sustain pedal) yang disimpan — lihat
+// pedalEvents di bawah.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -37,10 +39,26 @@
  */
 
 /**
+ * Satu event "Control Change" CC64 — damper/sustain pedal.
+ *
+ * Nilai MIDI 0..127: >= 64 berarti pedal DIINJAK, < 64 berarti dilepas. Banyak
+ * file hanya memakai 0 dan 127, tapi ambang 64 adalah yang standar.
+ *
+ * @typedef {Object} PedalEvent
+ * @property {number} tick    tick absolut
+ * @property {number} value   0..127
+ * @property {number} channel 0..15
+ * @property {number} track   indeks track
+ */
+
+/**
  * @typedef {Object} MidiFile
  * @property {number} format
  * @property {number} division        tick per not seperempat
  * @property {MidiNote[]} notes       urut berdasarkan start, lalu midi
+ * @property {PedalEvent[]} pedalEvents urut tick naik — HANYA CC64, seluruh
+ *                                    channel/track digabung. Kosong berarti
+ *                                    file tidak menyimpan pedal sama sekali.
  * @property {number} microsPerBeat   tempo TERAKHIR (dari meta Set Tempo,
  *                                    default 500000 = 120bpm) — untuk file
  *                                    dengan >1 tempo, ini tempo yang berlaku
@@ -112,6 +130,9 @@ export function parseMidi(buf) {
 
     /** @type {MidiNote[]} */
     const notes = [];
+    /** @type {PedalEvent[]} */
+    const pedalEvents = [];
+
     const trackNames = [];
     let microsPerBeat = 500000;
     /** @type {TempoEvent[]} */
@@ -187,8 +208,17 @@ export function parseMidi(buf) {
                 continue;
             }
 
-            // Event channel lain: 2 byte data, kecuali program change &
-            // channel pressure yang cuma 1.
+            // Event channel lain. Control change punya arti khusus untuk CC64
+            // (pedal), jadi dibaca eksplisit; sisanya dilewati.
+            if (kind === 0xb0) {
+                const controller = r.u8();
+                const value = r.u8();
+                if (controller === 64) {
+                    pedalEvents.push({ tick, value, channel, track: t });
+                }
+                continue;
+            }
+            // Program change & channel pressure cuma 1 byte data.
             if (kind === 0xc0 || kind === 0xd0) r.u8();
             else {
                 r.u8();
@@ -203,6 +233,9 @@ export function parseMidi(buf) {
     }
 
     notes.sort((a, b) => a.start - b.start || a.midi - b.midi);
+    // Urutkan pedal; event yang tick-nya sama dibiarkan apa adanya — pemanggil
+    // yang menggabungkannya (lihat scripts/lib/songTiming.mjs).
+    pedalEvents.sort((a, b) => a.tick - b.tick);
 
     // Urutkan + buang duplikat tick (event tempo yang sama persis dari
     // beberapa track, kadang muncul kembar). Kalau tidak ada satu pun (file
@@ -223,6 +256,7 @@ export function parseMidi(buf) {
         format,
         division,
         notes,
+        pedalEvents,
         microsPerBeat,
         tempoMap: dedupedTempoMap,
         timeSignature,

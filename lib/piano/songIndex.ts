@@ -8,10 +8,12 @@
 //
 //   /piano/songs-index.json   daftar ringkas — cukup untuk UI pemilih lagu
 //   /piano/songs/<id>.txt     tab mentah — baru diambil saat lagunya dipilih
+//   /piano/songs/<id>.json    timing (durasi + pedal) — OPSIONAL, hanya untuk
+//                             lagu yang punya sumber MIDI
 //
 // Dipisah begitu supaya menambah lagu tidak menambah ukuran bundle maupun
-// payload halaman: index-nya kecil, dan tab hanya diunduh untuk lagu yang
-// benar-benar dibuka.
+// payload halaman: index-nya kecil, dan tab/timing hanya diunduh untuk lagu
+// yang benar-benar dibuka.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type SongDifficulty = "easy" | "medium" | "hard" | "insane";
@@ -44,8 +46,28 @@ export interface SongIndexEntry {
     stepsPerBeat: number;
     /** path tab mentah, sudah siap di-fetch */
     tabUrl: string;
+    /**
+     * path timing.json — durasi not + otomasi pedal dari MIDI. OPSIONAL: hanya
+     * ada untuk lagu yang punya sumber MIDI. Tanpa ini autoplay memakai
+     * perilaku lama (tiap not 1 slot, sustain mengikuti toggle user).
+     */
+    timingUrl?: string;
     noteCount: number;
     durationMs: number;
+}
+
+/**
+ * Isi timing.json, dalam satuan SLOT (bukan ms) supaya tetap menempel ke tab
+ * walau stepsPerBeat ditimpa lewat URL.
+ */
+export interface SongTiming {
+    version: 1;
+    /** hanya informasi/validasi: ms per slot saat file dibuat */
+    stepMs?: number;
+    /** slot → label tuts → panjang dalam slot */
+    durations: Record<number, Record<string, number>>;
+    /** [slot, 1=injak / 0=lepas] — dari CC64 */
+    pedal: [number, 0 | 1][];
 }
 
 export const SONGS_INDEX_URL = "/piano/songs-index.json";
@@ -66,4 +88,37 @@ export async function loadSongTab(entry: SongIndexEntry): Promise<string> {
         throw new Error(`Gagal memuat tab "${entry.id}" (${res.status}).`);
     }
     return await res.text();
+}
+
+/**
+ * Timing lagu (durasi + pedal). Sengaja TIDAK melempar error: kalau file hilang
+ * atau rusak, lagu tetap bisa diputar dengan perilaku lama — lebih baik
+ * kehilangan panjang-pendek not daripada tidak bisa memutar lagu sama sekali.
+ */
+export async function loadSongTiming(
+    entry: SongIndexEntry,
+): Promise<SongTiming | null> {
+    if (!entry.timingUrl) return null;
+    try {
+        const res = await fetch(entry.timingUrl);
+        if (!res.ok) {
+            console.warn(
+                `[piano] timing "${entry.id}" gagal dimuat (${res.status}) — pakai durasi 1 slot.`,
+            );
+            return null;
+        }
+        const timing = (await res.json()) as SongTiming;
+        if (
+            timing.version !== 1 ||
+            !timing.durations ||
+            !Array.isArray(timing.pedal)
+        ) {
+            console.warn(`[piano] timing "${entry.id}" bentuknya tidak dikenal.`);
+            return null;
+        }
+        return timing;
+    } catch (e) {
+        console.warn(`[piano] timing "${entry.id}" tidak terbaca:`, e);
+        return null;
+    }
 }

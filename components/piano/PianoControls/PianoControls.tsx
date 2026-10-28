@@ -71,6 +71,12 @@ interface PianoControlsProps {
     volume: number;
     transpose: number;
     sustain: boolean;
+    /**
+     * Sustain sedang dikendalikan lagu (lagu ber-timing MIDI). Tombol ditandai
+     * AUTO dan tidak bisa diklik; toggle user tetap tersimpan dan berlaku lagi
+     * setelah lagu berhenti.
+     */
+    sustainAuto: boolean;
     barColor: string;
     keyMode: KeyMode;
     isFullscreen: boolean;
@@ -116,6 +122,7 @@ const PianoControls = React.memo(function PianoControls({
     volume,
     transpose,
     sustain,
+    sustainAuto,
     barColor,
     keyMode,
     isFullscreen,
@@ -639,13 +646,19 @@ const PianoControls = React.memo(function PianoControls({
 
             {/* Sustain */}
             <button
-                className={`${styles.sustainBtn}${sustain ? ` ${styles.active}` : ""}`}
+                className={`${styles.sustainBtn}${sustain ? ` ${styles.active}` : ""}${sustainAuto ? ` ${styles.auto}` : ""}`}
                 onClick={onSustainToggle}
+                disabled={sustainAuto}
+                title={sustainAuto ? t("player.sustainAutoHint") : undefined}
+                aria-pressed={sustain}
+                aria-disabled={sustainAuto}
                 suppressHydrationWarning
             >
                 <span className={styles.led} />
                 SUSTAIN
-                <span className={styles.keyHint}>SPACE</span>
+                <span className={styles.keyHint}>
+                    {sustainAuto ? t("player.sustainAuto") : "SPACE"}
+                </span>
             </button>
 
             <div className={styles.divider} />

@@ -28,8 +28,25 @@ interface KeyboardLockNavigator {
 // Animation constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const GROW_RATE = 0.18; // px/ms
-const SCROLL_SPEED = 2.5; // px/frame
+// ── Satu skala waktu untuk SEMUA bar ────────────────────────────────────────
+// Bar yang ditahan tumbuh dan bar yang sudah dilepas naik memakai laju yang
+// SAMA (px/ms, bukan px/frame). Dulu tumbuh 0.18 px/ms sementara naik
+// 2.5 px/frame (~0.15 px/ms di 60Hz, 0.30 di 120Hz), jadi not yang mulai
+// bersamaan tidak pernah benar-benar sejajar dan bar baru menyusul bar lama.
+// Dengan satu laju, posisi vertikal murni fungsi waktu:
+//   y = H - PX_PER_MS * (sekarang - waktu event)
+// sehingga not yang dimainkan bersamaan selalu sejajar, tanpa perlu dorongan
+// per tuts, dan durasi not otomatis jadi panjang bar yang jujur.
+const PX_PER_MS = 0.15; // 150 px/detik (sama dengan 2.5px/frame @60fps)
+
+// Celah visual antar not berurutan. Dipotong dari ujung ATAS (onset) tiap bar
+// saat menggambar — bukan dari ujung bawah (release). Karena potongannya
+// konstan untuk semua bar, sumbu waktu tetap konsisten: semua ujung atas
+// bergeser PX yang sama, semua ujung bawah tetap presisi. Not yang bersambung
+// persis (legato) mendapat celah NOTE_GAP; not yang punya jeda mendapat
+// jeda + NOTE_GAP.
+const NOTE_GAP = 3;
+
 const MAX_GROW_FRAC = 0.92;
 
 // [PINDAH] isTextEntryTarget() sekarang di lib/keyMap.ts (di-import di atas) —
@@ -44,7 +61,13 @@ const MAX_GROW_FRAC = 0.92;
 export interface KeyGeom {
     /** titik tengah tuts relatif viz area — dipakai menempatkan bar */
     x: number;
-    /** lebar bar (0.72 x lebar tuts) */
+    /**
+     * Lebar bar = 0.5 x lebar tuts. Bukan 0.72 lagi: tuts hitam berpusat
+     * tepat di batas dua tuts putih (jarak pusat cuma 0.5 x lebar tuts
+     * putih), sehingga bar putih 0.72 dan bar hitam 0.72 x 0.62 saling
+     * bertumpuk ~0.08 x lebar tuts. Dengan 0.5, celah minimum putih-hitam
+     * tetap ~0.095 x lebar tuts (≈3px pada 88 tuts desktop).
+     */
     width: number;
     /** batas tuts dalam koordinat viewport — dipakai hit-test glissando */
     left: number;
@@ -362,7 +385,9 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             const r = el.getBoundingClientRect();
             geom[label] = {
                 x: r.left + r.width / 2 - wr.left,
-                width: r.width * 0.72,
+                // 0.5 (dulu 0.72) — lihat KeyGeom.width: bar putih dan hitam
+                // harus tidak saling menimpa secara horizontal.
+                width: r.width * 0.5,
                 left: r.left,
                 right: r.right,
                 top: r.top,
@@ -396,7 +421,8 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
                 const r = keyEl.getBoundingClientRect();
                 g = {
                     x: r.left + r.width / 2 - wr.left,
-                    width: r.width * 0.72,
+                    // Sama dengan measureKeyGeometry: 0.5, bukan 0.72.
+                    width: r.width * 0.5,
                     left: r.left,
                     right: r.right,
                     top: r.top,
@@ -409,7 +435,10 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             activeBarsRef.current[noteLabel] = {
                 x: g.x,
                 width: g.width,
-                height: 2,
+                // Mulai dari 0, bukan 2px. Tambahan tinggi konstan akan
+                // membuat not bersambung saling menimpa 2px lagi meskipun
+                // laju tumbuh dan naik sudah sama.
+                height: 0,
                 yOffset: 0,
                 isReleased: false,
                 keyEl,
@@ -461,8 +490,13 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             if (cur && cur.key === color) return cur;
             const next = {
                 key: color,
-                c0: color + "00",
-                c25: color + "bb",
+                // Dulu c0 = "00" (transparan total). Saat bar bertumpuk, ujung
+                // atas yang bening itu memperlihatkan bar di belakangnya dan
+                // muncullah pita fade yang membuat not tampak menyatu. Dengan
+                // NOTE_GAP bar sudah terpisah, alpha 0x55 membuat tiap segmen
+                // tetap terbaca sebagai satu balok utuh.
+                c0: color + "55",
+                c25: color + "cc",
                 c1: color + "ff",
             };
             stopsCacheRef.current = next;
@@ -505,7 +539,13 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             const { x, width, height, yOffset } = bar;
             const bx = x - width / 2;
             const bottom = H - yOffset;
-            const top = bottom - height;
+            // Potong dari ujung ATAS (onset), bukan bawah. Ujung bawah adalah
+            // waktu release dan harus tetap presisi; ujung atas yang bergeser
+            // NOTE_GAP konstan untuk semua bar sehingga not yang mulai
+            // bersamaan tetap sejajar satu sama lain.
+            const drawH = Math.max(1, height - NOTE_GAP);
+            const top = bottom - drawH;
+            const radius = Math.min(3, drawH / 2);
             if (bottom < 0) return;
 
             // Gradient lama di-anchor ke bagian bar yang TERLIHAT saja
@@ -542,7 +582,15 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
                         r: number[],
                     ) => void;
                 }
-            ).roundRect(bx, top - gTop, width, height, [3, 3, 0, 0]);
+            ).roundRect(bx, top - gTop, width, drawH, [
+                radius,
+                radius,
+                // Ujung bawah hanya dibulatkan setelah dilepas. Selagi
+                // ditekan, ujung itu menempel di garis tuts dan harus rata;
+                // setelah naik, kapsul penuh terbaca sebagai satu not selesai.
+                bar.isReleased ? radius : 0,
+                bar.isReleased ? radius : 0,
+            ]);
             ctx2d.fill();
         }
 
@@ -637,14 +685,9 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             // sudah benar sejak dibuat dan hanya perlu diperbarui saat layout
             // berubah (lihat measureKeyGeometry / repositionBlackKeys).
 
-            // [BARU] Bar panduan digambar lebih dulu supaya bar hasil tekanan
+            // Bar panduan digambar lebih dulu supaya bar hasil tekanan
             // user menimpanya, bukan sebaliknya.
             drawGuide(ctx2d, H);
-
-            // [BARU — perf 1.3] Glow disetel SEKALI per frame, bukan per bar.
-            // Nilainya sama untuk semua bar, jadi hasil visualnya identik.
-            ctx2d.shadowColor = barColorRef.current;
-            ctx2d.shadowBlur = 14;
 
             const maxH = H * MAX_GROW_FRAC;
 
@@ -655,17 +698,20 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
             // hasActive dikumpulkan di loop yang sudah ada — tidak perlu
             // iterasi tambahan hanya untuk mengecek kosong/tidak.
             let hasActive = false;
+            // Tinggi diperbarui lebih dulu, terpisah dari menggambar.
             for (const label in active) {
                 hasActive = true;
                 const bar = active[label];
-                bar.height = Math.min(bar.height + GROW_RATE * delta, maxH);
-                drawBar(ctx2d, bar, H);
+                bar.height = Math.min(bar.height + PX_PER_MS * delta, maxH);
             }
 
             const rel = releasedBarsRef.current;
             for (let i = rel.length - 1; i >= 0; i--) {
                 const bar = rel[i];
-                bar.yOffset += SCROLL_SPEED;
+                // Laju yang sama dengan pertumbuhan bar aktif (px/ms), bukan
+                // px/frame: posisi jadi fungsi waktu yang konsisten di semua
+                // refresh rate dan sejajar dengan bar tuts lain.
+                bar.yOffset += PX_PER_MS * delta;
                 // [LAMA — pre perf] Dibuang saat yOffset - height > H, padahal
                 // bar sudah BERHENTI DIGAMBAR sejak yOffset > H. Sisanya cuma
                 // diiterasi percuma — sampai ~4,5 detik per bar.
@@ -673,9 +719,26 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
                 // [BARU — perf 1.3] Dibuang tepat saat tidak terlihat lagi.
                 if (bar.yOffset > H) {
                     rel.splice(i, 1);
-                    continue;
                 }
-                drawBar(ctx2d, bar, H);
+            }
+
+            // ── Gambar ──────────────────────────────────────────────────────
+            // Tidak ada lagi pass "dorong bar" per tuts: dengan laju tumbuh =
+            // laju naik, not berurutan tidak mungkin saling menyusul. Urutan
+            // gambar tetap released paling lama → terbaru, lalu bar aktif,
+            // supaya bar terbaru selalu di atas.
+            ctx2d.shadowColor = barColorRef.current;
+            // Glow kecil untuk bar released: blur besar (dulu 8) mengisi celah
+            // 3px dan membuat bar berbeda tuts terlihat menyambung lagi.
+            ctx2d.shadowBlur = 3;
+            for (let i = 0; i < rel.length; i++) {
+                drawBar(ctx2d, rel[i], H);
+            }
+
+            // Bar aktif tetap punya glow lebih kuat sebagai fokus visual.
+            ctx2d.shadowBlur = 10;
+            for (const label in active) {
+                drawBar(ctx2d, active[label], H);
             }
 
             // Kembalikan transform ke identitas untuk clearRect frame berikutnya.
@@ -958,6 +1021,10 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
 
             if (e.code === "Space") {
                 e.preventDefault();
+                // Selagi lagu ber-timing memegang pedal, Space tidak boleh
+                // mengubah toggle: nilainya tidak berpengaruh dan LED-nya akan
+                // berbohong tentang pedal yang sebenarnya berbunyi.
+                if (pianoEngine.sustainLocked) return;
                 setSustain((s) => !s);
                 return;
             }
