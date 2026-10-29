@@ -66,6 +66,15 @@ export interface SongTiming {
     stepMs?: number;
     /** slot → label tuts → panjang dalam slot */
     durations: Record<number, Record<string, number>>;
+    /**
+     * slot → label tuts → panjang BAR VISUAL dalam slot. OPSIONAL.
+     *
+     * Hanya berisi not yang bar-nya perlu dipendekkan; label yang tidak ada
+     * memakai `durations`. Scheduler memakai angka ini untuk melepas bar,
+     * sementara `durations` tetap dipakai untuk melepas audio — jadi bunyi
+     * tidak berubah.
+     */
+    visualDurations?: Record<number, Record<string, number>>;
     /** [slot, 1=injak / 0=lepas] — dari CC64 */
     pedal: [number, 0 | 1][];
 }

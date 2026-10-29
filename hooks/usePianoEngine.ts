@@ -177,6 +177,11 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     refs: PianoEngineRefs;
     pressNote: (label: string) => void;
     releaseNote: (label: string) => void;
+    /**
+     * Lepas BAR saja, tanpa menghentikan audio atau sorotan tuts. Dipakai
+     * autoplay ber-timing: bar boleh lebih pendek dari not yang berbunyi.
+     */
+    releaseBar: (label: string) => void;
     // [BARU] Handler mouse untuk glissando — dipasang di tiap tuts.
     handleKeyMouseDown: (label: string) => void;
     handleKeyMouseEnter: (label: string) => void;
@@ -884,6 +889,18 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
         [activeClassName, animReleaseKey],
     );
 
+    /**
+     * Hanya bar yang dilepas. Tuts tetap menyala dan audio tetap berbunyi
+     * sampai releaseNote(), supaya durasi visual bisa dipendekkan tanpa
+     * memotong suara.
+     */
+    const releaseBar = useCallback(
+        (noteLabel: string) => {
+            animReleaseKey(noteLabel);
+        },
+        [animReleaseKey],
+    );
+
     // ─────────────────────────────────────────────────────────────────────────
     // [BARU] Glissando — menggeser mouse/jari melintasi tuts
     // ─────────────────────────────────────────────────────────────────────────
@@ -1225,6 +1242,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
         },
         pressNote,
         releaseNote,
+        releaseBar,
         handleKeyMouseDown,
         handleKeyMouseEnter,
         handleKeyMouseLeave,

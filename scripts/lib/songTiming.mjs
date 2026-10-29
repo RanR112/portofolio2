@@ -270,6 +270,96 @@ export function computeTiming({
 }
 
 /**
+ * Panjang bar visual yang "masuk akal saat dilihat", terpisah dari panjang
+ * audio.
+ *
+ * Aturan ini sengaja konservatif:
+ *   - hanya nada melody (>= C4) yang dipendekkan;
+ *   - hanya kalau barnya menyeberangi MINIMAL 2 onset lain — satu onset yang
+ *     kebetulan berdekatan masih wajar (legato/sustain pendek);
+ *   - nada bass (< C4) dan slot terakhir dibiarkan, karena bar panjang di sana
+ *     memang menunjukkan suara yang ditahan.
+ *
+ * Hasilnya tetap dalam SLOT, jadi ikut menyesuaikan kalau stepsPerBeat ditimpa
+ * lewat URL. Nilai minimum ~80 ms mencegah bar menjadi terlalu pendek untuk
+ * terlihat pada tempo cepat.
+ *
+ * Kembaliannya HANYA berisi not yang dipendekkan. Not lain tidak perlu ditulis
+ * dua kali; scheduler memakai `durations` sebagai fallback.
+ *
+ * @param {Record<number, Record<string, number>>} durations
+ * @param {number} stepMs
+ * @param {{minVisibleMs?: number, melodyMinMidi?: number, minCrossedOnsets?: number}} [opts]
+ * @returns {Record<number, Record<string, number>>}
+ */
+export function computeVisualDurations(durations, stepMs, opts = {}) {
+    if (!(stepMs > 0)) {
+        throw new Error(`stepMs tidak valid untuk visual timing: ${stepMs}`);
+    }
+
+    const minVisibleMs = opts.minVisibleMs ?? 80;
+    const melodyMinMidi = opts.melodyMinMidi ?? 60; // C4
+    const minCrossedOnsets = opts.minCrossedOnsets ?? 2;
+    const minSlots = Math.max(1, Math.round(minVisibleMs / stepMs));
+
+    const slots = Object.keys(durations)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+    /** Indeks slot pertama yang lebih besar dari `value`. */
+    function firstAfter(value) {
+        let lo = 0;
+        let hi = slots.length;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (slots[mid] <= value) lo = mid + 1;
+            else hi = mid;
+        }
+        return lo;
+    }
+
+    /** @type {Record<number, Record<string, number>>} */
+    const overrides = {};
+
+    for (let i = 0; i < slots.length; i++) {
+        const slot = slots[i];
+        const next = slots[i + 1];
+
+        for (const label of Object.keys(durations[slot]).sort()) {
+            const duration = durations[slot][label];
+            if (next === undefined) continue;
+
+            const gap = next - slot;
+            const cap = Math.max(minSlots, gap);
+            const midi = MIDI_BY_LABEL[label];
+
+            if (midi === undefined || midi < melodyMinMidi || duration <= cap) {
+                continue;
+            }
+
+            // Hitung onset lain yang benar-benar berada DI DALAM bar. Onset
+            // tepat di ujung tidak dihitung: bar yang berhenti tepat saat not
+            // berikutnya mulai masih terlihat wajar.
+            const end = slot + duration;
+            let crossed = 0;
+            for (
+                let j = firstAfter(slot);
+                j < slots.length && slots[j] < end;
+                j++
+            ) {
+                crossed++;
+            }
+            if (crossed < minCrossedOnsets) continue;
+
+            if (!overrides[slot]) overrides[slot] = {};
+            overrides[slot][label] = Math.max(1, cap);
+        }
+    }
+
+    return overrides;
+}
+
+/**
  * Format timing.json: satu slot per baris. Bukan sekadar kosmetik — file ini
  * ikut di-commit, dan JSON satu baris 50 KB membuat diff git tidak terbaca.
  */
@@ -277,6 +367,16 @@ export function formatTiming(timing) {
     const slots = Object.entries(timing.durations).map(
         ([slot, labels]) => `    ${JSON.stringify(String(slot))}: ${JSON.stringify(labels)}`,
     );
+    const visualSlots = timing.visualDurations
+        ? Object.entries(timing.visualDurations).map(([slot, labels]) => {
+              const sorted = Object.fromEntries(
+                  Object.keys(labels)
+                      .sort()
+                      .map((label) => [label, labels[label]]),
+              );
+              return `    ${JSON.stringify(String(slot))}: ${JSON.stringify(sorted)}`;
+          })
+        : null;
     const pedal = timing.pedal.length
         ? `[\n    ${timing.pedal.map((p) => JSON.stringify(p)).join(",\n    ")}\n  ]`
         : "[]";
@@ -285,6 +385,9 @@ export function formatTiming(timing) {
         `  "version": ${timing.version},\n` +
         `  "stepMs": ${JSON.stringify(timing.stepMs)},\n` +
         `  "durations": {\n${slots.join(",\n")}\n  },\n` +
+        (visualSlots
+            ? `  "visualDurations": {\n${visualSlots.join(",\n")}\n  },\n`
+            : "") +
         `  "pedal": ${pedal}\n` +
         "}\n"
     );
@@ -354,6 +457,43 @@ export function validateTiming(timing, parsed) {
                 issues.push(
                     `slot ${slot} berisi ${[...labels].join(",")} tapi tidak ada di timing`,
                 );
+            }
+        }
+    }
+
+    if (timing.visualDurations !== undefined) {
+        if (
+            !timing.visualDurations ||
+            typeof timing.visualDurations !== "object"
+        ) {
+            issues.push("visualDurations harus objek");
+        } else {
+            for (const [slotKey, labels] of Object.entries(
+                timing.visualDurations,
+            )) {
+                const slot = Number(slotKey);
+                const audio = timing.durations?.[slot];
+                if (!audio) {
+                    issues.push(
+                        `visualDurations slot ${slotKey} tidak ada di durations`,
+                    );
+                    continue;
+                }
+                for (const [label, dur] of Object.entries(labels)) {
+                    if (!Number.isInteger(dur) || dur < 1) {
+                        issues.push(
+                            `visualDurations slot ${slotKey} "${label}": durasi tidak valid (${dur})`,
+                        );
+                    } else if (audio[label] === undefined) {
+                        issues.push(
+                            `visualDurations slot ${slotKey}: label "${label}" tidak ada di durations`,
+                        );
+                    } else if (dur > audio[label]) {
+                        issues.push(
+                            `visualDurations slot ${slotKey} "${label}": ${dur} > audio ${audio[label]}`,
+                        );
+                    }
+                }
             }
         }
     }

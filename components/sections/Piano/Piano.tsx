@@ -146,6 +146,7 @@ export default function Piano() {
     const playback = usePianoPlayback({
         pressNote: engine.pressNote,
         releaseNote: engine.releaseNote,
+        releaseBar: engine.releaseBar,
         setTranspose,
         onSheetLoaded,
         samplesReady: state.samplesReady,

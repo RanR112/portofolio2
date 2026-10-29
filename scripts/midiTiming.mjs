@@ -5,7 +5,9 @@
 //   node scripts/midiTiming.mjs --id <song-id> [--dry]
 //
 // Menulis timing.json (durasi not + pedal) untuk lagu yang SUDAH ada, tanpa
-// menyentuh tab.txt/meta.json sama sekali.
+// menyentuh tab.txt/meta.json sama sekali. Kalau timing lama punya
+// `visualDurations` (dari scripts/visualTiming.mjs), field itu dihitung ulang
+// dari durasi audio yang baru supaya perbaikan visual tidak hilang.
 //
 // Kenapa tidak lewat midiToTab saja: konversi ulang menulis ulang tab.txt, dan
 // tab yang sudah ditinjau tangan bisa saja berbeda dari hasil konversi. Script
@@ -30,6 +32,7 @@ import { parseMidi } from "./lib/midi.mjs";
 import {
     buildTimeline,
     computeTiming,
+    computeVisualDurations,
     formatTiming,
     snapOnsets,
     validateTiming,
@@ -241,6 +244,22 @@ for (const id of ids) {
     const { timing, stats } = verified;
 
     const outPath = path.join(dir, "timing.json");
+    // Kalau file lama sudah punya durasi visual (hasil visualTiming.mjs),
+    // hitung ulang dari durasi audio yang baru. Tanpa ini, regenerate timing
+    // akan diam-diam menghapus perbaikan visual.
+    if (fs.existsSync(outPath)) {
+        try {
+            const previous = JSON.parse(fs.readFileSync(outPath, "utf8"));
+            if (previous.visualDurations) {
+                timing.visualDurations = computeVisualDurations(
+                    timing.durations,
+                    timing.stepMs,
+                );
+            }
+        } catch {
+            // File lama rusak — biarkan ditimpa seperti biasa.
+        }
+    }
     if (!dryRun) fs.writeFileSync(outPath, formatTiming(timing));
     written.push({ id, path: outPath, stats, layout });
     console.log(

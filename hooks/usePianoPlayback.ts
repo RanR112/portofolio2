@@ -102,6 +102,8 @@ export type PlaybackUiStatus =
 interface UsePianoPlaybackOptions {
     pressNote: (noteLabel: string) => void;
     releaseNote: (noteLabel: string) => void;
+    /** Lepas bar saja; audio/tuts tetap sampai releaseNote(). */
+    releaseBar: (noteLabel: string) => void;
     /**
      * Transpose lagu (meta.json) diterapkan ke slider transpose user.
      * Keputusan owner: nilainya DIBIARKAN apa adanya saat lagu berhenti —
@@ -154,8 +156,15 @@ export interface PianoPlayback {
 /** Not yang sedang berbunyi. */
 interface HeldNote {
     note: string;
-    /** posisi lagu (ms) saat not ini harus dilepas */
+    /** posisi lagu (ms) saat AUDIO not ini harus dilepas */
     releaseAt: number;
+    /**
+     * Posisi lagu (ms) saat BAR-nya dilepas lebih awal. null = bar ikut
+     * releaseAt. Hanya dipakai kalau visual=true.
+     */
+    barReleaseAt: number | null;
+    /** Bar sudah dilepas lebih awal; releaseAt tinggal mematikan audio/tuts. */
+    barReleased: boolean;
     /**
      * Jalur mana yang dipakai saat menekannya, supaya pelepasannya lewat jalur
      * yang sama. Not yang ditekan selagi tab tersembunyi tidak punya sorotan
@@ -198,6 +207,7 @@ function readSpbOverride(): number | undefined {
 export function usePianoPlayback({
     pressNote,
     releaseNote,
+    releaseBar,
     setTranspose,
     onSheetLoaded,
     samplesReady,
@@ -252,10 +262,12 @@ export function usePianoPlayback({
     // dibongkar-pasang tiap kali identitas callback berubah.
     const pressRef = useRef(pressNote);
     const releaseRef = useRef(releaseNote);
+    const releaseBarRef = useRef(releaseBar);
     useEffect(() => {
         pressRef.current = pressNote;
         releaseRef.current = releaseNote;
-    }, [pressNote, releaseNote]);
+        releaseBarRef.current = releaseBar;
+    }, [pressNote, releaseNote, releaseBar]);
 
     const releaseAllHeld = useCallback(() => {
         for (const h of heldRef.current) {
@@ -611,6 +623,22 @@ export function usePianoPlayback({
                     }
                 }
 
+                // Bar visual boleh dilepas lebih awal daripada audionya. Ini
+                // yang membuat bar tidak menyeberangi not-not berikutnya pada
+                // run/glissando, tanpa memotong suara MIDI.
+                for (const h of held) {
+                    if (
+                        !h.visual ||
+                        h.barReleased ||
+                        h.barReleaseAt === null ||
+                        h.barReleaseAt > elapsed
+                    ) {
+                        continue;
+                    }
+                    releaseBarRef.current(h.note);
+                    h.barReleased = true;
+                }
+
                 // Lepas dulu, baru tekan. Urutan ini penting: not yang sama di
                 // dua slot berurutan (mis. "1 1") punya waktu lepas dan waktu
                 // tekan yang persis sama, dan pressNote mengabaikan tuts yang
@@ -631,12 +659,19 @@ export function usePianoPlayback({
                     // Durasi dari MIDI dalam SLOT (bukan ms) supaya tetap
                     // menempel walau stepsPerBeat ditimpa lewat URL. Tanpa
                     // timing, perilaku lama: satu not = satu slot.
+                    const slot = Math.round(e.time / stepMs);
                     const durationSlots = timing
-                        ? (timing.durations[Math.round(e.time / stepMs)]?.[
-                              e.note
-                          ] ?? 1)
+                        ? (timing.durations[slot]?.[e.note] ?? 1)
                         : 1;
+                    const visualSlots = timing
+                        ? (timing.visualDurations?.[slot]?.[e.note] ??
+                          durationSlots)
+                        : durationSlots;
                     const releaseAt = e.time + durationSlots * stepMs;
+                    const barReleaseAt =
+                        visualSlots < durationSlots
+                            ? e.time + visualSlots * stepMs
+                            : null;
                     if (document.hidden) {
                         // Audio saja: jangan sentuh DOM/bar selagi tab
                         // tersembunyi. Loop gambar engine juga ikut berhenti di
@@ -649,6 +684,8 @@ export function usePianoPlayback({
                         held.push({
                             note: e.note,
                             releaseAt,
+                            barReleaseAt: null,
+                            barReleased: true,
                             visual: false,
                         });
                     } else {
@@ -656,6 +693,8 @@ export function usePianoPlayback({
                         held.push({
                             note: e.note,
                             releaseAt,
+                            barReleaseAt,
+                            barReleased: false,
                             visual: true,
                         });
                     }
