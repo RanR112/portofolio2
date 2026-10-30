@@ -55,9 +55,18 @@ import {
     type Chord,
     type GuideState,
     type PlaybackMode,
+    type PressNoteOptions,
 } from "@/lib/piano/playback";
+import { computeSeekPoint, type SeekPoint } from "@/lib/piano/seek";
 import { pianoEngine } from "@/lib/pianoEngine";
 import { CATCHUP_LIMIT_MS, startTicker } from "@/lib/piano/ticker";
+
+/**
+ * Fade saat seek. Jauh lebih pendek dari release normal (2 detik): not dari
+ * posisi lama harus hilang sebelum not dari posisi baru berbunyi, tapi tidak
+ * boleh terpotong mendadak sampai menimbulkan klik.
+ */
+const SEEK_FADE_SEC = 0.08;
 
 export interface LoadedSong {
     entry: SongIndexEntry;
@@ -73,6 +82,23 @@ export interface LoadedSong {
     timing: SongTiming | null;
     /** hanya dipakai mode learn */
     chords: Chord[];
+}
+
+/**
+ * Hitung kondisi scheduler untuk satu titik waktu pada lagu yang sedang
+ * dimuat. Dipakai seek dan resume supaya keduanya memakai aturan yang sama.
+ */
+function seekPointAt(song: LoadedSong, time: number): SeekPoint {
+    const { parsed, timing } = song;
+    return computeSeekPoint({
+        time,
+        durationMs: parsed.durationMs,
+        stepMs: parsed.stepMs,
+        events: parsed.events,
+        tokens: parsed.tokens,
+        transposeChanges: parsed.transposeChanges,
+        timing,
+    });
 }
 
 export type PlaybackState =
@@ -100,7 +126,7 @@ export type PlaybackUiStatus =
     | "error";
 
 interface UsePianoPlaybackOptions {
-    pressNote: (noteLabel: string) => void;
+    pressNote: (noteLabel: string, options?: PressNoteOptions) => void;
     releaseNote: (noteLabel: string) => void;
     /** Lepas bar saja; audio/tuts tetap sampai releaseNote(). */
     releaseBar: (noteLabel: string) => void;
@@ -146,6 +172,16 @@ export interface PianoPlayback {
     pause: () => void;
     resume: () => void;
     stop: () => void;
+    /**
+     * Pindah posisi lagu (ms). Hanya berlaku untuk autoplay yang sedang
+     * berjalan atau dijeda; saat idle/tidak ada lagu ini tidak melakukan apa
+     * pun karena memang tidak ada timeline yang bisa dipindah.
+     *
+     * Sinkron: audio lama dibungkam, seluruh kursor dihitung ulang, dan (kalau
+     * sedang playing) not yang melintasi titik itu langsung diputar dari
+     * offset-nya. Ticker yang sudah jalan TIDAK di-restart.
+     */
+    seek: (ms: number) => void;
     /**
      * Dipasang ke usePianoEngine lewat ref. Mode learn memakainya untuk menilai
      * tuts yang ditekan user benar atau salah. Identitasnya stabil.
@@ -219,6 +255,15 @@ export function usePianoPlayback({
 }: UsePianoPlaybackOptions): PianoPlayback {
     const [state, setState] = useState<PlaybackState>({ status: "idle" });
 
+    /**
+     * Salinan state yang selalu terbaru. `seek()` dipanggil dari event pointer
+     * slider (bukan dari render), jadi ia butuh lagu yang sedang berjalan tanpa
+     * harus ikut jadi dependency — kalau ikut, identitas seek berubah setiap
+     * lagu berganti dan progress bar ikut ter-render ulang.
+     */
+    const stateRef = useRef(state);
+    stateRef.current = state;
+
     const elapsedRef = useRef(0);
     const lastTickRef = useRef<number | null>(null);
     const transposeIdxRef = useRef(0);
@@ -275,6 +320,56 @@ export function usePianoPlayback({
             else pianoEngine.stopNote(h.note);
         }
         heldRef.current = [];
+    }, []);
+
+    /**
+     * Bunyikan kembali not yang rentang waktunya melintasi titik seek.
+     *
+     * `offsetMs` membuat audio mulai dari tengah sampel, dan `barPriorMs`
+     * membuat bar langsung setinggi posisinya di timeline — dua-duanya supaya
+     * seek tidak terdengar/terlihat seperti memulai not baru.
+     *
+     * Dipakai oleh seek (saat playing) dan resume (setelah pause).
+     */
+    const armOngoing = useCallback((point: SeekPoint) => {
+        if (point.ongoing.length === 0) return;
+
+        const hidden = document.hidden;
+        for (const n of point.ongoing) {
+            if (hidden) {
+                // Tab tersembunyi: audio saja, tanpa menyentuh DOM/bar — sama
+                // seperti jalur scheduler untuk not biasa.
+                pianoEngine.playNote(n.note, n.midi, n.offsetMs / 1000);
+                heldRef.current.push({
+                    note: n.note,
+                    releaseAt: n.releaseAt,
+                    barReleaseAt: null,
+                    barReleased: true,
+                    visual: false,
+                });
+                continue;
+            }
+
+            pressRef.current(n.note, {
+                offsetMs: n.offsetMs,
+                midi: n.midi,
+                barPriorMs: n.barPriorMs,
+            });
+
+            // Bar visual sudah habis sebelum titik seek (durasi visual lebih
+            // pendek dari audio) → lepas seketika, jangan biarkan menggantung.
+            const barDone =
+                n.barReleaseAt !== null && n.barReleaseAt <= point.time;
+            if (barDone) releaseBarRef.current(n.note);
+
+            heldRef.current.push({
+                note: n.note,
+                releaseAt: n.releaseAt,
+                barReleaseAt: n.barReleaseAt,
+                barReleased: barDone,
+                visual: true,
+            });
+        }
     }, []);
 
     /**
@@ -449,7 +544,11 @@ export function usePianoPlayback({
         // dipertahankan supaya resume tidak perlu menghitung ulang, dan toggle
         // sustain tetap "auto" selama lagunya belum berhenti. allNotesOff()
         // tetap senyap walau pedal sedang diinjak.
-        pianoEngine.allNotesOff();
+        //
+        // Fade-nya dipendekkan karena Resume sekarang membunyikan lagi not yang
+        // melintasi posisi terakhir. Dengan fade 2 detik, not lama masih
+        // berbunyi saat not baru dimulai — kedengaran dobel.
+        pianoEngine.allNotesOff(SEEK_FADE_SEC);
         // Bar panduan dibiarkan TERLIHAT tapi dibekukan. clockAt wajib di-null
         // di sini: selagi dijeda, ticker berhenti, jadi kalau clockAt masih
         // berisi angka, engine akan terus menginterpolasi maju dan barnya jalan
@@ -462,15 +561,65 @@ export function usePianoPlayback({
     }, [releaseAllHeld, guideRef]);
 
     const resume = useCallback(() => {
+        const s = stateRef.current;
+        if (s.status !== "running" || !s.paused) return;
+
         // Titik acuan dibuang supaya durasi jeda tidak terhitung sebagai
         // kemajuan lagu; tick pertama setelah resume hanya menetapkan acuan baru.
         lastTickRef.current = null;
-        setState((s) => {
-            if (s.status !== "running" || !s.paused) return s;
-            learnRef.current.active = s.song.mode === "learn";
-            return { ...s, paused: false };
-        });
-    }, []);
+
+        if (s.song.mode === "learn") {
+            learnRef.current.active = true;
+        } else {
+            // Not yang tadinya ditahan pause dilepas; kalau posisi terakhir ada
+            // di TENGAH not panjang, bunyikan lagi dari offset yang benar
+            // supaya tidak ada lubang suara setelah Resume.
+            armOngoing(seekPointAt(s.song, elapsedRef.current));
+        }
+
+        setState({ ...s, paused: false });
+    }, [armOngoing]);
+
+    /**
+     * Pindah posisi lagu.
+     *
+     * Urutannya sengaja: senyapkan dulu → pasang pedal → hitung kursor → baru
+     * tekan not yang masih berbunyi. Kalau not ditekan sebelum pedal dipasang,
+     * release-nya akan memakai kondisi pedal yang salah.
+     */
+    const seek = useCallback(
+        (ms: number) => {
+            const s = stateRef.current;
+            if (s.status !== "running" || s.song.mode !== "autoplay") return;
+
+            const point = seekPointAt(s.song, ms);
+            const timing = s.song.timing;
+
+            releaseAllHeld();
+            pianoEngine.allNotesOff(SEEK_FADE_SEC);
+
+            if (timing) {
+                pedalOnRef.current = point.pedalOn;
+                pedalIdxRef.current = point.pedalIdx;
+                pianoEngine.setSustainOverride(point.pedalOn);
+            }
+
+            elapsedRef.current = point.time;
+            eventIdxRef.current = point.eventIdx;
+            tokenCursorRef.current = point.tokenIdx;
+            activeTokenRef.current = point.activeToken;
+            transposeIdxRef.current = point.transposeIdx;
+            setTranspose(point.transpose);
+
+            // Acuan tick dibuang: jarak sejak tick terakhir bukan kemajuan lagu.
+            lastTickRef.current = null;
+
+            // Saat paused, audio memang harus tetap senyap. Nada yang melintasi
+            // titik ini akan dibunyikan oleh resume() dari offset yang sama.
+            if (!s.paused) armOngoing(point);
+        },
+        [armOngoing, releaseAllHeld, setTranspose],
+    );
 
     const stop = useCallback(() => {
         // Batalkan pemuatan yang mungkin masih berjalan, lalu reset total.
@@ -789,6 +938,7 @@ export function usePianoPlayback({
         pause,
         resume,
         stop,
+        seek,
         handleUserPress,
     };
 }

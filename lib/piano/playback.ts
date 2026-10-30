@@ -17,6 +17,22 @@ export type PlaybackMode = "learn" | "autoplay";
 /** Berapa lama bar panduan jatuh dari atas kanvas sampai ke garis tuts. */
 export const LEARN_LEAD_MS = 2000;
 
+/**
+ * Opsi tambahan saat scheduler menekan tuts — hanya dipakai setelah seek.
+ *
+ * Tanpa ini, seek ke tengah not panjang akan memulai notnya dari awal (attack
+ * baru) dan bar-nya dari ketinggian nol, padahal lagu sudah berjalan beberapa
+ * detik di dalam not itu.
+ */
+export interface PressNoteOptions {
+    /** posisi (ms) ke dalam not — audio mulai dari tengah sampel */
+    offsetMs?: number;
+    /** nada akhir eksplisit; kalau diisi, transpose slider diabaikan */
+    midi?: number;
+    /** tinggi awal bar (ms) supaya bar sejajar timeline */
+    barPriorMs?: number;
+}
+
 /** Satu bar panduan yang sedang terlihat di mode learn. */
 export interface GuideNote {
     /** label tuts — engine mencari x/lebarnya sendiri dari keyGeomRef */

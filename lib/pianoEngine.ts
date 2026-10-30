@@ -251,10 +251,15 @@ class PianoEngine {
      * Hentikan SEMUA suara, tanpa peduli sustain. Dipakai saat lagu di-pause,
      * di-stop, atau selesai: kalau hanya stopNote(), pedal yang sedang diinjak
      * akan menahan not terakhir tetap berbunyi setelah lagunya berhenti.
+     *
+     * `fadeSec` bisa diperpendek untuk seek: posisi lama harus hilang nyaris
+     * seketika supaya tidak menumpuk dengan not dari posisi baru, tapi tetap
+     * tanpa klik. Pemanggil lama tidak berubah (default = release normal).
      */
-    allNotesOff(): void {
+    allNotesOff(fadeSec: number = RELEASE_TIME): void {
+        const fade = Math.max(0.02, fadeSec);
         for (const label of [...this.activeVoices.keys()]) {
-            this._quickRelease(label);
+            this._quickRelease(label, fade);
         }
         this.sustainedKeys.clear();
     }
@@ -263,9 +268,12 @@ class PianoEngine {
     // Play a note.
     // noteLabel — used as voice key for retrigger/stop (e.g. "C4")
     // targetMidi — the actual MIDI pitch to play (after transpose)
+    // offsetSec — mulai dari tengah sampel (dipakai seek untuk not panjang).
+    //             Dalam detik WAKTU LAGU, bukan detik buffer: playbackRate
+    //             mengubah berapa detik buffer yang sudah terpakai.
     // ─────────────────────────────────────────────────────────────────────────
 
-    playNote(noteLabel: string, targetMidi: number): void {
+    playNote(noteLabel: string, targetMidi: number, offsetSec = 0): void {
         this.initAudio();
         const ctx = this.ctx!;
         const mg = this.masterGain!;
@@ -280,9 +288,17 @@ class PianoEngine {
 
         const semitones = targetMidi - SAMPLE_MAP[sampleName];
         const rate = semitonesToRate(semitones);
+        const offset = Math.max(0, offsetSec);
 
-        // Retrigger cleanly
-        this._hardStop(noteLabel);
+        // Detik buffer yang sudah terpakai = detik lagu × rate.
+        const bufferOffset = offset * rate;
+        if (bufferOffset >= buffer.duration) return; // sampelnya sudah habis
+
+        // Retrigger cleanly. Saat seek (offset > 0) nada lama bisa jadi masih
+        // dalam fade dari allNotesOff(); hentikan dengan fade 10 ms supaya
+        // transisi ke posisi baru tidak berklik.
+        if (offset > 0) this._quickRelease(noteLabel, 0.01);
+        else this._hardStop(noteLabel);
         this.sustainedKeys.delete(noteLabel);
 
         // Build voice: source → noteGain → masterGain → destination
@@ -293,19 +309,38 @@ class PianoEngine {
         source.playbackRate.value = rate;
         source.loop = false;
 
-        // Envelope — brief attack, then natural sample decay
+        // Envelope — brief attack, then natural sample decay. Kalau mulai dari
+        // tengah not, attack dilewati dan gain dimulai dari level decay yang
+        // kira-kira setara supaya tidak ada "serangan" baru di titik seek.
         const now = ctx.currentTime;
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(1.0, now + ATTACK_TIME);
-        gain.gain.setValueAtTime(1.0, now + ATTACK_TIME);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + NATURAL_DURATION);
+        if (offset > 0) {
+            const level = Math.pow(0.0001, Math.min(offset, NATURAL_DURATION) / NATURAL_DURATION);
+            const remaining = NATURAL_DURATION - offset;
+            gain.gain.setValueAtTime(Math.max(level, 0.0001), now);
+            if (remaining > 0.05) {
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + remaining);
+            }
+        } else {
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(1.0, now + ATTACK_TIME);
+            gain.gain.setValueAtTime(1.0, now + ATTACK_TIME);
+            gain.gain.exponentialRampToValueAtTime(
+                0.0001,
+                now + NATURAL_DURATION,
+            );
+        }
 
         source.connect(gain);
         gain.connect(mg);
-        source.start(now);
+        source.start(now, bufferOffset);
 
         this.activeVoices.set(noteLabel, { source, gain });
         source.onended = () => {
+            // Voice lama bisa selesai SETELAH label yang sama dipakai lagi
+            // (retrigger/seek). Tanpa cek identitas, onended-nya akan menghapus
+            // voice baru dari peta dan not itu tidak bisa di-release lagi —
+            // persis jenis nada nyangkut yang ingin dihindari setelah seek.
+            if (this.activeVoices.get(noteLabel)?.source !== source) return;
             this.activeVoices.delete(noteLabel);
             this.sustainedKeys.delete(noteLabel);
         };
@@ -329,19 +364,23 @@ class PianoEngine {
     // Internal: fade out and stop a voice
     // ─────────────────────────────────────────────────────────────────────────
 
-    private _quickRelease(noteLabel: string): void {
+    private _quickRelease(
+        noteLabel: string,
+        fadeSec: number = RELEASE_TIME,
+    ): void {
         const ctx = this.ctx;
         const voice = this.activeVoices.get(noteLabel);
         if (!ctx || !voice) return;
 
         const t = ctx.currentTime;
+        const fade = Math.max(0.02, fadeSec);
         const gp = voice.gain.gain;
         gp.cancelScheduledValues(t);
         gp.setValueAtTime(Math.max(gp.value, 0.0001), t);
-        gp.exponentialRampToValueAtTime(0.0001, t + RELEASE_TIME);
+        gp.exponentialRampToValueAtTime(0.0001, t + fade);
 
         try {
-            voice.source.stop(t + RELEASE_TIME + 0.1);
+            voice.source.stop(t + fade + 0.05);
         } catch (_) {
             /* already ended */
         }

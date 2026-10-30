@@ -13,6 +13,7 @@ import { pianoEngine } from "@/lib/pianoEngine";
 import {
     createGuideState,
     type GuideState,
+    type PressNoteOptions,
 } from "@/lib/piano/playback";
 
 // Keyboard Lock API — Chromium-only, requires fullscreen + secure context.
@@ -175,7 +176,7 @@ export interface UsePianoEngineOptions {
 export function usePianoEngine(options: UsePianoEngineOptions): {
     state: PianoEngineState;
     refs: PianoEngineRefs;
-    pressNote: (label: string) => void;
+    pressNote: (label: string, options?: PressNoteOptions) => void;
     releaseNote: (label: string) => void;
     /**
      * Lepas BAR saja, tanpa menghentikan audio atau sorotan tuts. Dipakai
@@ -430,7 +431,7 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     }, []);
 
     const animRegisterKey = useCallback(
-        (noteLabel: string, keyEl: HTMLElement) => {
+        (noteLabel: string, keyEl: HTMLElement, priorMs = 0) => {
             if (activeBarsRef.current[noteLabel]) return;
 
             // [LAMA — pre perf] Mengukur ulang tiap kali tuts ditekan:
@@ -469,7 +470,11 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
                 // Mulai dari 0, bukan 2px. Tambahan tinggi konstan akan
                 // membuat not bersambung saling menimpa 2px lagi meskipun
                 // laju tumbuh dan naik sudah sama.
-                height: 0,
+                //
+                // priorMs > 0 hanya terjadi setelah seek: not yang sudah
+                // berjalan sebagian harus langsung setinggi posisinya di
+                // timeline, bukan tumbuh dari garis tuts.
+                height: priorMs > 0 ? priorMs * PX_PER_MS : 0,
                 yOffset: 0,
                 isReleased: false,
                 keyEl,
@@ -833,6 +838,31 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     }, [resizeCanvas]);
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Canvas mengikuti ukuran area visualizer
+    //
+    // Dulu hanya window "resize" yang memicu resizeCanvas(). Sekarang ada baris
+    // progress playback yang muncul/hilang di atas visualizer, jadi tinggi
+    // canvas bisa berubah TANPA window berubah — tanpa observer ini, buffer
+    // canvas tetap ukuran lama dan semua bar tergambar melar/terpotong.
+    // ─────────────────────────────────────────────────────────────────────────
+    useEffect(() => {
+        const el = vizAreaRef.current;
+        if (!el || typeof ResizeObserver === "undefined") return;
+
+        let lastW = el.clientWidth;
+        let lastH = el.clientHeight;
+        const ro = new ResizeObserver(() => {
+            if (el.clientWidth === lastW && el.clientHeight === lastH) return;
+            lastW = el.clientWidth;
+            lastH = el.clientHeight;
+            resizeCanvas();
+        });
+        ro.observe(el);
+
+        return () => ro.disconnect();
+    }, [resizeCanvas]);
+
+    // ─────────────────────────────────────────────────────────────────────────
     // pressNote / releaseNote — stable callbacks, zero React state on note events
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -851,22 +881,33 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     }, []);
 
     const pressNote = useCallback(
-        (noteLabel: string) => {
+        (noteLabel: string, options?: PressNoteOptions) => {
             const el = keyElementsRef.current[noteLabel];
             if (!el || el.classList.contains(activeClassName)) return;
 
             el.classList.add(activeClassName);
 
+            const offsetMs = options?.offsetMs ?? 0;
+
             const baseMidi = MIDI_BY_LABEL[noteLabel];
             if (baseMidi !== undefined) {
-                const targetMidi = baseMidi + transposeRef.current;
-                pianoEngine.playNote(noteLabel, targetMidi);
+                // midi eksplisit dipakai seek: nada dari sebelum perubahan
+                // transpose harus tetap berbunyi di pitch aslinya, sedangkan
+                // transposeRef sudah menunjuk transpose di titik seek.
+                const targetMidi = options?.midi ?? baseMidi + transposeRef.current;
+                pianoEngine.playNote(
+                    noteLabel,
+                    targetMidi,
+                    offsetMs > 0 ? offsetMs / 1000 : 0,
+                );
             }
 
             // [BARU] Di mode learn bar naik dimatikan — lihat barsEnabledRef.
             // releaseNote tetap aman dipanggil nanti: animReleaseKey langsung
             // keluar kalau tidak ada bar untuk not itu.
-            if (barsEnabledRef.current) animRegisterKey(noteLabel, el);
+            if (barsEnabledRef.current) {
+                animRegisterKey(noteLabel, el, options?.barPriorMs ?? offsetMs);
+            }
 
             // [BARU — perf 1.4] Nyalakan loop kalau sedang idle. Aman
             // dipanggil berulang — kickLoop() langsung keluar kalau loop
@@ -1068,6 +1109,18 @@ export function usePianoEngine(options: UsePianoEngineOptions): {
     useEffect(() => {
         function onKeyDown(e: KeyboardEvent): void {
             if (isTextEntryTarget(e.target)) return;
+
+            // Slider progress lagu juga sebuah <input type="range">, tapi ia
+            // BUKAN kontrol volume/transpose: panah & Home/End harus menggeser
+            // posisi lagu, bukan volume. Space juga jangan men-toggle sustain
+            // saat fokus ada di sana. Tombol huruf tetap lolos supaya piano
+            // tidak mati hanya karena slider pernah diklik.
+            const seekSlider =
+                e.target instanceof HTMLElement &&
+                e.target.hasAttribute("data-piano-seek");
+            if (seekSlider && (ARROW_CODES.has(e.code) || e.code === "Space")) {
+                return;
+            }
 
             if (ARROW_CODES.has(e.code)) {
                 e.preventDefault();

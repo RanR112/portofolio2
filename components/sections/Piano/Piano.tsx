@@ -44,6 +44,7 @@ import keyStyles from "@/components/piano/PianoKey/PianoKey.module.scss";
 import { usePianoEngine } from "@/hooks/usePianoEngine";
 import { usePianoPlayback } from "@/hooks/usePianoPlayback";
 import PianoControls from "@/components/piano/PianoControls/PianoControls";
+import PlaybackProgress from "@/components/piano/PlaybackProgress/PlaybackProgress";
 import BarLayer from "@/components/piano/BarLayer/BarLayer";
 import PianoKey from "@/components/piano/PianoKey/PianoKey";
 import { buildKeyboard, KEY_GRADIENTS, type KeyMode } from "@/lib/keyMap";
@@ -214,6 +215,18 @@ export default function Piano() {
         }
     }, []);
 
+    // Progress bar hanya untuk Autoplay: mode learn bukan playback (jamnya
+    // menunggu input user), jadi tidak ada timeline yang bisa ditampilkan.
+    const autoplayState =
+        playback.state.status === "running" &&
+        playback.state.song.mode === "autoplay"
+            ? playback.state
+            : null;
+
+    // Ref ke baris progress: panel Sheets memakainya untuk duduk DI BAWAH bar,
+    // bukan menimpanya.
+    const progressBarRef = useRef<HTMLDivElement>(null);
+
     return (
         <div className={styles.root}>
             {/* Orientation overlay */}
@@ -251,6 +264,8 @@ export default function Piano() {
                 onSheetsOpenChange={setSheetsOpen}
                 sheetText={sheetText}
                 onSheetTextChange={setSheetText}
+                progressVisible={autoplayState !== null}
+                progressRef={progressBarRef}
                 playbackStatus={playback.uiStatus}
                 playbackError={
                     playback.state.status === "error"
@@ -273,6 +288,18 @@ export default function Piano() {
                 onResumePlayback={playback.resume}
                 onStopPlayback={playback.stop}
             />
+
+            {/* Playback progress — hanya saat Autoplay jalan/dijeda */}
+            {autoplayState && (
+                <PlaybackProgress
+                    title={autoplayState.song.entry.title}
+                    durationMs={autoplayState.song.parsed.durationMs}
+                    elapsedRef={playback.elapsedRef}
+                    playing={!autoplayState.paused}
+                    onSeek={playback.seek}
+                    barRef={progressBarRef}
+                />
+            )}
 
             {/* Visualization — React.memo'd, never re-renders after mount */}
             <BarLayer canvasRef={canvasRef} vizAreaRef={vizAreaRef} />

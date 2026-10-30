@@ -561,6 +561,9 @@
             "stop": "Stop",
             "sustainAuto": "AUTO",
             "sustainAutoHint": "Sustain is controlled by the song while it plays (pedal from its MIDI). Your toggle comes back when playback stops.",
+            "progressAria": "Playback position",
+            "sheetsDrag": "DRAG",
+            "sheetsDragHint": "Drag to move the sheets panel",
             "filterInsane": "Insane",
             "needsKeyboardLock": "Learn mode for 88-key songs needs Keyboard Lock, which only Chromium browsers (Chrome/Edge) provide in fullscreen. Those extra keys cannot be pressed here — try Autoplay instead."
         }

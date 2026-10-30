@@ -25,6 +25,7 @@ import { Logo } from "@/assets/index.assets";
 import {
     ChevronDown,
     FileMusic,
+    GripHorizontal,
     Info,
     Maximize,
     Minimize,
@@ -96,6 +97,13 @@ interface PianoControlsProps {
     onSheetsOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
     sheetText: string;
     onSheetTextChange: React.Dispatch<React.SetStateAction<string>>;
+    /**
+     * Baris progress playback sedang tampil (autoplay jalan/dijeda). Panel
+     * Sheets memakainya untuk turun ke bawah bar saat bar itu muncul.
+     */
+    progressVisible: boolean;
+    /** Elemen baris progress — panel Sheets duduk di bawahnya. */
+    progressRef: React.RefObject<HTMLDivElement | null>;
 
     // [BARU] Pemutaran lagu — state machine-nya ada di usePianoPlayback.
     playbackStatus: PlaybackUiStatus;
@@ -137,6 +145,8 @@ const PianoControls = React.memo(function PianoControls({
     onSheetsOpenChange: setSheetsOpen,
     sheetText: sheetsText,
     onSheetTextChange: setSheetsText,
+    progressVisible,
+    progressRef,
     playbackStatus,
     playbackError,
     playbackErrorCode,
@@ -278,6 +288,207 @@ const PianoControls = React.memo(function PianoControls({
     // bayangan lewat transform (sheetsMirrorInnerRef) selagi auto-scroll aktif.
     const sheetsBoxRef = useRef<HTMLDivElement>(null);
     const sheetsMirrorInnerRef = useRef<HTMLDivElement>(null);
+
+    // ── [BARU] Panel Sheets: floating + bisa digeser ────────────────────────
+    // Posisi ditulis langsung ke style transform lewat ref, bukan state.
+    // pointermove bisa 60–120×/detik dan PianoControls ikut me-render
+    // textarea + mirror auto-scroll — terlalu mahal kalau tiap gerakan
+    // memicu render. State tidak dipakai sama sekali untuk posisi.
+    const headerRef = useRef<HTMLDivElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const panelPosRef = useRef<{ x: number; y: number } | null>(null);
+    // true = user pernah menggeser panel. Selama false, panel direposisi
+    // otomatis ke bawah bar durasi saat bar itu muncul.
+    const panelMovedRef = useRef(false);
+    const panelDragRef = useRef<{
+        pointerId: number;
+        startX: number;
+        startY: number;
+        originX: number;
+        originY: number;
+    } | null>(null);
+    const bodyCursorRef = useRef("");
+
+    /** Batasi posisi supaya panel selalu utuh di dalam viewport. */
+    const clampPanelPos = useCallback((x: number, y: number) => {
+        const panel = panelRef.current;
+        if (!panel) return { x, y };
+        const margin = 8;
+        const maxX = Math.max(
+            margin,
+            window.innerWidth - panel.offsetWidth - margin,
+        );
+        const maxY = Math.max(
+            margin,
+            window.innerHeight - panel.offsetHeight - margin,
+        );
+        return {
+            x: Math.min(Math.max(x, margin), maxX),
+            y: Math.min(Math.max(y, margin), maxY),
+        };
+    }, []);
+
+    /** Tulis posisi ke DOM. `data-ready` memunculkan panel (fade) pertama kali. */
+    const applyPanelPos = useCallback(
+        (x: number, y: number) => {
+            const panel = panelRef.current;
+            if (!panel) return;
+            const next = clampPanelPos(x, y);
+            panelPosRef.current = next;
+            panel.style.transform = `translate3d(${next.x}px, ${next.y}px, 0)`;
+            panel.dataset.ready = "true";
+        },
+        [clampPanelPos],
+    );
+
+    /**
+     * Posisi default: rata kanan, 8px di bawah baris progress kalau ada —
+     * kalau tidak (learn / belum autoplay), di bawah header seperti dulu.
+     */
+    const defaultPanelPos = useCallback(() => {
+        const panel = panelRef.current;
+        if (!panel) return null;
+        const headerBottom =
+            headerRef.current?.getBoundingClientRect().bottom ?? 0;
+        const progressBottom =
+            progressRef.current?.getBoundingClientRect().bottom;
+        const anchorY = Math.max(headerBottom, progressBottom ?? headerBottom);
+        return {
+            x: window.innerWidth - panel.offsetWidth - 12,
+            y: anchorY + 8,
+        };
+    }, [progressRef]);
+
+    const placePanel = useCallback(() => {
+        if (!panelRef.current) return;
+        // Panel yang sudah digeser user tidak diusik — hormati pilihannya.
+        if (panelMovedRef.current && panelPosRef.current) {
+            applyPanelPos(panelPosRef.current.x, panelPosRef.current.y);
+            return;
+        }
+        const pos = defaultPanelPos();
+        if (pos) applyPanelPos(pos.x, pos.y);
+    }, [applyPanelPos, defaultPanelPos]);
+
+    // Pasang posisi setelah panel benar-benar ada di DOM (effect berjalan
+    // setelah commit, jadi ref-nya sudah terisi). Ini juga yang mengembalikan
+    // posisi terakhir saat panel dibuka lagi.
+    useEffect(() => {
+        if (!sheetsOpen) return;
+
+        placePanel();
+
+        const onResize = () => {
+            if (panelMovedRef.current && panelPosRef.current) {
+                applyPanelPos(panelPosRef.current.x, panelPosRef.current.y);
+            } else {
+                const pos = defaultPanelPos();
+                if (pos) applyPanelPos(pos.x, pos.y);
+            }
+        };
+        window.addEventListener("resize", onResize);
+        return () => window.removeEventListener("resize", onResize);
+    }, [sheetsOpen, placePanel, applyPanelPos, defaultPanelPos]);
+
+    // Bar durasi muncul saat panel sudah terbuka (playback dimulai): panel
+    // yang belum pernah digeser turun ke bawah bar. Saat bar HILANG panel
+    // sengaja tidak digeser — supaya tidak melompat di tengah membaca sheet.
+    useEffect(() => {
+        if (!sheetsOpen || !progressVisible) return;
+        placePanel();
+    }, [sheetsOpen, progressVisible, placePanel]);
+
+    // Tinggi panel bisa berubah tanpa resize window: kontrol auto-scroll
+    // muncul/hilang saat lagu berhenti/diputar. Clamp ulang supaya panel
+    // tidak terpotong di tepi bawah viewport.
+    useEffect(() => {
+        const panel = panelRef.current;
+        if (!sheetsOpen || !panel) return;
+        const observer = new ResizeObserver(() => {
+            if (panelPosRef.current) {
+                applyPanelPos(panelPosRef.current.x, panelPosRef.current.y);
+            }
+        });
+        observer.observe(panel);
+        return () => observer.disconnect();
+    }, [sheetsOpen, applyPanelPos]);
+
+    const onPanelDragStart = useCallback(
+        (e: React.PointerEvent<HTMLDivElement>) => {
+            if (e.button !== 0) return;
+            if (panelDragRef.current) return;
+            // Tombol close (atau kontrol lain) di header tetap harus bisa diklik.
+            if ((e.target as HTMLElement).closest("button")) return;
+
+            const panel = panelRef.current;
+            if (!panel) return;
+
+            const rect = panel.getBoundingClientRect();
+            panelDragRef.current = {
+                pointerId: e.pointerId,
+                startX: e.clientX,
+                startY: e.clientY,
+                originX: rect.left,
+                originY: rect.top,
+            };
+            e.currentTarget.setPointerCapture(e.pointerId);
+            e.preventDefault();
+            panel.dataset.dragging = "true";
+            bodyCursorRef.current = document.body.style.cursor;
+            document.body.style.cursor = "grabbing";
+        },
+        [],
+    );
+
+    const onPanelDragMove = useCallback(
+        (e: React.PointerEvent<HTMLDivElement>) => {
+            const drag = panelDragRef.current;
+            if (!drag || drag.pointerId !== e.pointerId) return;
+            // Klik tanpa gerakan tidak dihitung "digeser", supaya panel tetap
+            // ikut auto-nudge saat bar durasi muncul kemudian.
+            if (e.clientX !== drag.startX || e.clientY !== drag.startY) {
+                panelMovedRef.current = true;
+            }
+            applyPanelPos(
+                drag.originX + (e.clientX - drag.startX),
+                drag.originY + (e.clientY - drag.startY),
+            );
+        },
+        [applyPanelPos],
+    );
+
+    const onPanelDragEnd = useCallback(
+        (e: React.PointerEvent<HTMLDivElement>) => {
+            const drag = panelDragRef.current;
+            if (!drag || e.pointerId !== drag.pointerId) return;
+            panelDragRef.current = null;
+            if (e.currentTarget.hasPointerCapture(drag.pointerId)) {
+                e.currentTarget.releasePointerCapture(drag.pointerId);
+            }
+            if (panelRef.current) delete panelRef.current.dataset.dragging;
+            document.body.style.cursor = bodyCursorRef.current;
+        },
+        [],
+    );
+
+    // Panel ditutup (mis. shortcut "/") tepat saat drag: lepaskan state drag
+    // dan jangan tinggalkan cursor "grabbing" yang menempel di body.
+    useEffect(() => {
+        if (sheetsOpen) return;
+        panelDragRef.current = null;
+        if (document.body.style.cursor === "grabbing") {
+            document.body.style.cursor = bodyCursorRef.current;
+        }
+    }, [sheetsOpen]);
+
+    useEffect(
+        () => () => {
+            if (document.body.style.cursor === "grabbing") {
+                document.body.style.cursor = bodyCursorRef.current;
+            }
+        },
+        [],
+    );
 
     /**
      * Apakah pembukaan panel berikutnya layak mengambil fokus keyboard.
@@ -565,7 +776,7 @@ const PianoControls = React.memo(function PianoControls({
     );
 
     return (
-        <div className={styles.header}>
+        <div className={styles.header} ref={headerRef}>
             <button
                 type="button"
                 className={styles.logo}
@@ -741,13 +952,31 @@ const PianoControls = React.memo(function PianoControls({
                 parsing/pemutaran. */}
             {sheetsOpen && (
                 <div
+                    ref={panelRef}
                     className={styles.sheetsPanel}
                     role="dialog"
                     aria-label="Sheets"
                 >
-                    <div className={styles.sheetsPanelHeader}>
+                    {/* Header = handle drag. Sengaja seluruh baris bisa
+                        dipegang (bukan cuma ikon grip) supaya targetnya besar;
+                        tombol close dikecualikan di onPanelDragStart. */}
+                    <div
+                        className={styles.sheetsPanelHeader}
+                        title={t("player.sheetsDragHint")}
+                        onPointerDown={onPanelDragStart}
+                        onPointerMove={onPanelDragMove}
+                        onPointerUp={onPanelDragEnd}
+                        onPointerCancel={onPanelDragEnd}
+                        onLostPointerCapture={onPanelDragEnd}
+                    >
+                        <span className={styles.sheetsGrip} aria-hidden="true">
+                            <GripHorizontal size={14} />
+                        </span>
                         <span className={styles.sheetsPanelTitle}>
                             SHEETS
+                        </span>
+                        <span className={styles.sheetsDragHint}>
+                            {t("player.sheetsDrag")}
                         </span>
                         <button
                             type="button"

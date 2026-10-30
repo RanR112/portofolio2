@@ -12,6 +12,7 @@
     "songs": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/buildSongs.mjs",
     "songs:preview": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/previewTab.mjs",
     "check:learn": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/checkLearn.mjs",
+    "check:seek": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/checkSeek.mjs",
     "midi:tab": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/midiToTab.mjs",
     "midi:timing": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/midiTiming.mjs",
     "midi:visual": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/visualTiming.mjs",

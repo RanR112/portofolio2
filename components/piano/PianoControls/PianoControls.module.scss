@@ -4,8 +4,9 @@
 // Header bar
 // ─────────────────────────────────────────────────────────────────────────────
 .header {
-    // [BARU] position: relative — dibutuhkan sebagai containing block untuk
-    // .sheetsPanel (position: absolute, ditempel ke pojok kanan-atas header).
+    // position: relative — tetap dipakai sebagai titik ukur (headerRef) untuk
+    // posisi default panel Sheets saat tidak ada bar durasi. Panelnya sendiri
+    // position: fixed karena bisa digeser bebas.
     position: relative;
     flex: 0 0 auto;
     display: flex;
@@ -348,15 +349,16 @@
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// [BARU] Sheets panel — box di pojok kanan-atas, dibuka lewat tombol Sheets
-// atau shortcut "/". Ditempel ke .header (position: relative di atas),
-// bukan ke tombolnya sendiri — supaya terasa seperti panel utuh, bukan
-// dropdown kecil seperti Bar Color.
+// [BARU] Sheets panel — floating, bisa digeser lewat header-nya, dibuka lewat
+// tombol Sheets atau shortcut "/". Posisi ditulis inline (transform) oleh
+// PianoControls; defaultnya di bawah bar durasi saat autoplay.
 // ─────────────────────────────────────────────────────────────────────────────
 .sheetsPanel {
-    position: absolute;
-    top: 100%;
-    right: 12px;
+    // fixed (bukan absolute ke .header): posisi harus bebas dari layout header
+    // yang bisa wrap di layar kecil, dan drag butuh koordinat viewport.
+    position: fixed;
+    top: 0;
+    left: 0;
     z-index: 200;
     display: flex;
     flex-direction: column;
@@ -365,43 +367,97 @@
     border: 1px solid v.$border;
     border-radius: 8px;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    will-change: transform;
+    // Belum terlihat sampai PianoControls memasang posisi pertamanya
+    // (data-ready) — mencegah panel sempat berkedip di pojok kiri atas.
+    opacity: 0;
+}
+
+.sheetsPanel[data-ready="true"] {
     animation: sheetsPanelIn 140ms ease both;
 }
 
+// Fade saja — transform dipakai untuk posisi drag, jadi tidak boleh ada
+// animasi translate di sini yang menimpanya.
 @keyframes sheetsPanelIn {
     from {
         opacity: 0;
-        transform: translateY(-6px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
     }
 }
 
 .sheetsPanelHeader {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 8px 8px 8px 14px;
+    gap: 8px;
+    padding: 8px 8px 8px 12px;
     border-bottom: 1px solid v.$border;
+    // Seluruh header adalah handle drag.
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+
+    &:active {
+        cursor: grabbing;
+    }
+}
+
+.sheetsGrip {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    color: v.$text-dim;
+    transition: color 120ms ease;
+}
+
+.sheetsPanelHeader:hover .sheetsGrip {
+    color: v.$accent;
+}
+
+// Selagi drag, cursor grabbing harus menang atas cursor text/I-beam bawaan
+// textarea (pointer capture membuat pointer bisa berada di atas textarea).
+.sheetsPanel[data-dragging="true"],
+.sheetsPanel[data-dragging="true"] * {
+    cursor: grabbing !important;
 }
 
 .sheetsPanelTitle {
+    flex: 0 0 auto;
     font-family: v.$font-mono;
     font-size: 0.68rem;
     letter-spacing: 0.12em;
     color: v.$text-dim;
 }
 
+// Penanda "bisa digeser" — sengaja teks, bukan cuma ikon, supaya jelas.
+.sheetsDragHint {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-align: right;
+    font-family: v.$font-mono;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    color: v.$text-dim;
+    opacity: 0.6;
+}
+
 // [BARU] Box tetap (tinggi+lebar tidak bisa di-resize user) yang membungkus
 // textarea asli DAN bayangannya (mirror) di atas satu sama lain — keduanya
 // position:absolute inset:0 relatif ke wrapper ini. Lihat efek auto-scroll
 // di komponennya untuk alasan lengkap adanya mirror.
+//
+// Tinggi menyusut di layar pendek supaya panel masih muat di bawah bar durasi
+// (mobile landscape). Mirror mengukur clientHeight secara dinamis, jadi
+// auto-scroll tetap akurat.
 .sheetsTextareaWrap {
     position: relative;
     margin: 12px;
-    height: 200px;
+    height: clamp(120px, 34vh, 200px);
 }
 
 .sheetsTextarea {
