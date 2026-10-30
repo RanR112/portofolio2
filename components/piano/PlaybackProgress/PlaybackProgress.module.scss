@@ -1,0 +1,166 @@
+@use "../../../styles/variables.scss" as v;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Baris progress playback — muncul hanya saat Autoplay berjalan/dijeda.
+//
+// Tinggi baris ini tetap (tidak berubah saat drag), jadi satu-satunya perubahan
+// layout adalah muncul/hilangnya baris. Canvas visualizer menyesuaikan diri
+// lewat ResizeObserver di usePianoEngine.
+// ─────────────────────────────────────────────────────────────────────────────
+.bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 42px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    background: v.$surface;
+    border-bottom: 1px solid v.$border;
+    z-index: 90;
+
+    @media (max-width: 900px) {
+        height: 38px;
+        padding: 0 12px;
+        gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+        gap: 8px;
+        padding: 0 8px;
+    }
+}
+
+.title {
+    flex: 0 1 auto;
+    max-width: 26%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: v.$font-mono;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: v.$text-dim;
+
+    @media (max-width: 600px) {
+        display: none;
+    }
+}
+
+.time {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: v.$font-mono;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: v.$text-dim;
+    font-variant-numeric: tabular-nums;
+
+    @media (max-width: 600px) {
+        font-size: 0.68rem;
+        gap: 3px;
+    }
+}
+
+.current {
+    color: v.$accent;
+}
+
+.separator {
+    opacity: 0.5;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Track kustom + input transparan di atasnya
+// ─────────────────────────────────────────────────────────────────────────────
+.trackWrap {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 60px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.track {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: v.$border;
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+
+    // Cincin fokus keyboard. :focus-within hanya menyala saat slider memang
+    // difokus (klik/drag juga memfokus), jadi tidak mengganggu tampilan biasa.
+    .trackWrap:focus-within & {
+        box-shadow: 0 0 0 2px rgba(201, 168, 108, 0.35);
+    }
+}
+
+.fill {
+    position: absolute;
+    inset: 0;
+    background: v.$accent;
+    transform: scaleX(0);
+    transform-origin: left center;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(201, 168, 108, 0.5);
+    will-change: transform;
+}
+
+.thumb {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: v.$accent;
+    box-shadow: 0 0 8px rgba(201, 168, 108, 0.7);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    will-change: left;
+}
+
+// Input asli: menutupi seluruh trackWrap supaya area klik/drag lega, tapi
+// transparan. Thumb bawaannya disembunyikan — yang terlihat .thumb di atas.
+.slider {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+    }
+
+    &::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border: 0;
+    }
+}
+
+// Umpan balik hover tanpa state React. Thumb dirender sebelum input, jadi
+// memakai :hover pada wrapper (bukan sibling selector).
+.trackWrap:hover .track {
+    box-shadow: 0 0 0 1px rgba(201, 168, 108, 0.35);
+}
+
+.trackWrap:hover .thumb {
+    transform: translate(-50%, -50%) scale(1.2);
+}
